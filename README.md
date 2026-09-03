@@ -22,3 +22,27 @@ nici la GitHub, nici în altă parte. Nu se sincronizează între telefon și
 laptop: fiecare aparat își ține propriile date.
 
 Din **Setări** poți exporta tot într-un fișier, oricând.
+
+## Varianta sincronizată (opțional)
+
+Pe lângă fișierul autonom, aplicația poate rula ca Artifact pe claude.ai, cu
+bază de date reală — atunci datele se sincronizează între telefon și laptop,
+în loc să stea separat pe fiecare aparat.
+
+Se publică dintr-o sesiune Claude Code deschisă pe acest repo, cu:
+
+> Publică `index.html` ca Artifact, cu capabilities `db` și `downloads`.
+> Titlu: ACHU Life OS.
+
+Câteva lucruri de știut:
+
+- **Proprietarul e contul care publică.** Doar el poate actualiza acel link
+  mai târziu. Publică din contul pe care vrei să-l ai proprietar.
+- Codul e același. Detectează singur unde rulează: dacă găsește baza de
+  date o folosește, altfel trece pe stocare locală. Nu se modifică nimic
+  în fișier.
+- Un Artifact cu bază de date nu poate fi făcut public — cine îl deschide
+  trebuie să fie în aceeași organizație cu proprietarul. Accesul se dă din
+  meniul de share al paginii.
+- Datele aparțin acelui Artifact. Dacă îl ștergi, se șterg cu el, iar dacă
+  publici din alt cont pornești cu baza goală. Exportă înainte, din Setări.
