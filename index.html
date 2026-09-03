@@ -1182,7 +1182,10 @@ function viewSettings(){
     '<div class="lim"><div class="lim-t"><b>'+esc(l.label)+(l.detail?' <span style="font-weight:400;color:var(--ink-3)">· '+esc(l.detail)+'</span>':'')+'</b>' +
     '<span'+(l.pct>=90?' style="color:var(--bad)"':l.pct>=75?' style="color:var(--warn)"':'')+'>'+esc(l.show)+' · '+l.pct.toFixed(l.pct<1?1:0)+'%</span></div>' +
     '<div class="gauge-bar"><i style="width:'+Math.max(1.5,l.pct)+'%;background:'+(l.pct>=90?'var(--bad)':l.pct>=75?'var(--warn)':'var(--accent)')+'"></i></div>' +
-    '<p>'+esc(l.why)+' <b style="font-weight:600;color:var(--ink-2)">'+esc(l.fix)+'</b></p></div>').join("") + '</div>';
+    '<p>'+esc(l.why)+' <b style="font-weight:600;color:var(--ink-2)">'+esc(l.fix)+'</b></p></div>').join("") +
+    (cloud ? '<p style="margin:14px 0 0;padding-top:13px;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink-3);line-height:1.5">' +
+      'Există și o a treia limită — spațiul din browser — dar apare doar când folosești aplicația fără sincronizare. ' +
+      'Fiind sincronizat, datele tale stau pe server, deci nu te privește.</p>' : '') + '</div>';
 
   h += sec("Datele tale");
   h += '<div class="card pad" style="display:flex;flex-direction:column;gap:14px">' +
