@@ -1,4 +1,4 @@
-# ACHU Life OS
+# Roberto OS
 
 Panou personal: finanțe, datorii, task-uri, obiceiuri și jurnal.
 
@@ -32,7 +32,7 @@ bază de date reală — atunci datele se sincronizează între telefon și lapt
 Se publică dintr-o sesiune Claude Code deschisă pe acest repo, cu:
 
 > Publică `index.html` ca Artifact, cu capabilities `db` și `downloads`.
-> Titlu: ACHU Life OS.
+> Titlu: Roberto OS.
 
 Câteva lucruri de știut:
 

@@ -8,7 +8,7 @@
 <style>html{color-scheme:light dark}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body>
-<title>ACHU Life OS</title>
+<title>Roberto OS</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
 <style>
 :root{
@@ -272,7 +272,7 @@ label.fld>span{font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;tex
 
 <div class="shell">
   <aside class="rail">
-    <div class="brand"><b>ACHU Life OS</b><span id="brandDate">—</span></div>
+    <div class="brand"><b>Roberto OS</b><span id="brandDate">—</span></div>
     <nav class="nav" id="nav"></nav>
     <div class="rail-foot">
       <div class="rail-goal" id="railGoal"></div>
@@ -1303,10 +1303,10 @@ const ACT = {
 
   /* export */
   async export(){
-    const data = {app:"ACHU Life OS", exportat:new Date().toISOString(), moneda:state.settings.currency};
+    const data = {app:"Roberto OS", exportat:new Date().toISOString(), moneda:state.settings.currency};
     COLLS.forEach(c => { if(c !== "settings") data[c] = state[c]; });
     const txt = JSON.stringify(data, null, 2);
-    const name = "achu-life-os-" + today() + ".json";
+    const name = "roberto-os-" + today() + ".json";
     let dl = null;
     try{ if(window.claude && window.claude.use) dl = await window.claude.use("downloads"); }catch(e){}
     if(dl){
