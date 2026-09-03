@@ -192,6 +192,15 @@ label.fld>span{font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;tex
 .modal header h3{margin:0;font-size:17px;font-weight:700;letter-spacing:-.015em;flex:1}
 .modal .body{padding:16px 20px;display:flex;flex-direction:column;gap:13px}
 .modal footer{padding:0 20px 18px;display:flex;gap:9px;justify-content:flex-end}
+.heroes{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:12px;margin-bottom:6px}
+.heroes .hero{margin-bottom:0;height:100%}
+.strips{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+.strips .strip{flex:1 1 240px;margin-bottom:0}
+.rail-one{display:flex;flex-direction:column;gap:4px}
+.rail-one+.rail-one{margin-top:9px}
+.chip{padding:7px 12px;border-radius:20px;border:1px solid var(--line-strong);background:var(--surface);font-size:13.5px;font-weight:500;color:var(--ink-2)}
+.chip:hover{border-color:var(--accent);color:var(--ink)}
+.chip.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:600}
 .hero{background:var(--accent-soft);border:1px solid var(--accent);border-radius:12px;padding:19px 21px;display:flex;flex-direction:column;gap:14px;margin-bottom:6px}
 .hero-top{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .hero .cur{font-family:var(--f-mono);font-size:33px;font-weight:600;color:var(--accent-ink);letter-spacing:-.025em;font-variant-numeric:tabular-nums}
@@ -256,6 +265,8 @@ label.fld>span{font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;tex
   .modal footer{flex-direction:column-reverse;padding-bottom:calc(18px + env(safe-area-inset-bottom,0px))}
   .modal footer .btn{width:100%;justify-content:center;padding:12px}
   .hero{padding:16px 17px}
+  .heroes{grid-template-columns:1fr}
+  .strips{flex-direction:column;gap:8px}
   .hero .cur{font-size:26px}
   .hero .pc{font-size:20px}
   .hero .of{order:3;flex-basis:100%;margin-top:-6px}
@@ -479,12 +490,14 @@ function paintMode(){
     : "Datele stau doar în acest browser. Exportă-le regulat din Setări.";
 }
 function paintRailGoal(){
-  const g = mainGoal(), box = $("#railGoal");
-  if(!g){ box.innerHTML = ""; return; }
-  const pct = gPct(g);
-  box.innerHTML = '<div class="gauge-t"><span>'+esc(g.name)+'</span><span>'+pct.toFixed(0)+'%</span></div>' +
-    '<div class="gauge-bar"><i style="width:'+Math.max(pct,1.5)+'%"></i></div>' +
-    '<div class="gauge-t"><span class="num" style="letter-spacing:0;text-transform:none">'+money(gCur(g))+' / '+money(num(g.target))+'</span></div>';
+  const box = $("#railGoal"), a = anchors();
+  box.innerHTML = a.map(g => {
+    const pct = gPct(g), ready = gHasTarget(g);
+    return '<div class="rail-one"><div class="gauge-t"><span>'+esc(g.name)+'</span><span>'+(ready?pct.toFixed(0)+'%':'—')+'</span></div>' +
+      '<div class="gauge-bar"><i style="width:'+Math.max(pct,1.5)+'%"></i></div>' +
+      '<div class="gauge-t"><span class="num" style="letter-spacing:0;text-transform:none">'+
+        (ready ? gFmt(g, gCur(g)) + ' / ' + gFmt(g, num(g.target)) : 'de completat') + '</span></div></div>';
+  }).join("");
 }
 function paintGauge(){
   const n = Store.count(), pct = Math.min(100, n/5000*100);
@@ -540,21 +553,55 @@ const remaining = d => Math.max(0, num(d.total) - (d.payments||[]).reduce((s,p) 
 const paidOf = d => (d.payments||[]).reduce((s,p) => s + num(p.amount), 0);
 
 /* ══════════ Obiective: calcule ══════════ */
+/* Două feluri de obiectiv, măsurate diferit:
+   sum    — se adună contribuții spre o țintă (bani). Ritmul vine din Finanțe.
+   metric — o măsurătoare se mută de la un punct de plecare spre o țintă
+            (kg, %, cm). Ritmul vine din propriile citiri.               */
 const goalsAll = () => Object.keys(state.goals).map(id => Object.assign({id}, state.goals[id]));
-const gCur = g => (g.contrib||[]).reduce((s,c) => s + num(c.amount), 0);
-const gPct = g => num(g.target) ? Math.min(100, gCur(g)/num(g.target)*100) : 0;
-function mainGoal(){
-  const all = goalsAll();
-  if(!all.length) return null;
-  return all.find(g => g.main) || all.slice().sort((a,b) => num(b.target) - num(a.target))[0];
+const gKind = g => g.kind === "metric" ? "metric" : "sum";
+const gUnit = g => g.unit || "";
+const gFmt = (g, v) => {
+  if(gKind(g) === "sum") return money(v);
+  const u = gUnit(g), n = (Math.round(v*10)/10).toLocaleString("ro-RO");
+  return u ? n + (u === "%" ? "" : " ") + u : n;
+};
+const gReads = g => (g.reads||[]).slice().sort((x,y) => (x.date||"").localeCompare(y.date||""));
+const gHasTarget = g => g.target !== "" && g.target !== null && g.target !== undefined;
+function gCur(g){
+  if(gKind(g) === "sum") return (g.contrib||[]).reduce((s,c) => s + num(c.amount), 0);
+  const r = gReads(g);
+  return r.length ? num(r[r.length-1].value) : num(g.start);
 }
-/* ritmul real, din ultimele 3 luni cu mișcări în Finanțe */
+function gPct(g){
+  if(!gHasTarget(g)) return 0;
+  if(gKind(g) === "sum") return num(g.target) ? Math.max(0, Math.min(100, gCur(g)/num(g.target)*100)) : 0;
+  const st = num(g.start), tg = num(g.target), cur = gCur(g);
+  if(tg === st) return cur === tg ? 100 : 0;
+  return Math.max(0, Math.min(100, (cur - st)/(tg - st)*100));
+}
+const gDone = g => gHasTarget(g) && gPct(g) >= 100;
+function anchors(){
+  const all = goalsAll();
+  const pinned = all.filter(g => g.main);
+  if(pinned.length) return pinned.sort((a,b) => (a.createdAt||"").localeCompare(b.createdAt||""));
+  return all.length ? [all.slice().sort((a,b) => num(b.target)-num(a.target))[0]] : [];
+}
+/* ritmul banilor: media ultimelor 3 luni cu mișcări în Finanțe */
 function paceRate(){
   const keys = []; const d = new Date();
   for(let i = 2; i >= 0; i--){ const x = new Date(d); x.setMonth(x.getMonth()-i); keys.push(iso(x).slice(0,7)); }
   const withData = keys.filter(k => monthItems(k).length);
   if(!withData.length) return null;
   return withData.reduce((s,k) => s + monthTotals(k).bal, 0) / withData.length;
+}
+/* ritmul unei măsurători: din prima și ultima citire */
+function metricRate(g){
+  const r = gReads(g);
+  if(r.length < 2) return null;
+  const f = r[0], l = r[r.length-1];
+  const months = (new Date(l.date+"T12:00:00") - new Date(f.date+"T12:00:00"))/(864e5*30.44);
+  if(months < 0.2) return null;
+  return (num(l.value) - num(f.value))/months;
 }
 const monthsTo = due => {
   const a = new Date(), b2 = new Date(due+"T12:00:00");
@@ -564,54 +611,102 @@ function whenAt(months){
   const d = new Date(); d.setDate(d.getDate() + Math.round(months * 30.44));
   return MONTHS[d.getMonth()] + " " + d.getFullYear();
 }
-function goalFacts(g, isMain){
-  const rem = Math.max(0, num(g.target) - gCur(g)), rate = isMain ? paceRate() : null;
-  const out = [{k:"Rămas", v:money(rem)}];
-  if(g.due){
-    const m = monthsTo(g.due);
-    if(rem <= 0) out.push({k:"Termen", v:"atins"});
-    else if(m <= 0) out.push({k:"Termen", v:"depășit"});
-    else out.push({k:"Necesar pe lună", v:money(rem/m)});
+/* consecvența obiceiurilor legate de obiectiv, pe 30 de zile */
+function gStreakPct(g){
+  const ids = (g.habits||[]).filter(id => state.habits[id]);
+  if(!ids.length) return null;
+  const days = []; const d = new Date();
+  for(let i = 0; i < 30; i++){ const x = new Date(d); x.setDate(x.getDate()-i); days.push(iso(x)); }
+  let hit = 0;
+  ids.forEach(id => { const log = state.habits[id].log || {}; days.forEach(x => { if(log[x]) hit++; }); });
+  return hit/(ids.length*30)*100;
+}
+function goalFacts(g, isAnchor){
+  if(!gHasTarget(g)) return [];
+  const out = [], cur = gCur(g), tgt = num(g.target);
+  if(gKind(g) === "sum"){
+    const rem = Math.max(0, tgt - cur);
+    out.push({k:"Rămas", v:money(rem)});
+    if(g.due && rem > 0){
+      const m = monthsTo(g.due);
+      out.push({k:"Necesar pe lună", v: m > 0 ? money(rem/m) : "termen depășit"});
+    }
+    const rate = isAnchor ? paceRate() : null;
+    if(rem > 0 && rate !== null){
+      out.push({k:"Ritmul tău", v:money(rate) + "/lună"});
+      if(rate > 0) out.push({k:"Ajungi în", v:whenAt(rem/rate)});
+    }
+  } else {
+    const rem = tgt - cur;
+    out.push({k:"Rămas", v: Math.abs(rem) < 0.05 ? "atins" : gFmt(g, Math.abs(rem))});
+    const rate = metricRate(g);
+    if(rate !== null && Math.abs(rate) > 0.01){
+      out.push({k:"Ritm", v:(rate > 0 ? "+" : "−") + gFmt(g, Math.abs(rate)) + "/lună"});
+      if(Math.abs(rem) >= 0.05 && Math.sign(rate) === Math.sign(rem)) out.push({k:"Ajungi în", v:whenAt(rem/rate)});
+    }
   }
-  if(rem > 0 && rate !== null){
-    out.push({k:"Ritmul tău", v:money(rate) + "/lună"});
-    if(rate > 0) out.push({k:"Ajungi în", v:whenAt(rem/rate)});
-  }
+  const cons = gStreakPct(g);
+  if(cons !== null) out.push({k:"Consecvență 30z", v:cons.toFixed(0) + "%"});
   return out;
 }
-function goalStatus(g, isMain){
-  const rem = Math.max(0, num(g.target) - gCur(g)), rate = isMain ? paceRate() : null;
-  if(rem <= 0) return {cls:"good", txt:"atins"};
-  if(!g.due || rate === null) return null;
+function goalStatus(g, isAnchor){
+  if(!gHasTarget(g)) return {cls:"warn", txt:"de completat"};
+  if(gDone(g)) return {cls:"good", txt:"atins"};
+  if(gKind(g) === "sum"){
+    const rate = isAnchor ? paceRate() : null;
+    if(!g.due || rate === null) return null;
+    const m = monthsTo(g.due), rem = Math.max(0, num(g.target) - gCur(g));
+    if(m <= 0) return {cls:"bad", txt:"termen depășit"};
+    return rate >= rem/m ? {cls:"good", txt:"în grafic"} : {cls:"warn", txt:"sub ritm"};
+  }
+  const rate = metricRate(g);
+  if(rate === null) return null;
+  const rem = num(g.target) - gCur(g);
+  if(Math.sign(rate) !== Math.sign(rem)) return {cls:"bad", txt:"în direcția greșită"};
+  if(!g.due) return {cls:"good", txt:"se mișcă"};
   const m = monthsTo(g.due);
   if(m <= 0) return {cls:"bad", txt:"termen depășit"};
-  return rate >= rem/m ? {cls:"good", txt:"în grafic"} : {cls:"warn", txt:"sub ritm"};
+  return Math.abs(rate) >= Math.abs(rem)/m ? {cls:"good", txt:"în grafic"} : {cls:"warn", txt:"sub ritm"};
 }
-function goalHero(acts){
-  const g = mainGoal();
-  if(!g) return '<button class="strip" data-a="go" data-i="goals"><span class="lbl">Obiectiv principal</span>' +
-    '<span style="flex:1;font-size:13.5px;color:var(--ink-2)">Niciunul stabilit — pune ținta în jurul căreia se învârte tot.</span>' +
-    '<span class="v">Stabilește →</span></button>';
-  const st = goalStatus(g, true), pct = gPct(g);
-  return '<div class="hero"><span class="hero-name">'+esc(g.name)+(st?' · <span class="pill '+st.cls+'" style="vertical-align:middle">'+st.txt+'</span>':'')+'</span>' +
-    '<div class="hero-top"><span class="cur">'+money(gCur(g))+'</span><span class="of">din '+money(num(g.target))+(g.due?' · până în '+dLabel(g.due):'')+'</span>' +
+
+/* ── panourile mari, unul per ancoră ── */
+function goalHero(g, acts){
+  const st = goalStatus(g, true), pct = gPct(g), ready = gHasTarget(g);
+  let h = '<div class="hero"><span class="hero-name">'+esc(g.name)+
+    (st?' · <span class="pill '+st.cls+'" style="vertical-align:middle">'+st.txt+'</span>':'')+'</span>';
+  if(!ready){
+    h += '<p style="margin:0;font-size:14px;color:var(--ink-2);line-height:1.55">Pune punctul de plecare și ținta, ca să pot urmări progresul și să-ți spun ritmul.</p>' +
+      '<div><button class="btn sm" data-a="gedit" data-i="'+g.id+'">Completează</button></div></div>';
+    return h;
+  }
+  h += '<div class="hero-top"><span class="cur">'+gFmt(g, gCur(g))+'</span>' +
+    '<span class="of">'+(gKind(g)==="sum"?"din ":"→ ")+gFmt(g, num(g.target))+(g.due?' · până în '+dLabel(g.due):'')+'</span>' +
     '<span class="pc">'+pct.toFixed(pct < 10 ? 1 : 0)+'%</span></div>' +
     '<div class="hero-bar"><i style="width:'+Math.max(pct,0.8)+'%"></i></div>' +
-    '<div class="hero-facts">' + goalFacts(g, true).map(f => '<div><b>'+f.v+'</b><span>'+esc(f.k)+'</span></div>').join("") + '</div>' +
-    (acts ? '<div style="display:flex;gap:8px;flex-wrap:wrap;border-top:1px solid var(--accent);padding-top:12px;margin-top:2px">' +
-      '<button class="btn sm" data-a="gcon" data-i="'+g.id+'">'+svg("plus")+'Contribuție</button>' +
-      '<button class="btn ghost sm" data-a="gedit" data-i="'+g.id+'">Modifică</button>' +
-      '<button class="icon-btn del" style="margin-left:auto" data-a="gdel" data-i="'+g.id+'" aria-label="Șterge">'+svg("trash")+'</button></div>' : '') +
-    '</div>';
+    '<div class="hero-facts">' + goalFacts(g, true).map(f => '<div><b>'+f.v+'</b><span>'+esc(f.k)+'</span></div>').join("") + '</div>';
+  if(acts) h += '<div style="display:flex;gap:8px;flex-wrap:wrap;border-top:1px solid var(--accent);padding-top:12px">' +
+    '<button class="btn sm" data-a="'+(gKind(g)==="sum"?"gcon":"gread")+'" data-i="'+g.id+'">'+svg("plus")+(gKind(g)==="sum"?"Contribuție":"Măsurătoare")+'</button>' +
+    '<button class="btn ghost sm" data-a="gedit" data-i="'+g.id+'">Modifică</button>' +
+    '<button class="icon-btn del" style="margin-left:auto" data-a="gdel" data-i="'+g.id+'" aria-label="Șterge">'+svg("trash")+'</button></div>';
+  return h + '</div>';
+}
+function goalHeroes(acts){
+  const a = anchors();
+  if(!a.length) return '<button class="strip" data-a="go" data-i="goals"><span class="lbl">Obiective</span>' +
+    '<span style="flex:1;font-size:13.5px;color:var(--ink-2)">Niciunul stabilit — pune țintele în jurul cărora se învârte tot.</span>' +
+    '<span class="v">Stabilește →</span></button>';
+  return '<div class="heroes">' + a.map(g => goalHero(g, acts)).join("") + '</div>';
 }
 function goalStrip(){
-  const g = mainGoal();
-  if(!g) return "";
-  const pct = gPct(g);
-  return '<button class="strip" data-a="go" data-i="goals" title="'+esc(g.name)+'">' +
-    '<span class="lbl">'+esc(g.name)+'</span>' +
-    '<span class="prog"><i style="width:'+Math.max(pct,0.8)+'%"></i></span>' +
-    '<span class="v">'+money(gCur(g))+' / '+money(num(g.target))+' · '+pct.toFixed(0)+'%</span></button>';
+  const a = anchors();
+  if(!a.length) return "";
+  return '<div class="strips">' + a.map(g => {
+    const pct = gPct(g), ready = gHasTarget(g);
+    return '<button class="strip" data-a="go" data-i="goals" title="'+esc(g.name)+'">' +
+      '<span class="lbl">'+esc(g.name)+'</span>' +
+      '<span class="prog"><i style="width:'+Math.max(pct,0.8)+'%"></i></span>' +
+      '<span class="v">'+(ready ? pct.toFixed(0)+'%' : 'de completat')+'</span></button>';
+  }).join("") + '</div>';
 }
 
 /* ══════════ Panoul „Azi" ══════════ */
@@ -629,7 +724,7 @@ function viewDash(){
 
   let h = head("Azi", esc(DAYS[dt.getDay()]==="D"?"duminică":["duminică","luni","marți","miercuri","joi","vineri","sâmbătă"][dt.getDay()]) + ", " + dt.getDate() + " " + MONTHS_L[dt.getMonth()] + " " + dt.getFullYear());
 
-  h += goalHero();
+  h += goalHeroes(false);
   h += '<div class="tiles">' +
     tile("Balanța lunii", money(t.bal), MONTHS_L[parseInt(k.slice(5,7),10)-1], t.bal < 0 ? "bad" : "good", true) +
     tile("Cheltuit luna asta", money(t.out), monthItems(k).length + " mișcări") +
@@ -916,52 +1011,67 @@ function viewNotes(m){
 /* ══════════ Goals ══════════ */
 function viewGoals(m){
   const all = goalsAll().filter(g => (g.mod||"goals") === m.id)
-    .sort((a,b) => (b.main?1:0)-(a.main?1:0) || num(b.target)-num(a.target));
-  const mg = mainGoal();
+    .sort((x,y) => (y.main?1:0)-(x.main?1:0) || (x.createdAt||"").localeCompare(y.createdAt||""));
+  const anc = anchors(), ancIds = anc.map(g => g.id);
 
-  let h = head(m.name, "Ținta în jurul căreia se învârte tot. Ritmul se calculează din Finanțe.",
+  let h = head(m.name, "Țintele în jurul cărora se învârte tot. Apar pe fiecare ecran.",
     '<button class="btn" data-a="gadd" data-m="'+m.id+'">'+svg("plus")+'Obiectiv nou</button>');
 
   if(!all.length){
     return h + '<div class="empty"><h3>Niciun obiectiv stabilit</h3>' +
-      '<p>Pune ținta mare. Apare pe fiecare ecran, iar aplicația îți spune în ce lună ajungi la ea, ținând ritmul tău actual de venituri și cheltuieli.</p>' +
-      '<button class="btn" data-a="gadd" data-m="'+m.id+'">'+svg("plus")+'Stabilește obiectivul</button></div>';
+      '<p>Un obiectiv e ori o sumă de strâns, ori o măsurătoare care trebuie să se miște. Alege tipul și aplicația calculează singură ritmul și în ce lună ajungi.</p>' +
+      '<button class="btn" data-a="gadd" data-m="'+m.id+'">'+svg("plus")+'Stabilește primul obiectiv</button></div>';
   }
 
-  h += goalHero(true);
-  const rest = all.filter(g => !(mg && mg.id === g.id));
-  if(!rest.length) return h;
-  h += sec("Celelalte obiective");
-  h += rest.map(g => {
-    const cur = gCur(g), tgt = num(g.target), pct = gPct(g), st = goalStatus(g, false);
-    const isMain = false;
-    const last = (g.contrib||[]).slice().sort((a,c) => (c.date||"").localeCompare(a.date||"")).slice(0,3);
-    return '<div class="goal-card'+(isMain?" main":"")+'" style="margin-bottom:12px">' +
-      '<div class="goal-head"><h4>'+esc(g.name)+'</h4>' +
-      (isMain?'<span class="pill acc">principal</span>':'') +
-      (st?'<span class="pill '+st.cls+'">'+st.txt+'</span>':'') +
-      (g.due?'<span class="pill">'+dLabel(g.due)+'</span>':'') + '</div>' +
-      '<div style="display:flex;align-items:baseline;gap:9px;flex-wrap:wrap">' +
-      '<span class="num" style="font-size:21px;font-weight:600">'+money(cur)+'</span>' +
-      '<span style="font-size:13px;color:var(--ink-2)">din '+money(tgt)+'</span>' +
-      '<span class="num" style="margin-left:auto;font-weight:600;color:var(--accent-ink)">'+pct.toFixed(pct<10?1:0)+'%</span></div>' +
-      '<div class="prog" style="height:7px"><i style="width:'+Math.max(pct,0.8)+'%"></i></div>' +
-      '<div class="hero-facts">' + goalFacts(g, false).map(f => '<div><b>'+f.v+'</b><span>'+esc(f.k)+'</span></div>').join("") + '</div>' +
-      (last.length ? '<div style="display:flex;flex-direction:column;gap:1px;border-top:1px solid var(--line);padding-top:9px">' +
-        '<span style="font-family:var(--f-mono);font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3);margin-bottom:4px">Ultimele contribuții ('+(g.contrib||[]).length+')</span>' +
-        last.map(c => '<div style="display:flex;align-items:center;gap:10px;font-size:13.5px">' +
-          '<span style="flex:1;min-width:0;overflow-wrap:anywhere">'+esc(c.note || "Contribuție")+'</span>' +
-          '<span style="color:var(--ink-3);font-size:12.5px;white-space:nowrap">'+dLabel(c.date)+'</span>' +
-          '<span class="num" style="font-weight:600;color:var(--good);white-space:nowrap">+'+money(num(c.amount))+'</span>' +
-          '<button class="icon-btn del" data-a="gundo" data-i="'+g.id+'" data-c="'+c.id+'" aria-label="Șterge contribuția">'+svg("trash")+'</button></div>').join("") +
-        '</div>' : '') +
-      '<div style="display:flex;gap:8px;flex-wrap:wrap;padding-top:2px">' +
-      '<button class="btn sm" data-a="gcon" data-i="'+g.id+'">'+svg("plus")+'Contribuție</button>' +
-      (isMain?'':'<button class="btn ghost sm" data-a="gmain" data-i="'+g.id+'">Fă-l principal</button>') +
-      '<button class="btn ghost sm" data-a="gedit" data-i="'+g.id+'">Modifică</button>' +
-      '<button class="icon-btn del" style="margin-left:auto" data-a="gdel" data-i="'+g.id+'" aria-label="Șterge">'+svg("trash")+'</button>' +
-      '</div></div>';
-  }).join("");
+  h += goalHeroes(true);
+
+  /* obiceiurile care alimentează fiecare ancoră */
+  const habits = Object.keys(state.habits).map(id => Object.assign({id}, state.habits[id]));
+  if(habits.length){
+    anc.forEach(g => {
+      h += sec("Obiceiuri care duc la „" + g.name + "”");
+      h += '<div class="card pad" style="display:flex;gap:8px;flex-wrap:wrap">' + habits.map(hb => {
+        const on = (g.habits||[]).includes(hb.id);
+        return '<button class="chip'+(on?" on":"")+'" data-a="gtog" data-i="'+g.id+'" data-c="'+hb.id+'">'+esc(hb.name)+'</button>';
+      }).join("") + '</div>';
+    });
+  }
+
+  const rest = all.filter(g => !ancIds.includes(g.id));
+  if(rest.length){
+    h += sec("Celelalte obiective");
+    h += rest.map(g => {
+      const cur = gCur(g), pct = gPct(g), st = goalStatus(g, false), ready = gHasTarget(g);
+      const last = (gKind(g)==="sum" ? (g.contrib||[]) : (g.reads||[])).slice()
+        .sort((x,y) => (y.date||"").localeCompare(x.date||"")).slice(0,3);
+      return '<div class="goal-card" style="margin-bottom:12px">' +
+        '<div class="goal-head"><h4>'+esc(g.name)+'</h4>' +
+        (st?'<span class="pill '+st.cls+'">'+st.txt+'</span>':'') +
+        (g.due?'<span class="pill">'+dLabel(g.due)+'</span>':'') + '</div>' +
+        (ready ? '<div style="display:flex;align-items:baseline;gap:9px;flex-wrap:wrap">' +
+          '<span class="num" style="font-size:21px;font-weight:600">'+gFmt(g, cur)+'</span>' +
+          '<span style="font-size:13px;color:var(--ink-2)">'+(gKind(g)==="sum"?"din ":"→ ")+gFmt(g, num(g.target))+'</span>' +
+          '<span class="num" style="margin-left:auto;font-weight:600;color:var(--accent-ink)">'+pct.toFixed(pct<10?1:0)+'%</span></div>' +
+          '<div class="prog" style="height:7px"><i style="width:'+Math.max(pct,0.8)+'%"></i></div>' +
+          '<div class="hero-facts">' + goalFacts(g, false).map(f => '<div><b>'+f.v+'</b><span>'+esc(f.k)+'</span></div>').join("") + '</div>'
+          : '<p style="margin:0;font-size:13.5px;color:var(--ink-2)">Fără țintă stabilită încă.</p>') +
+        (last.length ? '<div style="display:flex;flex-direction:column;gap:1px;border-top:1px solid var(--line);padding-top:9px">' +
+          '<span style="font-family:var(--f-mono);font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3);margin-bottom:4px">' +
+          (gKind(g)==="sum" ? "Ultimele contribuții" : "Ultimele măsurători") + '</span>' +
+          last.map(c => '<div style="display:flex;align-items:center;gap:10px;font-size:13.5px">' +
+            '<span style="flex:1;min-width:0;overflow-wrap:anywhere">'+esc(c.note || (gKind(g)==="sum"?"Contribuție":"Măsurătoare"))+'</span>' +
+            '<span style="color:var(--ink-3);font-size:12.5px;white-space:nowrap">'+dLabel(c.date)+'</span>' +
+            '<span class="num" style="font-weight:600;white-space:nowrap">'+(gKind(g)==="sum" ? '+'+money(num(c.amount)) : gFmt(g, num(c.value)))+'</span>' +
+            '<button class="icon-btn del" data-a="gundo" data-i="'+g.id+'" data-c="'+c.id+'" aria-label="Șterge">'+svg("trash")+'</button></div>').join("") +
+          '</div>' : '') +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
+        '<button class="btn sm" data-a="'+(gKind(g)==="sum"?"gcon":"gread")+'" data-i="'+g.id+'">'+svg("plus")+(gKind(g)==="sum"?"Contribuție":"Măsurătoare")+'</button>' +
+        '<button class="btn ghost sm" data-a="gmain" data-i="'+g.id+'">Fă-l ancoră</button>' +
+        '<button class="btn ghost sm" data-a="gedit" data-i="'+g.id+'">Modifică</button>' +
+        '<button class="icon-btn del" style="margin-left:auto" data-a="gdel" data-i="'+g.id+'" aria-label="Șterge">'+svg("trash")+'</button>' +
+        '</div></div>';
+    }).join("");
+  }
   return h;
 }
 
@@ -1192,23 +1302,35 @@ const ACT = {
 
   /* obiective */
   gadd(el){
-    const mid = el.dataset.m, first = !goalsAll().length;
+    const mid = el.dataset.m;
     modal({title:"Obiectiv nou",
-      note: first ? "Primul obiectiv devine automat cel principal — apare pe toate ecranele." : "",
+      note:"O <b>sumă</b> se adună spre o țintă. O <b>măsurătoare</b> se mută de la o valoare la alta.",
       fields:[
-        {k:"name", label:"Numele obiectivului", value: first ? "100k" : "", ph:"ex: 100k, fond de urgență"},
-        {k:"target", label:"Ținta", type:"number", value: first ? "100000" : "", ph:"0.00"},
-        {k:"start", label:"Ai deja strâns (opțional)", type:"number", ph:"0.00"},
+        {k:"name", label:"Numele obiectivului", ph:"ex: 100k, six pack"},
+        {k:"kind", label:"Fel", type:"select", value:"sum", options:[
+          {v:"sum",    l:"Sumă de strâns — bani, contribuții"},
+          {v:"metric", l:"Măsurătoare — kg, %, cm"}]},
+        {k:"unit", label:"Unitate (doar la măsurătoare)", ph:"kg, %, cm"},
+        {k:"start", label:"De la ce valoare pornești", type:"number", ph:"0"},
+        {k:"target", label:"Ținta", type:"number", ph:"0"},
         {k:"due", label:"Până când (opțional)", type:"date"}
       ],
       onOk(v){
         if(!v.name) return "Dă-i un nume obiectivului.";
-        if(num(v.target) <= 0) return "Scrie ținta, mai mare ca zero.";
-        const st = num(v.start);
-        Store.put("goals", "g" + uid(), {mod:mid, name:v.name, target:num(v.target), due:v.due||"",
-          main: first, contrib: st > 0 ? [{id:uid(), date:today(), amount:st, note:"Punct de pornire"}] : [],
-          createdAt:new Date().toISOString()});
-        toast(first ? "Obiectiv stabilit. Îl vezi acum pe fiecare ecran." : "Obiectiv adăugat.");
+        if(v.target === "") return "Scrie ținta.";
+        const st = num(v.start), tg = num(v.target);
+        const g = {mod:mid, name:v.name, kind:v.kind, target:tg, due:v.due||"", main:true,
+          habits:[], createdAt:new Date().toISOString()};
+        if(v.kind === "metric"){
+          if(st === tg) return "Ținta trebuie să fie diferită de valoarea de start.";
+          g.unit = v.unit || ""; g.start = st;
+          g.reads = [{id:uid(), date:today(), value:st, note:"Punct de pornire"}];
+        } else {
+          if(tg <= 0) return "Ținta trebuie să fie mai mare ca zero.";
+          g.contrib = st > 0 ? [{id:uid(), date:today(), amount:st, note:"Punct de pornire"}] : [];
+        }
+        Store.put("goals", "g" + uid(), g);
+        toast("Obiectiv stabilit. Îl vezi acum pe fiecare ecran.");
       }});
   },
   gcon(el){
@@ -1226,34 +1348,65 @@ const ACT = {
         toast(a >= rem ? "Obiectiv atins. Felicitări." : "Adăugat. Mai ai " + money(rem - a) + ".");
       }});
   },
-  gundo(el){
+  gread(el){
     const id = el.dataset.i, g = state.goals[id]; if(!g) return;
-    Store.put("goals", id, Object.assign({}, g, {contrib:(g.contrib||[]).filter(c => c.id !== el.dataset.c)}));
-    toast("Contribuție ștearsă.");
+    modal({title:"Măsurătoare — " + g.name,
+      note: gHasTarget(g) ? "Acum: <b>" + gFmt(g, gCur(g)) + "</b> · ținta: <b>" + gFmt(g, num(g.target)) + "</b>" : "",
+      fields:[{k:"value", label:"Valoarea de azi" + (gUnit(g) ? " (" + gUnit(g) + ")" : ""), type:"number", ph:"0"},
+              {k:"date", label:"Data", type:"date", value:today()},
+              {k:"note", label:"Observație (opțional)", ph:"ex: dimineața, pe nemâncate"}],
+      onOk(v){
+        if(v.value === "") return "Scrie valoarea măsurată.";
+        const val = num(v.value);
+        const reads = (g.reads||[]).filter(r => r.date !== (v.date||today()));
+        Store.put("goals", id, Object.assign({}, g, {reads:reads.concat([{id:uid(), date:v.date||today(), value:val, note:v.note||""}])}));
+        const rem = num(g.target) - val;
+        toast(Math.abs(rem) < 0.05 ? "Ținta atinsă. Bravo." : "Notat. Mai ai " + gFmt(g, Math.abs(rem)) + ".");
+      }});
+  },
+  gundo(el){
+    const id = el.dataset.i, g = state.goals[id], cid = el.dataset.c; if(!g) return;
+    const patch = gKind(g) === "sum"
+      ? {contrib:(g.contrib||[]).filter(c => c.id !== cid)}
+      : {reads:(g.reads||[]).filter(c => c.id !== cid)};
+    Store.put("goals", id, Object.assign({}, g, patch));
+    toast("Șters.");
   },
   gedit(el){
     const id = el.dataset.i, g = state.goals[id]; if(!g) return;
-    modal({title:"Modifică obiectivul",
-      fields:[{k:"name", label:"Nume", value:g.name},
-              {k:"target", label:"Ținta", type:"number", value:num(g.target)},
-              {k:"due", label:"Până când", type:"date", value:g.due||""}],
+    const metric = gKind(g) === "metric";
+    const f = [{k:"name", label:"Nume", value:g.name}];
+    if(metric) f.push({k:"unit", label:"Unitate", value:gUnit(g), ph:"kg, %, cm"},
+                      {k:"start", label:"Valoarea de plecare", type:"number", value:g.start === undefined ? "" : num(g.start)});
+    f.push({k:"target", label:"Ținta", type:"number", value: gHasTarget(g) ? num(g.target) : ""},
+           {k:"due", label:"Până când (opțional)", type:"date", value:g.due||""});
+    modal({title:"Modifică „" + g.name + "”", fields:f,
       onOk(v){
         if(!v.name) return "Dă-i un nume.";
-        if(num(v.target) <= 0) return "Ținta trebuie să fie mai mare ca zero.";
-        Store.put("goals", id, Object.assign({}, g, {name:v.name, target:num(v.target), due:v.due||""}));
+        if(v.target === "") return "Scrie ținta.";
+        const patch = {name:v.name, target:num(v.target), due:v.due||""};
+        if(metric){
+          patch.unit = v.unit || "";
+          patch.start = num(v.start);
+          if(patch.start === patch.target) return "Ținta trebuie să fie diferită de valoarea de plecare.";
+          if(!(g.reads||[]).length) patch.reads = [{id:uid(), date:today(), value:patch.start, note:"Punct de pornire"}];
+        } else if(num(v.target) <= 0) return "Ținta trebuie să fie mai mare ca zero.";
+        Store.put("goals", id, Object.assign({}, g, patch));
       }});
   },
+  gtog(el){
+    const id = el.dataset.i, g = state.goals[id], hid = el.dataset.c; if(!g) return;
+    const cur = g.habits || [];
+    Store.put("goals", id, Object.assign({}, g, {habits: cur.includes(hid) ? cur.filter(x => x !== hid) : cur.concat([hid])}));
+  },
   gmain(el){
-    const id = el.dataset.i;
-    goalsAll().forEach(g => {
-      const should = g.id === id;
-      if(!!g.main !== should) Store.put("goals", g.id, Object.assign({}, state.goals[g.id], {main:should}));
-    });
-    toast("Obiectiv principal schimbat.");
+    const id = el.dataset.i, g = state.goals[id]; if(!g) return;
+    Store.put("goals", id, Object.assign({}, g, {main: !g.main}));
+    toast(g.main ? "Scos dintre ancore." : "Devine ancoră — apare pe toate ecranele.");
   },
   gdel(el){
     const id = el.dataset.i, g = state.goals[id]; if(!g) return;
-    ask("Ștergi „" + g.name + "”?", "Se pierde și istoricul contribuțiilor. Nu se poate anula.", "Șterge",
+    ask("Ștergi „" + g.name + "”?", "Se pierde și tot istoricul. Nu se poate anula.", "Șterge",
       () => { Store.drop("goals", id); toast("Obiectiv șters."); });
   },
 
