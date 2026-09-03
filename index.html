@@ -192,6 +192,19 @@ label.fld>span{font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;tex
 .modal header h3{margin:0;font-size:17px;font-weight:700;letter-spacing:-.015em;flex:1}
 .modal .body{padding:16px 20px;display:flex;flex-direction:column;gap:13px}
 .modal footer{padding:0 20px 18px;display:flex;gap:9px;justify-content:flex-end}
+.alert{display:flex;align-items:flex-start;gap:11px;padding:12px 15px;border-radius:10px;margin-bottom:16px;border:1px solid}
+.alert.warn{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
+.alert.bad{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.alert svg{flex:none;margin-top:2px}
+.alert .txt{flex:1;min-width:0;font-size:13.5px;line-height:1.5;color:var(--ink)}
+.alert .txt b{display:block;font-size:14px;margin-bottom:2px}
+.alert .go{align-self:center;white-space:nowrap}
+.lim{display:flex;flex-direction:column;gap:6px;padding:13px 0;border-bottom:1px solid var(--line)}
+.lim:last-child{border-bottom:none;padding-bottom:0}
+.lim-t{display:flex;align-items:baseline;gap:10px}
+.lim-t b{font-size:14px;font-weight:600;flex:1}
+.lim-t span{font-family:var(--f-mono);font-size:12.5px;font-variant-numeric:tabular-nums;color:var(--ink-2)}
+.lim p{margin:0;font-size:12.5px;color:var(--ink-3);line-height:1.5}
 .heroes{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:12px;margin-bottom:6px}
 .heroes .hero{margin-bottom:0;height:100%}
 .strips{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap}
@@ -288,7 +301,7 @@ label.fld>span{font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;tex
     <div class="rail-foot">
       <div class="rail-goal" id="railGoal"></div>
       <div class="gauge">
-        <div class="gauge-t"><span>Spațiu</span><span id="gaugeN">0 / 5000</span></div>
+        <div class="gauge-t"><span id="gaugeLbl">Spațiu</span><span id="gaugeN">0 / 5000</span></div>
         <div class="gauge-bar"><i id="gaugeBar" style="width:0%"></i></div>
       </div>
       <div class="mode"><span class="dot" id="modeDot"></span><span id="modeTxt">se conectează…</span></div>
@@ -334,7 +347,8 @@ const ICON = {
   edit:'<path d="M11.2 2.6l2.2 2.2L5.6 12.6 2.6 13.4l.8-3z"/>',
   check:'<path d="M3.4 8.2l3 3L12.6 5"/>',
   down:'<path d="M8 2.8v8.4M4.6 7.8L8 11.2l3.4-3.4M2.8 13.4h10.4"/>',
-  more:'<path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"/>'
+  more:'<path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11"/>',
+  warn:'<path d="M8 2.4L14.6 13.4H1.4z"/><path d="M8 6.6v3.1M8 11.6v.1"/>'
 };
 function svg(n,s){return '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(ICON[n]||"")+'</svg>';}
 
@@ -446,7 +460,13 @@ const Store = {
     render();
     if(this.mode === "cloud"){
       try{ await this.db.collection(coll).doc(id).set(obj); }
-      catch(e){ toast(e && e.code==="quota_exceeded" ? "Spațiu plin. Exportă și arhivează din Setări." : "Nu s-a salvat. Verifică internetul."); }
+      catch(e){
+        const c = e && e.code;
+        toast(c === "quota_exceeded" ? "Nu mai încap fișe noi. Exportă și șterge din Setări → Limite."
+            : c === "invalid_argument" ? "Fișa a depășit 256 KB. Vezi Setări → Limite ca să afli care e."
+            : c === "resource_exhausted" ? "Prea multe salvări deodată. Așteaptă câteva secunde."
+            : "Nu s-a salvat. Verifică internetul.");
+      }
     } else this.saveLocal();
   },
   async drop(coll, id){
@@ -462,6 +482,63 @@ const Store = {
     return n + 1;
   }
 };
+
+/* ══════════ 3b. Limite ══════════ */
+const DOCS_MAX = 5000;          /* fișe în baza de date a aplicației */
+const DOC_MAX  = 262144;        /* 256 KiB per fișă */
+const LS_MAX   = 5000000;       /* spațiul din browser, aproximativ */
+const bytes = str => { try{ return new TextEncoder().encode(str).length; }catch(e){ return str.length; } };
+const kb = n => (n/1024).toFixed(n < 10240 ? 1 : 0) + " KB";
+
+function docLabel(coll, doc, id){
+  if(coll === "finance"){ const m = parseInt(id.slice(5,7),10)-1; return "luna " + (MONTHS_L[m]||id) + " " + id.slice(0,4); }
+  return doc.name || doc.title || (coll === "tasks" ? doc.title : "") || id;
+}
+function biggestDoc(){
+  let best = null;
+  COLLS.forEach(c => {
+    if(c === "settings") return;
+    Object.keys(state[c] || {}).forEach(id => {
+      const size = bytes(JSON.stringify(state[c][id]));
+      if(!best || size > best.size) best = {size, coll:c, id, label:docLabel(c, state[c][id], id)};
+    });
+  });
+  return best;
+}
+function limits(){
+  const out = [];
+  const docs = Store.count();
+  out.push({key:"docs", label:"Fișe în bază", used:docs, max:DOCS_MAX,
+    show:docs.toLocaleString("ro-RO") + " / " + DOCS_MAX.toLocaleString("ro-RO"),
+    why:"Fiecare task, notiță, obicei, datorie sau lună de finanțe e o fișă.",
+    fix:"Exportă și șterge ce nu-ți mai trebuie."});
+  const big = biggestDoc();
+  if(big) out.push({key:"doc", label:"Cea mai mare fișă", used:big.size, max:DOC_MAX,
+    show:kb(big.size) + " / 256 KB", detail:big.label,
+    why:"O singură fișă nu poate depăși 256 KB. „" + big.label + "” e cea mai plină.",
+    fix: big.coll === "finance" ? "Șterge mișcări vechi din luna aceea."
+       : big.coll === "habits"  ? "Bifele de zeci de ani se adună — șterge obiceiul vechi și fă-l din nou."
+       : "Scurtează conținutul sau împarte-l în două."});
+  if(Store.mode === "local"){
+    let used = 0;
+    try{ used = bytes(localStorage.getItem(LS_KEY) || ""); }catch(e){}
+    out.push({key:"ls", label:"Spațiu în browser", used, max:LS_MAX, show:kb(used) + " / ~5 MB",
+      why:"Fără sincronizare, tot ce salvezi stă în browserul acestui aparat.",
+      fix:"Exportă acum. Dacă se umple, browserul refuză să mai salveze."});
+  }
+  out.forEach(l => l.pct = Math.min(100, l.used/l.max*100));
+  return out;
+}
+const worstLimit = () => limits().sort((a,b) => b.pct - a.pct)[0];
+function limitBanner(){
+  const w = worstLimit();
+  if(!w || w.pct < 75) return "";
+  const bad = w.pct >= 90;
+  return '<div class="alert '+(bad?"bad":"warn")+'">'+svg("warn")+
+    '<span class="txt"><b>'+(bad ? "Aproape plin: " : "Te apropii de o limită: ")+esc(w.label.toLowerCase())+' — '+w.pct.toFixed(0)+'%</b>'+
+    esc(w.why)+' '+esc(w.fix)+'</span>' +
+    '<button class="btn ghost sm go" data-a="go" data-i="__set">Vezi limitele</button></div>';
+}
 
 /* ══════════ 4. Module ══════════ */
 function modules(){
@@ -500,9 +577,14 @@ function paintRailGoal(){
   }).join("");
 }
 function paintGauge(){
-  const n = Store.count(), pct = Math.min(100, n/5000*100);
-  $("#gaugeN").textContent = n.toLocaleString("ro-RO") + " / 5000";
-  $("#gaugeBar").style.width = Math.max(1.5, pct) + "%";
+  const w = worstLimit();
+  if(!w) return;
+  $("#gaugeN").textContent = w.show;
+  $("#gaugeBar").style.width = Math.max(1.5, w.pct) + "%";
+  $("#gaugeBar").style.background = w.pct >= 90 ? "var(--bad)" : w.pct >= 75 ? "var(--warn)" : "var(--accent)";
+  const t = $("#gaugeLbl");
+  if(t) t.textContent = w.label;
+  $("#gaugeN").title = w.why + " " + w.fix;
 }
 const PIN = ["azi","goals","finante","taskuri"];
 function renderNav(){
@@ -532,7 +614,7 @@ function render(){
   const m = state.view === "__set" ? {kind:"settings"} : (modById(state.view) || BUILTIN[0]);
   const fns = {dashboard:viewDash, finance:viewFinance, debts:viewDebts, tasks:viewTasks, habits:viewHabits, notes:viewNotes, goals:viewGoals, settings:viewSettings};
   const body = (fns[m.kind] || viewDash)(m);
-  $("#view").innerHTML = (m.kind === "dashboard" || m.kind === "goals" ? "" : goalStrip()) + body;
+  $("#view").innerHTML = limitBanner() + (m.kind === "dashboard" || m.kind === "goals" ? "" : goalStrip()) + body;
 }
 function head(title, sub, actions){
   return '<div class="head"><div><h1>'+esc(title)+'</h1>'+(sub?'<p>'+sub+'</p>':'')+'</div><div class="sp"></div>'+(actions||"")+'</div>';
@@ -1086,11 +1168,21 @@ function viewSettings(){
     Object.keys(CURRENCIES).map(c => '<option value="'+c+'"'+(state.settings.currency===c?" selected":"")+'>'+CURRENCIES[c]+'</option>').join("") +
     '</select></label><p style="margin:9px 0 0;font-size:13px;color:var(--ink-3)">Se schimbă peste tot instant. Sumele deja scrise rămân aceleași cifre.</p></div>';
 
-  h += '<div class="card pad"><div class="gauge"><div class="gauge-t"><span>Spațiu folosit</span><span class="num">'+n.toLocaleString("ro-RO")+' / 5000</span></div>' +
-    '<div class="gauge-bar"><i style="width:'+Math.max(1.5,pct)+'%"></i></div></div>' +
-    '<p style="margin:10px 0 0;font-size:13px;color:var(--ink-2)">'+
-    (pct < 60 ? "Ai loc berechet. La ritmul obișnuit, ajunge pentru ani buni." : pct < 85 ? "Începe să se umple. Exportă și șterge ce nu-ți mai trebuie." : "Aproape plin. Exportă acum și curăță însemnările vechi.")+'</p></div>';
+  const ls = limits(), worst = ls.slice().sort((a,c) => c.pct - a.pct)[0];
+  h += '<div class="card pad"><div style="font-size:13.5px;color:var(--ink-2)">'+
+    (worst.pct < 60 ? "Toate limitele sunt departe. La ritmul obișnuit, ai loc pentru ani buni."
+     : worst.pct < 75 ? "Cea mai apăsată limită e la " + worst.pct.toFixed(0) + "%. Încă e bine, dar ține un ochi pe ea."
+     : worst.pct < 90 ? "Te apropii de o limită. Exportă și curăță ce nu-ți mai trebuie."
+     : "Aproape plin. Exportă acum, apoi șterge — altfel salvările încep să eșueze.")+
+    '</div></div>';
   h += '</div>';
+
+  h += sec("Limite");
+  h += '<div class="card pad">' + ls.map(l =>
+    '<div class="lim"><div class="lim-t"><b>'+esc(l.label)+(l.detail?' <span style="font-weight:400;color:var(--ink-3)">· '+esc(l.detail)+'</span>':'')+'</b>' +
+    '<span'+(l.pct>=90?' style="color:var(--bad)"':l.pct>=75?' style="color:var(--warn)"':'')+'>'+esc(l.show)+' · '+l.pct.toFixed(l.pct<1?1:0)+'%</span></div>' +
+    '<div class="gauge-bar"><i style="width:'+Math.max(1.5,l.pct)+'%;background:'+(l.pct>=90?'var(--bad)':l.pct>=75?'var(--warn)':'var(--accent)')+'"></i></div>' +
+    '<p>'+esc(l.why)+' <b style="font-weight:600;color:var(--ink-2)">'+esc(l.fix)+'</b></p></div>').join("") + '</div>';
 
   h += sec("Datele tale");
   h += '<div class="card pad" style="display:flex;flex-direction:column;gap:14px">' +
