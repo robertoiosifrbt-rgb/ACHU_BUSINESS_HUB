@@ -146,7 +146,7 @@ label.fld>span{font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;tex
 .stripe.bad{background:var(--bad)} .stripe.warn{background:var(--warn)} .stripe.good{background:var(--good)}
 
 /* ---------- bars / charts ---------- */
-.prog{height:5px;background:var(--surface-3);border-radius:3px;overflow:hidden;min-width:70px}
+.prog{display:block;height:5px;background:var(--surface-3);border-radius:3px;overflow:hidden;min-width:70px}
 .prog i{display:block;height:100%;border-radius:3px;background:var(--accent)}
 .prog i.good{background:var(--good)} .prog i.warn{background:var(--warn)} .prog i.bad{background:var(--bad)}
 .bars{display:flex;align-items:flex-end;gap:7px;height:96px;padding-top:6px}
@@ -192,6 +192,28 @@ label.fld>span{font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;tex
 .modal header h3{margin:0;font-size:17px;font-weight:700;letter-spacing:-.015em;flex:1}
 .modal .body{padding:16px 20px;display:flex;flex-direction:column;gap:13px}
 .modal footer{padding:0 20px 18px;display:flex;gap:9px;justify-content:flex-end}
+.hero{background:var(--accent-soft);border:1px solid var(--accent);border-radius:12px;padding:19px 21px;display:flex;flex-direction:column;gap:14px;margin-bottom:6px}
+.hero-top{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.hero .cur{font-family:var(--f-mono);font-size:33px;font-weight:600;color:var(--accent-ink);letter-spacing:-.025em;font-variant-numeric:tabular-nums}
+.hero .of{font-size:13.5px;color:var(--ink-2)}
+.hero .pc{margin-left:auto;font-family:var(--f-mono);font-size:25px;font-weight:600;color:var(--accent-ink);font-variant-numeric:tabular-nums}
+.hero-name{font-family:var(--f-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-ink);opacity:.8}
+.hero-bar{height:9px;background:var(--surface);border-radius:5px;overflow:hidden}
+.hero-bar i{display:block;height:100%;background:var(--accent);border-radius:5px}
+.hero-facts{display:flex;gap:26px;flex-wrap:wrap}
+.hero-facts div{display:flex;flex-direction:column;gap:1px}
+.hero-facts b{font-family:var(--f-mono);font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+.hero-facts span{font-family:var(--f-mono);font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3)}
+.strip{display:flex;align-items:center;gap:12px;padding:9px 14px;background:var(--surface);border:1px solid var(--line);border-radius:9px;margin-bottom:18px;width:100%;text-align:left}
+.strip:hover{border-color:var(--accent)}
+.strip .lbl{font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);white-space:nowrap}
+.strip .prog{flex:1;min-width:50px}
+.strip .v{font-family:var(--f-mono);font-size:12.5px;font-weight:600;color:var(--accent-ink);white-space:nowrap;font-variant-numeric:tabular-nums}
+.rail-goal{display:flex;flex-direction:column;gap:5px}
+.goal-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;display:flex;flex-direction:column;gap:11px}
+.goal-card.main{border-color:var(--accent)}
+.goal-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.goal-head h4{margin:0;font-size:16px;font-weight:600;flex:1;min-width:120px;overflow-wrap:anywhere}
 .sheet-i{display:flex;align-items:center;gap:12px;padding:13px 12px;border-radius:9px;color:var(--ink-2);font-size:15px;font-weight:500;text-align:left;width:100%}
 .sheet-i:hover{background:var(--surface-2);color:var(--ink)}
 .sheet-i.on{background:var(--accent-soft);color:var(--accent-ink);font-weight:600}
@@ -233,6 +255,11 @@ label.fld>span{font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;tex
   .modal{max-width:none;border-radius:16px 16px 0 0;border-bottom:none;max-height:92vh;overflow-y:auto}
   .modal footer{flex-direction:column-reverse;padding-bottom:calc(18px + env(safe-area-inset-bottom,0px))}
   .modal footer .btn{width:100%;justify-content:center;padding:12px}
+  .hero{padding:16px 17px}
+  .hero .cur{font-size:26px}
+  .hero .pc{font-size:20px}
+  .hero .of{order:3;flex-basis:100%;margin-top:-6px}
+  .hero-facts{gap:18px}
   .hcell{width:30px;height:30px;border-radius:7px}
   .hlabels em{width:30px;font-size:10px}
   .hrow{gap:11px}
@@ -248,6 +275,7 @@ label.fld>span{font-family:var(--f-mono);font-size:10px;letter-spacing:.12em;tex
     <div class="brand"><b>ACHU Life OS</b><span id="brandDate">—</span></div>
     <nav class="nav" id="nav"></nav>
     <div class="rail-foot">
+      <div class="rail-goal" id="railGoal"></div>
       <div class="gauge">
         <div class="gauge-t"><span>Spațiu</span><span id="gaugeN">0 / 5000</span></div>
         <div class="gauge-bar"><i id="gaugeBar" style="width:0%"></i></div>
@@ -269,7 +297,8 @@ const KINDS = {
   debts:{label:"Datorii"},
   tasks:{label:"Listă"},
   habits:{label:"Tracker"},
-  notes:{label:"Notițe"}
+  notes:{label:"Notițe"},
+  goals:{label:"Obiective"}
 };
 const BUILTIN = [
   {id:"azi",      name:"Azi",        kind:"dashboard", builtin:true},
@@ -277,6 +306,7 @@ const BUILTIN = [
   {id:"datorii",  name:"Datorii",    kind:"debts",     builtin:true},
   {id:"taskuri",  name:"Task-uri",   kind:"tasks",     builtin:true},
   {id:"obiceiuri",name:"Obiceiuri",  kind:"habits",    builtin:true},
+  {id:"goals",    name:"Goals",      kind:"goals",     builtin:true},
   {id:"jurnal",   name:"Jurnal",     kind:"notes",     builtin:true}
 ];
 const ICON = {
@@ -286,6 +316,7 @@ const ICON = {
   tasks:'<path d="M3 8.4l2.6 2.6L13 3.8"/>',
   habits:'<rect x="2.4" y="2.4" width="4.6" height="4.6" rx="1"/><rect x="9" y="2.4" width="4.6" height="4.6" rx="1"/><rect x="2.4" y="9" width="4.6" height="4.6" rx="1"/><rect x="9" y="9" width="4.6" height="4.6" rx="1"/>',
   notes:'<path d="M4 2.6h8v10.8H4z"/><path d="M6.2 5.6h3.6M6.2 8h3.6M6.2 10.4h2.2"/>',
+  goals:'<circle cx="8" cy="8" r="5.9"/><circle cx="8" cy="8" r="2.6"/><path d="M8 2.1V.8M8 15.2v-1.3M13.9 8h1.3M.8 8h1.3"/>',
   settings:'<circle cx="8" cy="8" r="2.2"/><path d="M8 1.6v1.9M8 12.5v1.9M14.4 8h-1.9M3.5 8H1.6M12.5 3.5l-1.3 1.3M4.8 11.2l-1.3 1.3M12.5 12.5l-1.3-1.3M4.8 4.8L3.5 3.5"/>',
   plus:'<path d="M8 3.4v9.2M3.4 8h9.2"/>',
   trash:'<path d="M3.4 4.6h9.2M6.4 4.6V3.2h3.2v1.4M5 4.6l.6 8.2h4.8L11 4.6"/>',
@@ -338,11 +369,11 @@ function toast(msg){
 }
 
 /* ══════════ 3. Depozit (cloud sau local) ══════════ */
-const COLLS = ["modules","tasks","notes","habits","debts","finance","settings"];
+const COLLS = ["modules","tasks","notes","habits","debts","finance","goals","settings"];
 const LS_KEY = "achu_life_os_v1";
 
 const state = {
-  modules:{}, tasks:{}, notes:{}, habits:{}, debts:{}, finance:{},
+  modules:{}, tasks:{}, notes:{}, habits:{}, debts:{}, finance:{}, goals:{},
   settings:{currency:"£"},
   view:"azi", ready:false
 };
@@ -442,12 +473,20 @@ function paintMode(){
     ? "Datele se salvează în cloud și le vezi de pe orice aparat."
     : "Datele stau doar în acest browser. Exportă-le regulat din Setări.";
 }
+function paintRailGoal(){
+  const g = mainGoal(), box = $("#railGoal");
+  if(!g){ box.innerHTML = ""; return; }
+  const pct = gPct(g);
+  box.innerHTML = '<div class="gauge-t"><span>'+esc(g.name)+'</span><span>'+pct.toFixed(0)+'%</span></div>' +
+    '<div class="gauge-bar"><i style="width:'+Math.max(pct,1.5)+'%"></i></div>' +
+    '<div class="gauge-t"><span class="num" style="letter-spacing:0;text-transform:none">'+money(gCur(g))+' / '+money(num(g.target))+'</span></div>';
+}
 function paintGauge(){
   const n = Store.count(), pct = Math.min(100, n/5000*100);
   $("#gaugeN").textContent = n.toLocaleString("ro-RO") + " / 5000";
   $("#gaugeBar").style.width = Math.max(1.5, pct) + "%";
 }
-const PIN = ["azi","finante","datorii","taskuri"];
+const PIN = ["azi","goals","finante","taskuri"];
 function renderNav(){
   const ms = modules();
   let h = '<div class="nav-h">Module</div>';
@@ -457,6 +496,7 @@ function renderNav(){
     if(m.kind === "notes")  c = itemsOf("notes", m.id).length || "";
     if(m.kind === "habits") c = itemsOf("habits", m.id).length || "";
     if(m.kind === "debts")  c = Object.keys(state.debts).filter(id => remaining(state.debts[id]) > 0).length || "";
+    if(m.kind === "goals")  c = goalsAll().filter(g => (g.mod||"goals") === m.id).length || "";
     h += '<a href="#" data-a="go" data-i="'+m.id+'" class="'+(state.view===m.id?"on ":"")+(PIN.includes(m.id)?"mob":"")+'">'+svg(m.kind)+
          '<span>'+esc(m.name)+'</span>'+(c?'<span class="cnt num">'+c+'</span>':'')+'</a>';
   });
@@ -468,12 +508,13 @@ function renderNav(){
 }
 function render(){
   if(!state.ready){ $("#view").innerHTML = '<p style="color:var(--ink-3);font-family:var(--f-mono);font-size:12px">Se încarcă…</p>'; return; }
-  renderNav(); paintGauge();
+  renderNav(); paintGauge(); paintRailGoal();
   const d = new Date();
   $("#brandDate").textContent = d.getDate() + " " + MONTHS_L[d.getMonth()];
   const m = state.view === "__set" ? {kind:"settings"} : (modById(state.view) || BUILTIN[0]);
-  const fns = {dashboard:viewDash, finance:viewFinance, debts:viewDebts, tasks:viewTasks, habits:viewHabits, notes:viewNotes, settings:viewSettings};
-  $("#view").innerHTML = (fns[m.kind] || viewDash)(m);
+  const fns = {dashboard:viewDash, finance:viewFinance, debts:viewDebts, tasks:viewTasks, habits:viewHabits, notes:viewNotes, goals:viewGoals, settings:viewSettings};
+  const body = (fns[m.kind] || viewDash)(m);
+  $("#view").innerHTML = (m.kind === "dashboard" || m.kind === "goals" ? "" : goalStrip()) + body;
 }
 function head(title, sub, actions){
   return '<div class="head"><div><h1>'+esc(title)+'</h1>'+(sub?'<p>'+sub+'</p>':'')+'</div><div class="sp"></div>'+(actions||"")+'</div>';
@@ -493,6 +534,81 @@ function monthTotals(k){
 const remaining = d => Math.max(0, num(d.total) - (d.payments||[]).reduce((s,p) => s + num(p.amount), 0));
 const paidOf = d => (d.payments||[]).reduce((s,p) => s + num(p.amount), 0);
 
+/* ══════════ Obiective: calcule ══════════ */
+const goalsAll = () => Object.keys(state.goals).map(id => Object.assign({id}, state.goals[id]));
+const gCur = g => (g.contrib||[]).reduce((s,c) => s + num(c.amount), 0);
+const gPct = g => num(g.target) ? Math.min(100, gCur(g)/num(g.target)*100) : 0;
+function mainGoal(){
+  const all = goalsAll();
+  if(!all.length) return null;
+  return all.find(g => g.main) || all.slice().sort((a,b) => num(b.target) - num(a.target))[0];
+}
+/* ritmul real, din ultimele 3 luni cu mișcări în Finanțe */
+function paceRate(){
+  const keys = []; const d = new Date();
+  for(let i = 2; i >= 0; i--){ const x = new Date(d); x.setMonth(x.getMonth()-i); keys.push(iso(x).slice(0,7)); }
+  const withData = keys.filter(k => monthItems(k).length);
+  if(!withData.length) return null;
+  return withData.reduce((s,k) => s + monthTotals(k).bal, 0) / withData.length;
+}
+const monthsTo = due => {
+  const a = new Date(), b2 = new Date(due+"T12:00:00");
+  return (b2.getFullYear()-a.getFullYear())*12 + (b2.getMonth()-a.getMonth()) + (b2.getDate()-a.getDate())/30;
+};
+function whenAt(months){
+  const d = new Date(); d.setDate(d.getDate() + Math.round(months * 30.44));
+  return MONTHS[d.getMonth()] + " " + d.getFullYear();
+}
+function goalFacts(g, isMain){
+  const rem = Math.max(0, num(g.target) - gCur(g)), rate = isMain ? paceRate() : null;
+  const out = [{k:"Rămas", v:money(rem)}];
+  if(g.due){
+    const m = monthsTo(g.due);
+    if(rem <= 0) out.push({k:"Termen", v:"atins"});
+    else if(m <= 0) out.push({k:"Termen", v:"depășit"});
+    else out.push({k:"Necesar pe lună", v:money(rem/m)});
+  }
+  if(rem > 0 && rate !== null){
+    out.push({k:"Ritmul tău", v:money(rate) + "/lună"});
+    if(rate > 0) out.push({k:"Ajungi în", v:whenAt(rem/rate)});
+  }
+  return out;
+}
+function goalStatus(g, isMain){
+  const rem = Math.max(0, num(g.target) - gCur(g)), rate = isMain ? paceRate() : null;
+  if(rem <= 0) return {cls:"good", txt:"atins"};
+  if(!g.due || rate === null) return null;
+  const m = monthsTo(g.due);
+  if(m <= 0) return {cls:"bad", txt:"termen depășit"};
+  return rate >= rem/m ? {cls:"good", txt:"în grafic"} : {cls:"warn", txt:"sub ritm"};
+}
+function goalHero(acts){
+  const g = mainGoal();
+  if(!g) return '<button class="strip" data-a="go" data-i="goals"><span class="lbl">Obiectiv principal</span>' +
+    '<span style="flex:1;font-size:13.5px;color:var(--ink-2)">Niciunul stabilit — pune ținta în jurul căreia se învârte tot.</span>' +
+    '<span class="v">Stabilește →</span></button>';
+  const st = goalStatus(g, true), pct = gPct(g);
+  return '<div class="hero"><span class="hero-name">'+esc(g.name)+(st?' · <span class="pill '+st.cls+'" style="vertical-align:middle">'+st.txt+'</span>':'')+'</span>' +
+    '<div class="hero-top"><span class="cur">'+money(gCur(g))+'</span><span class="of">din '+money(num(g.target))+(g.due?' · până în '+dLabel(g.due):'')+'</span>' +
+    '<span class="pc">'+pct.toFixed(pct < 10 ? 1 : 0)+'%</span></div>' +
+    '<div class="hero-bar"><i style="width:'+Math.max(pct,0.8)+'%"></i></div>' +
+    '<div class="hero-facts">' + goalFacts(g, true).map(f => '<div><b>'+f.v+'</b><span>'+esc(f.k)+'</span></div>').join("") + '</div>' +
+    (acts ? '<div style="display:flex;gap:8px;flex-wrap:wrap;border-top:1px solid var(--accent);padding-top:12px;margin-top:2px">' +
+      '<button class="btn sm" data-a="gcon" data-i="'+g.id+'">'+svg("plus")+'Contribuție</button>' +
+      '<button class="btn ghost sm" data-a="gedit" data-i="'+g.id+'">Modifică</button>' +
+      '<button class="icon-btn del" style="margin-left:auto" data-a="gdel" data-i="'+g.id+'" aria-label="Șterge">'+svg("trash")+'</button></div>' : '') +
+    '</div>';
+}
+function goalStrip(){
+  const g = mainGoal();
+  if(!g) return "";
+  const pct = gPct(g);
+  return '<button class="strip" data-a="go" data-i="goals" title="'+esc(g.name)+'">' +
+    '<span class="lbl">'+esc(g.name)+'</span>' +
+    '<span class="prog"><i style="width:'+Math.max(pct,0.8)+'%"></i></span>' +
+    '<span class="v">'+money(gCur(g))+' / '+money(num(g.target))+' · '+pct.toFixed(0)+'%</span></button>';
+}
+
 /* ══════════ Panoul „Azi" ══════════ */
 function viewDash(){
   const k = ym(), t = monthTotals(k), tod = today();
@@ -508,6 +624,7 @@ function viewDash(){
 
   let h = head("Azi", esc(DAYS[dt.getDay()]==="D"?"duminică":["duminică","luni","marți","miercuri","joi","vineri","sâmbătă"][dt.getDay()]) + ", " + dt.getDate() + " " + MONTHS_L[dt.getMonth()] + " " + dt.getFullYear());
 
+  h += goalHero();
   h += '<div class="tiles">' +
     tile("Balanța lunii", money(t.bal), MONTHS_L[parseInt(k.slice(5,7),10)-1], t.bal < 0 ? "bad" : "good", true) +
     tile("Cheltuit luna asta", money(t.out), monthItems(k).length + " mișcări") +
@@ -791,6 +908,58 @@ function viewNotes(m){
   return h;
 }
 
+/* ══════════ Goals ══════════ */
+function viewGoals(m){
+  const all = goalsAll().filter(g => (g.mod||"goals") === m.id)
+    .sort((a,b) => (b.main?1:0)-(a.main?1:0) || num(b.target)-num(a.target));
+  const mg = mainGoal();
+
+  let h = head(m.name, "Ținta în jurul căreia se învârte tot. Ritmul se calculează din Finanțe.",
+    '<button class="btn" data-a="gadd" data-m="'+m.id+'">'+svg("plus")+'Obiectiv nou</button>');
+
+  if(!all.length){
+    return h + '<div class="empty"><h3>Niciun obiectiv stabilit</h3>' +
+      '<p>Pune ținta mare. Apare pe fiecare ecran, iar aplicația îți spune în ce lună ajungi la ea, ținând ritmul tău actual de venituri și cheltuieli.</p>' +
+      '<button class="btn" data-a="gadd" data-m="'+m.id+'">'+svg("plus")+'Stabilește obiectivul</button></div>';
+  }
+
+  h += goalHero(true);
+  const rest = all.filter(g => !(mg && mg.id === g.id));
+  if(!rest.length) return h;
+  h += sec("Celelalte obiective");
+  h += rest.map(g => {
+    const cur = gCur(g), tgt = num(g.target), pct = gPct(g), st = goalStatus(g, false);
+    const isMain = false;
+    const last = (g.contrib||[]).slice().sort((a,c) => (c.date||"").localeCompare(a.date||"")).slice(0,3);
+    return '<div class="goal-card'+(isMain?" main":"")+'" style="margin-bottom:12px">' +
+      '<div class="goal-head"><h4>'+esc(g.name)+'</h4>' +
+      (isMain?'<span class="pill acc">principal</span>':'') +
+      (st?'<span class="pill '+st.cls+'">'+st.txt+'</span>':'') +
+      (g.due?'<span class="pill">'+dLabel(g.due)+'</span>':'') + '</div>' +
+      '<div style="display:flex;align-items:baseline;gap:9px;flex-wrap:wrap">' +
+      '<span class="num" style="font-size:21px;font-weight:600">'+money(cur)+'</span>' +
+      '<span style="font-size:13px;color:var(--ink-2)">din '+money(tgt)+'</span>' +
+      '<span class="num" style="margin-left:auto;font-weight:600;color:var(--accent-ink)">'+pct.toFixed(pct<10?1:0)+'%</span></div>' +
+      '<div class="prog" style="height:7px"><i style="width:'+Math.max(pct,0.8)+'%"></i></div>' +
+      '<div class="hero-facts">' + goalFacts(g, false).map(f => '<div><b>'+f.v+'</b><span>'+esc(f.k)+'</span></div>').join("") + '</div>' +
+      (last.length ? '<div style="display:flex;flex-direction:column;gap:1px;border-top:1px solid var(--line);padding-top:9px">' +
+        '<span style="font-family:var(--f-mono);font-size:9.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3);margin-bottom:4px">Ultimele contribuții ('+(g.contrib||[]).length+')</span>' +
+        last.map(c => '<div style="display:flex;align-items:center;gap:10px;font-size:13.5px">' +
+          '<span style="flex:1;min-width:0;overflow-wrap:anywhere">'+esc(c.note || "Contribuție")+'</span>' +
+          '<span style="color:var(--ink-3);font-size:12.5px;white-space:nowrap">'+dLabel(c.date)+'</span>' +
+          '<span class="num" style="font-weight:600;color:var(--good);white-space:nowrap">+'+money(num(c.amount))+'</span>' +
+          '<button class="icon-btn del" data-a="gundo" data-i="'+g.id+'" data-c="'+c.id+'" aria-label="Șterge contribuția">'+svg("trash")+'</button></div>').join("") +
+        '</div>' : '') +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap;padding-top:2px">' +
+      '<button class="btn sm" data-a="gcon" data-i="'+g.id+'">'+svg("plus")+'Contribuție</button>' +
+      (isMain?'':'<button class="btn ghost sm" data-a="gmain" data-i="'+g.id+'">Fă-l principal</button>') +
+      '<button class="btn ghost sm" data-a="gedit" data-i="'+g.id+'">Modifică</button>' +
+      '<button class="icon-btn del" style="margin-left:auto" data-a="gdel" data-i="'+g.id+'" aria-label="Șterge">'+svg("trash")+'</button>' +
+      '</div></div>';
+  }).join("");
+  return h;
+}
+
 /* ══════════ Setări ══════════ */
 function viewSettings(){
   const n = Store.count(), pct = n/5000*100;
@@ -901,7 +1070,8 @@ const ACT = {
         {k:"kind", label:"Tip", type:"select", value:"tasks", options:[
           {v:"tasks", l:"Listă de bifat — lucruri de făcut"},
           {v:"notes", l:"Notițe — text liber, cu căutare"},
-          {v:"habits", l:"Tracker — bifezi zilnic, vezi seria"}]}
+          {v:"habits", l:"Tracker — bifezi zilnic, vezi seria"},
+          {v:"goals",  l:"Obiective — ținte cu progres și termen"}]}
       ],
       onOk(v){
         if(!v.name) return "Dă-i un nume modulului.";
@@ -912,11 +1082,11 @@ const ACT = {
   },
   mdel(el){
     const id = el.dataset.i, m = modById(id); if(!m) return;
-    const n = itemsOf("tasks",id).length + itemsOf("notes",id).length + itemsOf("habits",id).length;
+    const n = itemsOf("tasks",id).length + itemsOf("notes",id).length + itemsOf("habits",id).length + itemsOf("goals",id).length;
     ask("Ștergi modulul „" + m.name + "”?",
       n ? "Se șterg și cele <b>" + n + "</b> lucruri dinăuntru. Nu se poate anula." : "Modulul e gol. Nu se poate anula.",
       "Șterge modulul", () => {
-        ["tasks","notes","habits"].forEach(c => itemsOf(c,id).forEach(x => Store.drop(c, x.id)));
+        ["tasks","notes","habits","goals"].forEach(c => itemsOf(c,id).forEach(x => Store.drop(c, x.id)));
         Store.drop("modules", id);
         if(state.view === id) state.view = "azi";
         toast("Modul șters.");
@@ -1013,6 +1183,73 @@ const ACT = {
     const mid = el.dataset.m, done = itemsOf("tasks", mid).filter(t => t.done);
     ask("Ștergi cele " + done.length + " task-uri bifate?", "Dispar definitiv din listă. Nu se poate anula.", "Șterge tot",
       () => { done.forEach(t => Store.drop("tasks", t.id)); toast(done.length + " task-uri șterse."); });
+  },
+
+  /* obiective */
+  gadd(el){
+    const mid = el.dataset.m, first = !goalsAll().length;
+    modal({title:"Obiectiv nou",
+      note: first ? "Primul obiectiv devine automat cel principal — apare pe toate ecranele." : "",
+      fields:[
+        {k:"name", label:"Numele obiectivului", value: first ? "100k" : "", ph:"ex: 100k, fond de urgență"},
+        {k:"target", label:"Ținta", type:"number", value: first ? "100000" : "", ph:"0.00"},
+        {k:"start", label:"Ai deja strâns (opțional)", type:"number", ph:"0.00"},
+        {k:"due", label:"Până când (opțional)", type:"date"}
+      ],
+      onOk(v){
+        if(!v.name) return "Dă-i un nume obiectivului.";
+        if(num(v.target) <= 0) return "Scrie ținta, mai mare ca zero.";
+        const st = num(v.start);
+        Store.put("goals", "g" + uid(), {mod:mid, name:v.name, target:num(v.target), due:v.due||"",
+          main: first, contrib: st > 0 ? [{id:uid(), date:today(), amount:st, note:"Punct de pornire"}] : [],
+          createdAt:new Date().toISOString()});
+        toast(first ? "Obiectiv stabilit. Îl vezi acum pe fiecare ecran." : "Obiectiv adăugat.");
+      }});
+  },
+  gcon(el){
+    const id = el.dataset.i, g = state.goals[id]; if(!g) return;
+    const rem = Math.max(0, num(g.target) - gCur(g));
+    modal({title:"Contribuție la „" + g.name + "”",
+      note:"Mai ai de strâns <b>" + money(rem) + "</b>.",
+      fields:[{k:"amount", label:"Cât adaugi", type:"number", ph:"0.00"},
+              {k:"date", label:"Data", type:"date", value:today()},
+              {k:"note", label:"Din ce (opțional)", ph:"ex: economii septembrie"}],
+      onOk(v){
+        const a = num(v.amount);
+        if(a <= 0) return "Scrie o sumă mai mare ca zero.";
+        Store.put("goals", id, Object.assign({}, g, {contrib:(g.contrib||[]).concat([{id:uid(), date:v.date||today(), amount:a, note:v.note||""}])}));
+        toast(a >= rem ? "Obiectiv atins. Felicitări." : "Adăugat. Mai ai " + money(rem - a) + ".");
+      }});
+  },
+  gundo(el){
+    const id = el.dataset.i, g = state.goals[id]; if(!g) return;
+    Store.put("goals", id, Object.assign({}, g, {contrib:(g.contrib||[]).filter(c => c.id !== el.dataset.c)}));
+    toast("Contribuție ștearsă.");
+  },
+  gedit(el){
+    const id = el.dataset.i, g = state.goals[id]; if(!g) return;
+    modal({title:"Modifică obiectivul",
+      fields:[{k:"name", label:"Nume", value:g.name},
+              {k:"target", label:"Ținta", type:"number", value:num(g.target)},
+              {k:"due", label:"Până când", type:"date", value:g.due||""}],
+      onOk(v){
+        if(!v.name) return "Dă-i un nume.";
+        if(num(v.target) <= 0) return "Ținta trebuie să fie mai mare ca zero.";
+        Store.put("goals", id, Object.assign({}, g, {name:v.name, target:num(v.target), due:v.due||""}));
+      }});
+  },
+  gmain(el){
+    const id = el.dataset.i;
+    goalsAll().forEach(g => {
+      const should = g.id === id;
+      if(!!g.main !== should) Store.put("goals", g.id, Object.assign({}, state.goals[g.id], {main:should}));
+    });
+    toast("Obiectiv principal schimbat.");
+  },
+  gdel(el){
+    const id = el.dataset.i, g = state.goals[id]; if(!g) return;
+    ask("Ștergi „" + g.name + "”?", "Se pierde și istoricul contribuțiilor. Nu se poate anula.", "Șterge",
+      () => { Store.drop("goals", id); toast("Obiectiv șters."); });
   },
 
   /* obiceiuri */
