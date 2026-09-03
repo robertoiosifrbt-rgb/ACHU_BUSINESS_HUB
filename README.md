@@ -13,7 +13,7 @@ fără cont. Îl deschizi și merge.
 1. Settings → Pages
 2. La *Source* alegi `Deploy from a branch`
 3. Branch: `main`, folder: `/ (root)` → Save
-4. După un minut apare la `https://robertoiosifrbt-rgb.github.io/ACHU_BUSINESS_HUB/`
+4. După un minut apare la adresa afișată tot acolo, în Settings → Pages
 
 ## Unde stau datele
 

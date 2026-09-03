@@ -370,7 +370,8 @@ function toast(msg){
 
 /* ══════════ 3. Depozit (cloud sau local) ══════════ */
 const COLLS = ["modules","tasks","notes","habits","debts","finance","goals","settings"];
-const LS_KEY = "achu_life_os_v1";
+const LS_KEY = "roberto_os_v1";
+const LS_OLD = "achu_life_os_v1";
 
 const state = {
   modules:{}, tasks:{}, notes:{}, habits:{}, debts:{}, finance:{}, goals:{},
@@ -409,7 +410,11 @@ const Store = {
   },
   loadLocal(){
     try{
-      const raw = localStorage.getItem(LS_KEY);
+      let raw = localStorage.getItem(LS_KEY);
+      if(!raw){
+        const old = localStorage.getItem(LS_OLD);
+        if(old){ localStorage.setItem(LS_KEY, old); localStorage.removeItem(LS_OLD); raw = old; }
+      }
       if(raw){
         const d = JSON.parse(raw);
         COLLS.forEach(c => { if(c!=="settings" && d[c]) state[c] = d[c]; });
@@ -830,7 +835,7 @@ function viewTasks(m){
       '<p>'+(all.length?"Schimbă filtrul de mai sus ca să vezi restul.":"Scrie primul task. Poți să-i pui o scadență și un proiect, ca să știi ce e urgent.")+'</p>' +
       (all.length?'':'<button class="btn" data-a="tadd" data-m="'+m.id+'">'+svg("plus")+'Adaugă primul task</button>' +
       '<div class="demo"><span class="demo-tag">Exemplu — așa va arăta</span><div class="rows">' +
-      '<div class="row"><span class="chk"></span><div class="main"><span class="ttl">Trimis factura pe septembrie</span><span class="sub"><span class="pill">ACHU</span><span class="pill warn">azi</span></span></div></div>' +
+      '<div class="row"><span class="chk"></span><div class="main"><span class="ttl">Trimis factura pe septembrie</span><span class="sub"><span class="pill">personal</span><span class="pill warn">azi</span></span></div></div>' +
       '<div class="row done"><span class="chk on">'+svg("check")+'</span><div class="main"><span class="ttl">Programare la dentist</span></div></div>' +
       '</div></div>') + '</div>';
   } else h += '<div class="rows">' + list.map(taskRow).join("") + '</div>';
@@ -1166,7 +1171,7 @@ const ACT = {
       fields:[
         {k:"title", label:"Ce ai de făcut", ph:"ex: trimis factura pe septembrie"},
         {k:"due", label:"Până când (opțional)", type:"date"},
-        {k:"proj", label:"Proiect (opțional)", ph:"ex: ACHU, casă, personal"}
+        {k:"proj", label:"Proiect (opțional)", ph:"ex: casă, sănătate, personal"}
       ],
       onOk(v){
         if(!v.title) return "Scrie ce ai de făcut.";
