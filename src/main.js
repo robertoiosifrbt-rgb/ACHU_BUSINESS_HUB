@@ -12,6 +12,7 @@ try{
 }
 
 async function registerUpdater(){
+ return null
  if(!('serviceWorker' in navigator))return null
  const base=import.meta.env.BASE_URL
  const registration=await navigator.serviceWorker.register(`${base}sw.js`,{scope:base})
