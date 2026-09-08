@@ -39,15 +39,16 @@ jobs:
           import fs from 'node:fs'
           const browser=await chromium.launch({headless:true,args:['--use-angle=swiftshader','--enable-webgl','--ignore-gpu-blocklist']})
           const page=await browser.newPage({viewport:{width:430,height:932},deviceScaleFactor:1})
-          const errors=[],sameOriginFailures=[];let characterStatus=null
+          const errors=[],sameOriginFailures=[];let characterStatus=null,animationStatus=null
           page.on('console',m=>{if(m.type()==='error')errors.push(m.text())})
           page.on('pageerror',e=>errors.push(e.message))
           page.on('requestfailed',r=>{if(r.url().startsWith('http://127.0.0.1:4173/'))sameOriginFailures.push(`${r.url()} :: ${r.failure()?.errorText}`)})
-          page.on('response',r=>{if(r.url().includes('night-striker.glb'))characterStatus=r.status()})
+          page.on('response',r=>{if(r.url().includes('night-striker.glb'))characterStatus=r.status();if(r.url().includes('universal-animation-library.glb'))animationStatus=r.status()})
           await page.addInitScript(()=>{for(const k of Object.keys(localStorage))if(k.startsWith('build_strategy_'))localStorage.removeItem(k);localStorage.removeItem('achu_business_audio_enabled')})
-          await page.goto('http://127.0.0.1:4173/ACHU_BUSINESS_HUB/',{waitUntil:'networkidle',timeout:120000})
+          await page.goto('http://127.0.0.1:4173/ACHU_BUSINESS_HUB/',{waitUntil:'networkidle',timeout:150000})
           await page.waitForTimeout(3500)
           if(characterStatus!==200)throw new Error(`Humanoid crew model did not load: ${characterStatus}`)
+          if(animationStatus!==200)throw new Error(`Humanoid animation library did not load: ${animationStatus}`)
           await page.locator('#company-profile').click();await page.waitForTimeout(250)
           let text=await page.locator('#sheet').innerText()
           for(const required of['COMPANY STORY','YOU STARTED WITH A PROMISE','CURRENT CHAPTER','STORY SO FAR'])if(!text.includes(required))throw new Error(`Company profile missing ${required}`)
@@ -56,7 +57,7 @@ jobs:
           text=await page.locator('#sheet').innerText()
           for(const required of['STORY','YOUR OBJECTIVE','WHY IT MATTERS','WHEN YOU FINISH','REWARD'])if(!text.includes(required))throw new Error(`Chapter missing ${required}`)
           await page.screenshot({path:'story-qa/02-chapter-story.png',fullPage:true})
-          await page.locator('[data-close]').first().click();await page.locator('[data-mode="city"]').click();await page.waitForTimeout(500)
+          await page.locator('[data-close]').first().click();await page.locator('[data-mode="city"]').click();await page.waitForTimeout(1800)
           await page.screenshot({path:'story-qa/03-real-crew-base.png',fullPage:true})
           await page.locator('#quest').click();await page.waitForTimeout(250)
           text=await page.locator('#sheet').innerText();if(!text.includes('STORY')||!text.includes('YOUR OBJECTIVE'))throw new Error('Base quest no longer opens story')
@@ -64,7 +65,7 @@ jobs:
           text=await page.locator('#sheet').innerText();if(!text.includes('SOUND')||!text.includes('ON · ambient + game effects'))throw new Error('Sound control missing or not enabled by default')
           await page.locator('#more-sound').click();await page.waitForTimeout(150)
           text=await page.locator('#sheet').innerText();if(!text.includes('OFF · tap to enable'))throw new Error('Sound toggle failed')
-          const report={characterStatus,errors,sameOriginFailures,story:true,chapter:true,soundToggle:true}
+          const report={characterStatus,animationStatus,errors,sameOriginFailures,story:true,chapter:true,soundToggle:true}
           fs.writeFileSync('story-qa/report.json',JSON.stringify(report,null,2));await browser.close()
           if(errors.length||sameOriginFailures.length)process.exitCode=1
           EOF
