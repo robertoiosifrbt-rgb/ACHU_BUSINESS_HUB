@@ -1,10 +1,30 @@
-import { Container } from 'pixi.js'
+import { Container,Graphics } from 'pixi.js'
 import { BUILDINGS } from '../../data/buildings.js'
 import { currentChapter,chapterStatus } from '../../data/chapters.js'
 import { panel,text } from './primitives.js'
+
 export class QuestHud extends Container{
- constructor(game){super();this.game=game;this.addChild(panel(350,78,.93,0x183a46,16));this.title=text('',11,0xffd777,'900');this.title.position.set(14,10);this.task=text('',13,0xffffff,'800');this.task.position.set(14,31);this.progress=text('',10,0xb9dce8);this.progress.position.set(14,54);this.addChild(this.title,this.task,this.progress);this.eventMode='static';this.cursor='pointer';this.on('pointertap',()=>this.action())}
- worldObjective(){const w=this.game.state.world;if(w.scouted.length<12)return{title:'EXPLORE',task:'Scout the frozen frontier',progress:`${w.scouted.length}/12 territories revealed`,action:()=>this.game.showWorld()};if(w.owned.length<5)return{title:'EXPAND',task:'Claim connected territory',progress:`${w.owned.length}/5 territories controlled`,action:()=>this.game.showWorld()};if(w.defeated.length<1)return{title:'EXTERMINATE',task:'Defeat a raider camp',progress:`Army power ${this.game.armyPower().toLocaleString()}`,action:()=>this.game.showWorld()};return{title:'EXPLOIT',task:'Harvest controlled resource nodes',progress:'Build economy · grow army · push outward',action:()=>this.game.showWorld()}}
- refresh(){const chapter=currentChapter(this.game.state);if(this.game.mode==='world'||!chapter){const q=this.worldObjective();this.title.text=q.title;this.task.text=q.task;this.progress.text=q.progress;return}const s=chapterStatus(this.game.state,chapter);this.title.text=chapter.title;if(s.done){this.task.text='Reward ready';this.progress.text='TAP TO CLAIM'}else{const [id,lvl]=s.next;this.task.text=`${BUILDINGS[id].name} → Lv. ${lvl}`;this.progress.text=`${s.complete}/${s.total} objectives · tap to locate`}}
+ constructor(game){
+  super();this.game=game;this.addChild(panel(330,64,.94,0x102e39,15))
+  this.accent=new Graphics().roundRect(0,0,5,64,3).fill(0xd89a45);this.addChild(this.accent)
+  this.title=text('',9,0xffd777,'900');this.title.position.set(14,8)
+  this.task=text('',12,0xffffff,'900');this.task.position.set(14,25)
+  this.progress=text('',9,0xaed1dc,'800');this.progress.position.set(14,45)
+  this.addChild(this.title,this.task,this.progress);this.eventMode='static';this.cursor='pointer';this.on('pointertap',()=>this.action())
+ }
+ worldObjective(){
+  const w=this.game.state.world
+  if(w.scouted.length<12)return{title:'EXPLORE',task:'Reveal the frozen frontier',progress:`${w.scouted.length}/12 territories scouted`,action:()=>this.game.showWorld()}
+  if(w.owned.length<5)return{title:'EXPAND',task:'Secure connected territory',progress:`${w.owned.length}/5 territories controlled`,action:()=>this.game.showWorld()}
+  if(w.defeated.length<1)return{title:'EXTERMINATE',task:'Destroy a raider camp',progress:`Army power ${this.game.armyPower().toLocaleString()}`,action:()=>this.game.showWorld()}
+  return{title:'EXPLOIT',task:'Harvest controlled resource nodes',progress:'Gather · reinforce · push the frontier',action:()=>this.game.showWorld()}
+ }
+ refresh(){
+  const chapter=currentChapter(this.game.state)
+  if(this.game.mode==='world'||!chapter){const q=this.worldObjective();this.title.text=q.title;this.task.text=q.task;this.progress.text=q.progress;return}
+  const s=chapterStatus(this.game.state,chapter);this.title.text=chapter.title.toUpperCase()
+  if(s.done){this.task.text='Chapter reward ready';this.progress.text='TAP TO CLAIM'}
+  else{const [id,lvl]=s.next;this.task.text=`${BUILDINGS[id].name} → Level ${lvl}`;this.progress.text=`${s.complete}/${s.total} objectives · tap to locate`}
+ }
  action(){const chapter=currentChapter(this.game.state);if(this.game.mode==='world'||!chapter){this.worldObjective().action();return}const s=chapterStatus(this.game.state,chapter);if(s.done)this.game.claimChapter(chapter);else if(s.next)this.game.focusBuilding(s.next[0])}
 }
