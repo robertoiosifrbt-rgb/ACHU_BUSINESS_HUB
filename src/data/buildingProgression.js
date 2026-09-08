@@ -1,3 +1,5 @@
+import { FURNACE_LEVELS,FURNACE_UNLOCKS,furnaceTier } from './furnace.js'
+
 const cost=(base,lvl,rate)=>Object.fromEntries(Object.entries(base).map(([k,v])=>[k,Math.round(v*Math.pow(rate,lvl-1))]))
 const levels=(base,time,power,rate=1.48,timeRate=1.52,powerRate=1.55)=>Object.fromEntries(Array.from({length:12},(_,i)=>{const l=i+1;return[l,{cost:cost(base,l,rate),seconds:Math.round(time*Math.pow(timeRate,l-1)),power:Math.round(power*Math.pow(powerRate,l-1))}]}))
 const tier=l=>l>=10?4:l>=7?3:l>=4?2:1
@@ -21,5 +23,11 @@ export const BUILDING_PROGRESSION={
 
 export const buildingStageForLevel=level=>Math.max(0,Math.min(3,(level||1)>=10?3:(level||1)>=7?2:(level||1)>=4?1:0))
 export function buildingEffects(id,level){const d=BUILDING_PROGRESSION[id];return d&&level>0?d.effects(level):null}
-export function buildingEffectLines(id,level){const d=BUILDING_PROGRESSION[id],e=buildingEffects(id,level);return d&&e?d.lines(e):[]}
-export function buildingRole(id){return BUILDING_PROGRESSION[id]?.role??''}
+export function buildingEffectLines(id,level){
+ if(id==='furnace'&&level>0){
+  const spec=FURNACE_LEVELS[level],unlocks=FURNACE_UNLOCKS[level]??[]
+  return[`Company stage  ${furnaceTier(level)}`,`Company value gained at this level  +${num(spec?.power??0)}`,...unlocks.map(x=>`Unlocks  ${x}`)]
+ }
+ const d=BUILDING_PROGRESSION[id],e=buildingEffects(id,level);return d&&e?d.lines(e):[]
+}
+export function buildingRole(id){return id==='furnace'?'Controls the size of the company and unlocks new divisions, systems, markets and contract tiers.':BUILDING_PROGRESSION[id]?.role??''}
