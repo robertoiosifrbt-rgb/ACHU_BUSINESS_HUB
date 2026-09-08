@@ -1,23 +1,27 @@
-# BUILD — v0.3
+# BUILD — serious mobile strategy prototype
 
-Mobile-first 2D winter strategy prototype built as a real Vite + PixiJS project.
+A PixiJS/Vite mobile strategy prototype inspired by the construction/research progression loop of survival strategy games.
 
-## Architecture
-- PixiJS/WebGL renderer
-- Vite build
-- Game logic split into data, systems, scene and HUD modules
-- Persistent local state
-- GitHub Pages production build from `dist/`
+## Current vertical slice
+- Full-screen 2D city scene using sprite assets
+- Furnace-gated building progression
+- Meat / Wood / Coal / Iron economy
+- Construction queue with live progress
+- Research queue and research branches
+- Alliance Help acceleration
+- Chapter objectives and claimable rewards
+- Resource collection bubbles
+- Mobile pan + pinch zoom
+- Bottom-sheet building UI
+- Local save + offline production
 
-## Current systems
-- Full-screen draggable/zoomable 2D winter settlement
-- Furnace-led building progression
-- Building prerequisites, costs, timers and power
-- Single construction queue + Alliance Help
-- Research Center gated by Furnace 9
-- Growth / Economy / Battle research branches
-- Independent research queue and prerequisite chains
-- Research bonuses that affect construction speed and resource production
-- Passive resources and persistent progression
+## Run
+```bash
+npm install
+npm run dev
+```
 
-The HTML file is now only the browser boot shell. Game rendering, UI and gameplay logic live under `src/`.
+## Build
+```bash
+npm run build
+```
