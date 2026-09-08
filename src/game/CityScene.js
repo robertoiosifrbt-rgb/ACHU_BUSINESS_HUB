@@ -1,24 +1,60 @@
 import { Container,Sprite,Text,Rectangle,Graphics } from 'pixi.js'
-import { BUILDINGS,RESOURCES } from '../data/buildings.js'
+import { BUILDINGS,RESOURCES,buildingRequirements,nextBuildingLevel } from '../data/buildings.js'
 import { visualAssets } from './AssetLibrary.js'
 
-const txt=(text,size=14,color=0x203943,weight='700',stroke=true)=>new Text({text,style:{fontFamily:'Arial',fontSize:size,fill:color,fontWeight:weight,...(stroke?{stroke:{color:0xffffff,width:3}}:{})}})
-function fitSprite(texture,width){const s=new Sprite(texture);s.anchor.set(.5,1);const scale=width/Math.max(1,texture.width);s.scale.set(scale);return s}
-function pill(label,color=0x17303d,w=58){const c=new Container();c.addChild(new Graphics().roundRect(-w/2,-12,w,24,12).fill({color,alpha:.9}).stroke({color:0xffffff,alpha:.35,width:1}));const t=txt(label,10,0xffffff,'800',false);t.anchor.set(.5);c.addChild(t);return c}
-function buildingView(id,level){const texture=visualAssets.buildings[id];const c=new Container();const width=id==='furnace'?176:132;const s=fitSprite(texture,width);s.label='asset';if(!level){s.tint=0x71818a;s.alpha=.42}else if(level>=8){s.tint=0xfff2cf}else if(level>=5){s.tint=0xe8f4ff}c.addChild(s);return c}
-function collectBubble(resource){const r=RESOURCES[resource],c=new Container();c.addChild(new Graphics().circle(0,0,24).fill({color:r.color,alpha:.96}).stroke({color:0xffffff,width:3}));const plus=txt('+',21,0xffffff,'900',false);plus.anchor.set(.5);plus.position.set(0,-2);c.addChild(plus);const tag=txt(r.short,8,0xffffff,'800',false);tag.anchor.set(.5);tag.position.set(0,31);c.addChild(tag);c.position.set(42,-118);c.eventMode='static';c.cursor='pointer';return c}
+const TW=128,TH=64,CENTER=12
+const LAYOUT={
+ furnace:[12,12],shelter:[9,14],sawmill:[15,14],huntersHut:[17,11],coalMine:[16,8],ironMine:[19,13],
+ storehouse:[12,17],infirmary:[8,9],embassy:[9,6],infantryCamp:[13,6],lancerCamp:[16,5],marksmanCamp:[18,8],researchCenter:[7,12],
+}
+const iso=(gx,gy)=>({x:(gx-gy)*TW/2,y:(gx+gy-CENTER*2)*TH/2})
+const txt=(value,size=12,color=0xffffff,weight='800')=>new Text({text:value,style:{fontFamily:'Arial',fontSize:size,fill:color,fontWeight:weight,stroke:{color:0x0b2029,width:4}}})
+const rng=(n)=>{const x=Math.sin(n*999.31)*43758.5453;return x-Math.floor(x)}
+function sprite(texture,width){const s=new Sprite(texture);s.anchor.set(.5,1);const scale=width/Math.max(1,texture.width);s.scale.set(scale);return s}
+function marker(label,color=0x1d5265){const c=new Container();const g=new Graphics().circle(0,0,20).fill({color,alpha:.96}).stroke({color:0xffffff,alpha:.85,width:2});const t=txt(label,13,0xffffff,'900');t.anchor.set(.5);t.position.set(0,-1);c.addChild(g,t);return c}
+function levelBadge(level){const c=new Container();const g=new Graphics().roundRect(-27,-10,54,20,10).fill({color:0x102c37,alpha:.94}).stroke({color:0xffffff,alpha:.35,width:1});const t=txt(level?`Lv.${level}`:'+',9,0xffffff,'900');t.anchor.set(.5);c.addChild(g,t);return c}
 
 export class CityScene extends Container{
- constructor(game){super();this.game=game;this.sortableChildren=true;this.buildingViews=new Map();this.people=[];this.constructionView=null;this.lastStatusKey='';this.makeTerrain();this.makeEnvironment();this.makeBuildings();this.makePeople()}
- makeTerrain(){const textures=visualAssets.tiles;let index=0;for(let r=-8;r<=8;r++)for(let c=-10;c<=10;c++){const texture=textures[(Math.abs(r*3+c*5)+index++)%textures.length];const s=new Sprite(texture);s.anchor.set(.5);s.width=108;s.height=76;s.position.set((c-r)*51,(c+r)*25);s.tint=((r+c)&1)?0xd9e9ec:0xe7f1f2;s.alpha=.98;s.zIndex=-3000+Math.round(s.y);this.addChild(s)}}
- makeEnvironment(){const edge=[];for(let i=0;i<66;i++){const side=i%4;let x,y;if(side===0){x=-660+(i*83)%1320;y=-380+(i%5)*30}else if(side===1){x=-660+(i*97)%1320;y=385-(i%5)*28}else if(side===2){x=-660+(i%5)*32;y=-330+(i*89)%660}else{x=660-(i%5)*32;y=-330+(i*79)%660}edge.push({x,y})}edge.forEach((p,i)=>{const texture=visualAssets.environment[i%visualAssets.environment.length];const s=fitSprite(texture,74+(i%4)*8);s.position.set(p.x,p.y);s.tint=i%3===0?0xd6e5e4:0xcde1df;s.alpha=.92;s.zIndex=Math.round(p.y)-200;this.addChild(s)})}
- makeBuildings(){for(const [id,d] of Object.entries(BUILDINGS)){const c=new Container();c.position.set(d.x,d.y);c.zIndex=Math.round(d.y)+100;c.eventMode='static';c.cursor='pointer';c.hitArea=new Rectangle(-80,-155,160,205);c.on('pointertap',e=>{e.stopPropagation();this.game.selectBuilding(id)});this.addChild(c);this.buildingViews.set(id,c)}this.refresh()}
- refresh(){this.constructionView=null;for(const [id,c] of this.buildingViews){c.removeChildren();const lvl=this.game.state.buildings[id]??0,def=BUILDINGS[id];c.addChild(buildingView(id,lvl));const name=txt(def.name,id==='furnace'?14:12);name.anchor.set(.5);name.position.set(0,28);c.addChild(name);const badge=pill(lvl?`Lv. ${lvl}`:'LOCKED',lvl?0x193742:0x5c676c,lvl?58:68);badge.position.set(0,50);c.addChild(badge);if(lvl&&def.production&&this.game.isCollectReady(id)){const bubble=collectBubble(def.production.resource);bubble.on('pointertap',e=>{e.stopPropagation();this.game.collectResource(id)});c.addChild(bubble)}if(this.game.state.construction?.id===id){const q=this.makeConstructionOverlay(id);c.addChild(q.root);this.constructionView=q}}
-  this.lastStatusKey=this.statusKey()
+ constructor(game){super();this.game=game;this.sortableChildren=true;this.buildingViews=new Map();this.snow=[];this.smoke=[];this.lastStatusKey='';this.makeTerrain();this.makeForest();this.makeBuildings();this.makeAtmosphere()}
+ makeTerrain(){
+  const road=new Set();for(let x=6;x<=19;x++)road.add(`${x},12`);for(let y=5;y<=18;y++)road.add(`12,${y}`);for(let x=9;x<=17;x++)road.add(`${x},8`);for(let x=8;x<=16;x++)road.add(`${x},15`)
+  for(let gy=0;gy<24;gy++)for(let gx=0;gx<24;gx++){
+   const p=iso(gx,gy),river=gx+gy>38,bridge=river&&(gx===12||gy===12),isRoad=road.has(`${gx},${gy}`)&&!river
+   const pool=bridge?visualAssets.bridges:river?visualAssets.water:isRoad?visualAssets.paths:visualAssets.snow
+   const tex=pool[Math.abs((gx*7+gy*11))%pool.length],s=new Sprite(tex);s.anchor.set(.5);s.width=TW;s.height=bridge?TH*2:TH;s.position.set(p.x,p.y);s.zIndex=-5000+Math.round(p.y);if(!river&&!isRoad)s.tint=((gx+gy)&1)?0xf2f7f6:0xe8f2f2;this.addChild(s)
+  }
  }
- makeConstructionOverlay(id){const root=new Container();root.position.set(0,-154);const bg=new Graphics().roundRect(-64,0,128,34,12).fill({color:0x102c38,alpha:.94}).stroke({color:0xffd777,width:2,alpha:.8});const rail=new Graphics().roundRect(-51,20,102,6,3).fill({color:0x3d5660,alpha:.95});const fill=new Graphics();const label=txt('BUILDING',9,0xffd777,'800',false);label.anchor.set(.5);label.position.set(0,10);root.addChild(bg,rail,fill,label);return{root,fill,label,id}}
- makePeople(){for(let i=0;i<12;i++){const texture=visualAssets.units[i%visualAssets.units.length];const s=fitSprite(texture,34);s.zIndex=1600+i;this.addChild(s);this.people.push({view:s,a:i/12*Math.PI*2,r:95+(i%5)*45,s:.00015+(i%3)*.000025})}}
- statusKey(){const ready=Object.entries(BUILDINGS).filter(([id,d])=>d.production&&(this.game.state.buildings[id]??0)>0&&this.game.isCollectReady(id)).map(([id])=>id).join(',');const c=this.game.state.construction;return`${ready}|${c?.id??''}:${c?.target??''}`}
- focus(id){const c=this.buildingViews.get(id);if(!c)return;const s=c.children[0]?.getChildByLabel?.('asset')??c.children[0]?.children?.[0];if(s){const old=s.scale.x;s.scale.set(old*1.18);setTimeout(()=>this.refresh(),520)}}
- animate(){for(const p of this.people){p.a+=p.s*16;p.view.position.set(Math.cos(p.a)*p.r,Math.sin(p.a)*p.r*.56+42);p.view.zIndex=Math.round(p.view.y)+1500}if(this.constructionView&&this.game.state.construction){const j=this.game.state.construction,total=Math.max(1,j.finishAt-j.startedAt),left=Math.max(0,j.finishAt-Date.now()),p=Math.max(0,Math.min(1,1-left/total));const f=this.constructionView.fill;f.clear().roundRect(-51,20,102*p,6,3).fill(0xffc857);this.constructionView.label.text=`BUILDING ${Math.round(p*100)}%`}const key=this.statusKey();if(key!==this.lastStatusKey)this.refresh();this.sortChildren()}
+ makeForest(){
+  const blocked=new Set(Object.values(LAYOUT).map(([x,y])=>`${x},${y}`));for(let i=0;i<74;i++){
+   let gx=Math.floor(rng(i+2)*24),gy=Math.floor(rng(i+99)*24);if(gx>4&&gx<20&&gy>4&&gy<20&&rng(i+31)>.34)continue;if(blocked.has(`${gx},${gy}`)||gx+gy>38)continue
+   const p=iso(gx,gy),tex=visualAssets.trees[i%visualAssets.trees.length],s=sprite(tex,78+(i%5)*9);s.position.set(p.x+(rng(i+50)-.5)*48,p.y+24);s.zIndex=Math.round(s.y)-120;s.alpha=.94;this.addChild(s)
+  }
+  for(let i=0;i<26;i++){const gx=5+Math.floor(rng(i+310)*14),gy=5+Math.floor(rng(i+510)*14);if(blocked.has(`${gx},${gy}`))continue;const p=iso(gx,gy),s=sprite(visualAssets.props[i%visualAssets.props.length],36+(i%3)*8);s.position.set(p.x+(rng(i+700)-.5)*42,p.y+18);s.zIndex=Math.round(s.y)-30;s.alpha=.86;this.addChild(s)}
+ }
+ makeBuildings(){
+  for(const id of Object.keys(BUILDINGS)){const [gx,gy]=LAYOUT[id]??[12,12],p=iso(gx,gy),c=new Container();c.position.set(p.x,p.y+26);c.zIndex=Math.round(c.y)+300;c.eventMode='static';c.cursor='pointer';c.hitArea=new Rectangle(-96,-290,192,330);c.on('pointertap',e=>{e.stopPropagation();this.game.selectBuilding(id)});this.addChild(c);this.buildingViews.set(id,c)}this.refresh()
+ }
+ renderBuilding(id,c){
+  c.removeChildren();const level=this.game.state.buildings[id]??0,def=BUILDINGS[id],texture=level?visualAssets.buildings[id]:visualAssets.foundation
+  const width=id==='furnace'?188:(id.includes('Mine')?158:(def.category==='military'?138:148)),art=sprite(texture,width);art.label='asset';if(!level){art.alpha=.88;art.tint=0xb7c6c7}else if(level>=8)art.tint=0xffeed0;c.addChild(art)
+  const badge=levelBadge(level);badge.position.set(0,level?(id==='furnace'?22:18):12);c.addChild(badge)
+  if(id==='furnace'){const title=txt(`FURNACE  ${level}`,12,0xffe08a,'900');title.anchor.set(.5);title.position.set(0,-220);c.addChild(title)}
+  if(!level){const build=marker('+',0x2b7ca0);build.position.set(38,-82);c.addChild(build)}
+  if(level&&def.production&&this.game.isCollectReady(id)){const b=marker('+',RESOURCES[def.production.resource].color);b.position.set(46,-145);b.eventMode='static';b.cursor='pointer';b.on('pointertap',e=>{e.stopPropagation();this.game.collectResource(id)});c.addChild(b)}
+  const target=nextBuildingLevel(this.game.state,id),req=def.levels[target]?buildingRequirements(this.game.state,id,target):[]
+  if(level&&def.levels[target]&&!req.length&&!this.game.state.construction){const up=marker('↑',0xc78a38);up.position.set(-48,-150);c.addChild(up)}
+  if(this.game.state.construction?.id===id)c.addChild(this.constructionOverlay(id))
+ }
+ refresh(){for(const [id,c] of this.buildingViews)this.renderBuilding(id,c);this.lastStatusKey=this.statusKey()}
+ constructionOverlay(id){const root=new Container();root.position.set(0,-205);const bg=new Graphics().roundRect(-74,0,148,38,13).fill({color:0x0c2631,alpha:.96}).stroke({color:0xffd36a,width:2});const rail=new Graphics().roundRect(-58,25,116,6,3).fill({color:0x3a5059});const fill=new Graphics();const label=txt('CONSTRUCTING',9,0xffd36a,'900');label.anchor.set(.5);label.position.set(0,10);root.addChild(bg,rail,fill,label);root.label='construction';root.buildId=id;return root}
+ makeAtmosphere(){for(let i=0;i<80;i++){const s=new Graphics().circle(0,0,1+(i%3)*.7).fill({color:0xffffff,alpha:.65});s.position.set(-900+rng(i+800)*1800,-650+rng(i+900)*1300);s.zIndex=5000;this.addChild(s);this.snow.push({view:s,speed:.3+(i%5)*.08,drift:(rng(i+1200)-.5)*.18})}for(let i=0;i<8;i++){const s=new Graphics().circle(0,0,10+i*1.8).fill({color:0xd9e6e7,alpha:.18});s.zIndex=1000+i;this.addChild(s);this.smoke.push({view:s,phase:i/8})}}
+ getBuildingPosition(id){const c=this.buildingViews.get(id);return c?{x:c.x,y:c.y}:null}
+ focus(id){const c=this.buildingViews.get(id);const art=c?.getChildByLabel?.('asset');if(!art)return;const sx=art.scale.x,sy=art.scale.y;art.scale.set(sx*1.12,sy*1.12);setTimeout(()=>this.refresh(),520)}
+ statusKey(){const ready=Object.entries(BUILDINGS).filter(([id,d])=>d.production&&(this.game.state.buildings[id]??0)>0&&this.game.isCollectReady(id)).map(([id])=>id).join(',');const c=this.game.state.construction;return`${ready}|${c?.id??''}:${c?.target??''}|${Object.values(this.game.state.buildings).join('.')}`}
+ animate(){
+  for(const s of this.snow){s.view.y+=s.speed*2;s.view.x+=s.drift;if(s.view.y>690){s.view.y=-660;s.view.x=-900+Math.random()*1800}}
+  const furnace=this.buildingViews.get('furnace');if(furnace){for(let i=0;i<this.smoke.length;i++){const s=this.smoke[i],phase=(performance.now()*.00022+s.phase)%1;s.view.position.set(furnace.x+28+Math.sin(phase*8+i)*8,furnace.y-220-phase*160);s.view.alpha=(1-phase)*.20;s.view.scale.set(.7+phase*1.4)}}
+  if(this.game.state.construction){const c=this.buildingViews.get(this.game.state.construction.id),o=c?.getChildByLabel?.('construction');if(o){const j=this.game.state.construction,total=Math.max(1,j.finishAt-j.startedAt),p=Math.max(0,Math.min(1,1-(j.finishAt-Date.now())/total)),fill=o.children[2];fill.clear().roundRect(-58,25,116*p,6,3).fill(0xffcc55);o.children[3].text=`CONSTRUCTING ${Math.round(p*100)}%`}}
+  const key=this.statusKey();if(key!==this.lastStatusKey)this.refresh();this.sortChildren()
+ }
 }
