@@ -1,9 +1,9 @@
 export const REGIONS={
- crown:{name:'Crown Basin',subtitle:'The heartland around your settlement'},
- north:{name:'White North',subtitle:'Frozen passes and rich iron seams'},
- east:{name:'Ashen Reach',subtitle:'Fortified rivals and coal fields'},
- south:{name:'Low Frostlands',subtitle:'Open ground, food and timber'},
- west:{name:'Raven March',subtitle:'Raider country and old forts'},
+ crown:{name:'Central Market',subtitle:'Your home operating zone and strongest client base'},
+ north:{name:'North Corridor',subtitle:'Commercial estates, offices and logistics opportunities'},
+ east:{name:'East Growth Belt',subtitle:'Dense competition with high-value contracts'},
+ south:{name:'South Service Zone',subtitle:'Residential density and recurring service demand'},
+ west:{name:'West Expansion Ring',subtitle:'New markets with room to grow fast'},
 }
 
 export function regionFor(x,y,center=10){
