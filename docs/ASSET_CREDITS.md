@@ -22,6 +22,13 @@ License: Creative Commons Zero (CC0 1.0 Universal)
 
 The 4X crew now uses an optimized embedded-GLB copy of the free Standard `Superhero_Male_FullBody` base character. The runtime copy is served from the public `Seyamalam/blood-league-kickoff` repository, where its source, conversion and CC0 provenance are documented in `docs/ASSET_CREDITS.md`. It replaces the old capsule-and-sphere placeholder people. If the remote model is unavailable, the game falls back to a locally generated proportional humanoid.
 
+## Quaternius — Universal Animation Library
+
+Source: https://quaternius.com/packs/universalanimationlibrary.html
+License: Creative Commons Zero (CC0 1.0 Universal)
+
+The crew uses the compatible no-root-motion animation library from the same audited runtime source. The shared humanoid skeleton lets the base characters walk naturally around the ACHU base instead of remaining in bind pose.
+
 ## Quaternius — Stylized Nature MegaKit
 
 Source: Quaternius Stylized Nature MegaKit
