@@ -1,6 +1,8 @@
 import { Assets,Rectangle,Texture } from 'pixi.js'
 
 const SNOW_ATLAS='https://raw.githubusercontent.com/igorko/flare-mod-noname/master/new_game_mod/images/tilesets/tileset_snowplains.png'
+const BUILDING_ATLAS=`${import.meta.env.BASE_URL}assets/winter-city-atlas.svg`
+const IDS=['furnace','shelter','sawmill','huntersHut','coalMine','ironMine','storehouse','infirmary','embassy','infantryCamp','lancerCamp','marksmanCamp','researchCenter']
 
 const visualAssets={snow:[],paths:[],water:[],bridges:[],trees:[],props:[],buildings:{},foundation:null}
 let loaded=false
@@ -12,7 +14,7 @@ export {visualAssets}
 
 export async function loadVisualAssets(){
  if(loaded)return visualAssets
- const atlas=await Assets.load(SNOW_ATLAS)
+ const [atlas,city]=await Promise.all([Assets.load(SNOW_ATLAS),Assets.load(BUILDING_ATLAS)])
  visualAssets.snow=row(atlas,0,16,0,64,32)
  visualAssets.paths=row(atlas,0,16,32,64,32)
  visualAssets.water=row(atlas,0,16,608,64,32)
@@ -23,18 +25,8 @@ export async function loadVisualAssets(){
   ...Array.from({length:4},(_,i)=>frame(atlas,i*128,1120,128,224)),
   ...Array.from({length:4},(_,i)=>frame(atlas,512+i*128,1184,128,160)),
  ]
- const buildings=Array.from({length:8},(_,i)=>frame(atlas,i*64,704,64,160))
- const tents=Array.from({length:4},(_,i)=>frame(atlas,512+i*64,160,64,96))
- const caves=[
-  frame(atlas,0,864,64,128),frame(atlas,128,864,64,128),
-  frame(atlas,192,864,64,128),frame(atlas,320,864,64,128),
- ]
  visualAssets.foundation=frame(atlas,768,160,64,64)
- Object.assign(visualAssets.buildings,{
-  furnace:buildings[7],shelter:buildings[0],sawmill:buildings[1],huntersHut:buildings[2],
-  coalMine:caves[0],ironMine:caves[1],storehouse:buildings[3],infirmary:buildings[4],
-  embassy:buildings[5],infantryCamp:tents[0],lancerCamp:tents[1],marksmanCamp:tents[2],researchCenter:buildings[6],
- })
+ IDS.forEach((id,i)=>{visualAssets.buildings[id]=frame(city,i*220,0,220,220)})
  loaded=true
  return visualAssets
 }
