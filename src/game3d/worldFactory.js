@@ -76,7 +76,7 @@ export class World3D extends THREE.Group{
  refresh(){this.build()}
  refreshMarches(){
   for(const o of this.marchObjects.values())o.removeFromParent();this.marchObjects.clear()
-  for(const m of this.state.world.marches??[]){const name=m.type==='compete'?'truckGrey':'truckGreen',obj=this.bank.clone(name);obj.scale.setScalar(.24);obj.position.y=.04;this.add(obj);this.marchObjects.set(m.id,obj)}
+  for(const m of this.state.world.marches??[]){const name=(m.type==='attack'||m.type==='compete')?'truckGrey':'truckGreen',obj=this.bank.clone(name);obj.scale.setScalar(.24);obj.position.y=.04;this.add(obj);this.marchObjects.set(m.id,obj)}
   this.updateMarches(Date.now())
  }
  updateMarches(now){
