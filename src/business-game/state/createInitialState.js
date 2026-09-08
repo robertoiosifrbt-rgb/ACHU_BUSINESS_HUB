@@ -9,7 +9,7 @@ export function createInitialState(){
   reputation:0,
   supplies:76,
   activeTab:'today',
-  selectedLeadId:FIRST_LEAD.id,
+  selectedLeadId:null,
   selectedJobId:null,
   selectedClientId:null,
   company:{name:'ACHU',stage:'One-person operator'},
