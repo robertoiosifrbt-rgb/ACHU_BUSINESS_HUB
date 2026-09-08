@@ -1,14 +1,14 @@
 export const HEROES={
- astrid:{name:'Astrid',role:'Infantry Captain',basePower:420,perLevel:95,troop:'infantry',bonus:.18},
- kael:{name:'Kael',role:'Lancer Commander',basePower:390,perLevel:105,troop:'lancer',bonus:.20},
- mira:{name:'Mira',role:'Marksman Ranger',basePower:405,perLevel:100,troop:'marksman',bonus:.20},
+ astrid:{name:'Ava',role:'Field Operations Lead',basePower:420,perLevel:95,troop:'infantry',bonus:.18},
+ kael:{name:'Noah',role:'Fleet Operations Lead',basePower:390,perLevel:105,troop:'lancer',bonus:.20},
+ mira:{name:'Maya',role:'Specialist Services Lead',basePower:405,perLevel:100,troop:'marksman',bonus:.20},
 }
 
 export const FORMATIONS={
- balanced:{name:'Balanced',bonuses:{}},
- shieldWall:{name:'Shield Wall',bonuses:{infantry:.18,marksman:-.05}},
- lancerWedge:{name:'Lancer Wedge',bonuses:{lancer:.20,infantry:-.05}},
- firingLine:{name:'Firing Line',bonuses:{marksman:.20,lancer:-.05}},
+ balanced:{name:'Balanced Coverage',bonuses:{}},
+ shieldWall:{name:'Service Reliability',bonuses:{infantry:.18,marksman:-.05}},
+ lancerWedge:{name:'Rapid Dispatch',bonuses:{lancer:.20,infantry:-.05}},
+ firingLine:{name:'Premium Delivery',bonuses:{marksman:.20,lancer:-.05}},
 }
 
 export const HERO_ORDER=Object.keys(HEROES)
