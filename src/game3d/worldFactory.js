@@ -4,50 +4,70 @@ import { worldTile,BASE_TILE,parseTile,WORLD_CENTER,FACTIONS } from '../data/wor
 const SIZE=21,TILE=1.48
 const key=(x,y)=>`${x},${y}`
 const toWorld=(x,y)=>new THREE.Vector3((x-WORLD_CENTER)*TILE,0,(y-WORLD_CENTER)*TILE)
-const mat=(color,opts={})=>new THREE.MeshStandardMaterial({color,roughness:opts.roughness??.86,metalness:opts.metalness??.08,transparent:!!opts.transparent,opacity:opts.opacity??1,emissive:opts.emissive??0x000000,emissiveIntensity:opts.emissiveIntensity??0})
-const box=(w,h,d,m)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.castShadow=true;o.receiveShadow=true;return o}
-const cyl=(r,h,m,n=16)=>{const o=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,n),m);o.castShadow=true;o.receiveShadow=true;return o}
+const material=(color,opacity=1)=>new THREE.MeshStandardMaterial({color,roughness:.94,transparent:opacity<1,opacity,depthWrite:opacity>.08})
 
-function miniTower(color=0x62b8ff,tier=1){
- const g=new THREE.Group(),base=box(.7,.18,.7,mat(0x4c585f));base.position.y=.09;g.add(base)
- const h=.55+Math.min(.55,tier*.09),body=box(.5,h,.5,mat(0x233846,{roughness:.45,metalness:.2}));body.position.y=.18+h/2;g.add(body)
- const glass=box(.52,.18,.03,mat(color,{roughness:.2,metalness:.25,emissive:color,emissiveIntensity:.12}));glass.position.set(0,.32+h*.35,.265);g.add(glass)
- const roof=box(.58,.08,.58,mat(color,{emissive:color,emissiveIntensity:.2}));roof.position.y=.22+h;g.add(roof);return g
-}
-function contractMarker(level=1){
- const g=new THREE.Group(),ped=cyl(.32,.12,mat(0x55616a),18);ped.position.y=.06;g.add(ped)
- const card=box(.48,.55,.08,mat(level>=5?0xff8f7f:0xf3b95f,{emissive:level>=5?0xff8f7f:0xf3b95f,emissiveIntensity:.15}));card.position.y=.45;card.rotation.y=-.35;g.add(card)
- const ring=new THREE.Mesh(new THREE.TorusGeometry(.42,.045,8,24),mat(0xffffff,{emissive:0xffffff,emissiveIntensity:.2}));ring.rotation.x=Math.PI/2;ring.position.y=.06;g.add(ring);return g
-}
-function opportunity(resource){
- const colors={meat:0x54d39b,wood:0x62b8ff,coal:0xf3b95f,iron:0xc89cff},c=colors[resource]??0xffffff,g=new THREE.Group(),p=cyl(.28,.16,mat(0x4b565c),16);p.position.y=.08;g.add(p)
- if(resource==='meat'){const coin=cyl(.24,.08,mat(c,{metalness:.45,roughness:.28,emissive:c,emissiveIntensity:.08}),24);coin.rotation.x=Math.PI/2;coin.position.y=.43;g.add(coin)}
- else if(resource==='wood'){for(let i=0;i<3;i++){const crate=box(.26,.26,.26,mat(c));crate.position.set((i-1)*.23,.28+(i%2)*.2,0);g.add(crate)}}
- else if(resource==='coal'){const star=new THREE.Mesh(new THREE.OctahedronGeometry(.28,0),mat(c,{emissive:c,emissiveIntensity:.18}));star.position.y=.45;g.add(star)}
- else{for(let i=0;i<3;i++){const person=cyl(.08,.3,mat(c),12);person.position.set((i-1)*.2,.28,0);const head=new THREE.Mesh(new THREE.SphereGeometry(.09,10,8),mat(0xf0c8a5));head.position.set((i-1)*.2,.5,0);g.add(person,head)}}
- return g
-}
-function van(color=0x54d39b){const g=new THREE.Group(),body=box(.52,.24,.3,mat(color,{roughness:.5,metalness:.16}));body.position.y=.2;g.add(body);const cab=box(.18,.19,.3,mat(0xe8f1f3,{roughness:.28}));cab.position.set(.18,.39,0);g.add(cab);for(const x of [-.18,.18])for(const z of [-.14,.14]){const w=cyl(.055,.06,mat(0x11161a),10);w.rotation.x=Math.PI/2;w.position.set(x,.08,z);g.add(w)}return g}
-function microDistrict(seed){const g=new THREE.Group(),count=1+(seed%3);for(let i=0;i<count;i++){const h=.22+(seed+i)%4*.08,b=box(.24,h,.22,mat(i%2?0x60727c:0x7b8a91,{roughness:.75}));b.position.set((i-(count-1)/2)*.25,h/2,0);g.add(b)}return g}
+function disk(parent,r,color,opacity=.2,y=-.02){const m=new THREE.Mesh(new THREE.CircleGeometry(r,28),material(color,opacity));m.rotation.x=-Math.PI/2;m.position.y=y;m.receiveShadow=true;parent.add(m);return m}
+function asset(bank,parent,name,x=0,y=0,z=0,rot=0,s=1){const o=bank.clone(name);o.position.set(x,y,z);o.rotation.y=rot;o.scale.setScalar(s);parent.add(o);return o}
+function tint(root,color){root.traverse(o=>{if(!o.isMesh||!o.material)return;const mats=Array.isArray(o.material)?o.material:[o.material];o.material=Array.isArray(o.material)?mats.map(m=>m?.clone?.()??m):(o.material.clone?.()??o.material);const out=Array.isArray(o.material)?o.material:[o.material];out.forEach(m=>m?.color?.multiply(new THREE.Color(color)))})}
 
-const regionTint=region=>({crown:0x3b6b63,north:0x425d76,east:0x685a67,south:0x5e6f54,west:0x6a604e}[region]??0x52636a)
+function miniOffice(bank,parent,{tier=1,color=null,hq=false}={}){
+ const g=new THREE.Group(),floors=Math.min(2,1+Math.floor((tier-1)/3)),style=hq?'B':tier%2?'A':'B'
+ const door=style==='B'?'wallBDoor':'wallADoor',win=style==='B'?'wallBWindow':'wallAWindow',roof=style==='B'?'wallBRoof':'wallARoof'
+ for(let f=0;f<floors;f++){
+  asset(bank,g,f===0?door:win,-.5,f,.5,0,.72);asset(bank,g,win,.5,f,.5,0,.72)
+  asset(bank,g,win,-.5,f,-.5,Math.PI,.72);asset(bank,g,win,.5,f,-.5,Math.PI,.72)
+  asset(bank,g,win,-1,f,0,Math.PI/2,.72);asset(bank,g,win,1,f,0,-Math.PI/2,.72)
+ }
+ asset(bank,g,roof,-.5,floors,-.5,0,.72);asset(bank,g,roof,.5,floors,-.5,0,.72);asset(bank,g,roof,-.5,floors,.5,0,.72);asset(bank,g,roof,.5,floors,.5,0,.72)
+ if(color)tint(g,color)
+ g.scale.setScalar(hq?1.05:.78+(tier??1)*.035);parent.add(g);return g
+}
+
+function opportunity(bank,parent,resource){
+ const g=new THREE.Group();disk(g,.58,{meat:0x54d39b,wood:0x62b8ff,coal:0xf3b95f,iron:0xc89cff}[resource]??0x8aa6ad,.18)
+ if(resource==='meat'){
+  asset(bank,g,'truckGreen',-.05,0,.05,.5,.28);asset(bank,g,'wallADoor',.32,0,-.25,-.7,.22)
+ }else if(resource==='wood'){
+  asset(bank,g,'truckGrey',-.18,0,.1,.6,.25);asset(bank,g,'dumpster',.3,0,-.2,-.4,.23);asset(bank,g,'barrier',.25,0,.32,.4,.18)
+ }else if(resource==='coal'){
+  asset(bank,g,'wallAWindow',0,0,-.08,0,.3);asset(bank,g,'wallARoof',0,.3,-.08,0,.3);asset(bank,g,'truckGreen',.28,0,.25,-.7,.2)
+ }else{
+  asset(bank,g,'wallBWindow',-.08,0,-.08,0,.3);asset(bank,g,'wallBRoof',-.08,.3,-.08,0,.3);asset(bank,g,'scaffold',.28,0,.12,.25,.2)
+ }
+ parent.add(g);return g
+}
+
+function contractSite(bank,parent,level=1){
+ const g=new THREE.Group();disk(g,.63,level>=5?0x8a5753:0x806a4b,.22)
+ asset(bank,g,level>=5?'truckGrey':'truckGreen',-.08,0,.02,.55,.31)
+ asset(bank,g,'scaffold',.31,0,-.18,-.35,.26)
+ for(const [x,z,r] of [[.38,.28,.15],[-.35,.32,-.35],[.3,-.3,.72]])asset(bank,g,'barrier',x,0,z,r,.22)
+ parent.add(g);return g
+}
+
+function addTree(bank,parent,name,x,z,s){const t=bank.clone(name);t.position.set(x,0,z);t.rotation.y=x*7+z*11;t.scale.setScalar(s);parent.add(t)}
+function regionColor(region){return({crown:0x48675f,north:0x475d70,east:0x655963,south:0x5d6b54,west:0x685f50}[region]??0x52636a)}
+
+function addWorldDetail(bank,parent,span){
+ for(let i=0;i<42;i++){const a=i*2.399,r=span*.23+(i%7)*1.7,x=Math.cos(a)*r,z=Math.sin(a)*r;if(Math.abs(x)<2&&Math.abs(z)<2)continue;addTree(bank,parent,i%4?'pineSmall':'pineLarge',x,z,.2+(i%3)*.04)}
+}
 
 export class World3D extends THREE.Group{
  constructor(bank,state){super();this.bank=bank;this.state=state;this.tiles=new Map();this.marchObjects=new Map();this.build()}
  build(){
-  this.clear();this.tiles.clear();this.marchObjects.clear()
-  const basePlane=box(SIZE*TILE+4,.18,SIZE*TILE+4,mat(0x101a20,{roughness:1}));basePlane.position.y=-.35;this.add(basePlane)
+  this.clear();this.tiles.clear();this.marchObjects.clear();const span=SIZE*TILE
+  const ground=new THREE.Mesh(new THREE.PlaneGeometry(span+8,span+8),material(0x26383e));ground.rotation.x=-Math.PI/2;ground.position.y=-.24;ground.receiveShadow=true;this.add(ground);addWorldDetail(this.bank,this,span)
   for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++){
    const def=worldTile(x,y),id=key(x,y),scouted=this.state.world.scouted.includes(id),owned=this.state.world.owned.includes(id),p=toWorld(x,y),c=new THREE.Group();c.position.copy(p);c.userData.tileId=id
-   const base=regionTint(def.region),color=!scouted?0x17242a:owned?0x2f826c:def.faction?0x635866:base
-   const tile=box(TILE*.91,.11,TILE*.91,mat(color,{roughness:.94,transparent:!scouted,opacity:scouted?1:.82}));tile.position.y=-.06;tile.userData.tileId=id;c.add(tile)
-   if(owned){const line=box(TILE*.76,.018,.045,mat(0x64e5ba,{emissive:0x64e5ba,emissiveIntensity:.22}));line.position.set(0,.01,TILE*.39);c.add(line)}
+   const base=regionColor(def.region),tileColor=!scouted?0x18252b:owned?0x3d7c69:def.faction?0x635866:base
+   const hit=new THREE.Mesh(new THREE.BoxGeometry(TILE*.93,.08,TILE*.93),material(tileColor,scouted?1:.8));hit.position.y=-.08;hit.userData.tileId=id;c.add(hit)
+   if(owned)disk(c,TILE*.39,0x65ba91,.13,-.025)
    if(scouted){
-    if(id===BASE_TILE){const m=miniTower(0x64e5ba,Math.max(1,Math.floor((this.state.buildings.furnace??1)/2)));m.scale.setScalar(1.45);c.add(m)}
-    else if(def.kind==='settlement'){const fc=FACTIONS[def.tag]?.color??0xff8f7f,m=miniTower(fc,def.tier??1);m.scale.setScalar(1.1);c.add(m)}
-    else if(def.kind==='camp'&&!this.state.world.defeated.includes(id))c.add(contractMarker(def.level))
-    else if(def.kind==='resource')c.add(opportunity(def.resource))
-    else if(def.kind==='wild'&&(x*5+y*3)%4===0)c.add(microDistrict(x*13+y*17))
+    if(id===BASE_TILE){const m=miniOffice(this.bank,c,{tier:Math.max(1,Math.floor((this.state.buildings.furnace??1)/2)),color:0x74d7bd,hq:true});m.traverse(o=>o.userData.tileId=id)}
+    else if(def.kind==='settlement'){const m=miniOffice(this.bank,c,{tier:def.tier??1,color:FACTIONS[def.tag]?.color??null});m.traverse(o=>o.userData.tileId=id)}
+    else if(def.kind==='camp'&&!this.state.world.defeated.includes(id))contractSite(this.bank,c,def.level)
+    else if(def.kind==='resource')opportunity(this.bank,c,def.resource)
+    else if(def.kind==='wild'&&(x*5+y*3)%5===0)addTree(this.bank,c,(x+y)%2?'pineSmall':'pineLarge',0,0,.2)
    }
    c.traverse(o=>o.userData.tileId=id);this.add(c);this.tiles.set(id,c)
   }
@@ -56,10 +76,12 @@ export class World3D extends THREE.Group{
  refresh(){this.build()}
  refreshMarches(){
   for(const o of this.marchObjects.values())o.removeFromParent();this.marchObjects.clear()
-  const colors={scout:0x62b8ff,claim:0x54d39b,gather:0xf3b95f,attack:0xff8f7f,rally:0xc89cff}
-  for(const m of this.state.world.marches??[]){const obj=van(colors[m.type]??0xffffff);obj.scale.setScalar(.75);obj.position.y=.1;this.add(obj);this.marchObjects.set(m.id,obj)}
+  for(const m of this.state.world.marches??[]){const name=m.type==='compete'?'truckGrey':'truckGreen',obj=this.bank.clone(name);obj.scale.setScalar(.24);obj.position.y=.04;this.add(obj);this.marchObjects.set(m.id,obj)}
   this.updateMarches(Date.now())
  }
- updateMarches(now){const base=toWorld(WORLD_CENTER,WORLD_CENTER);for(const m of this.state.world.marches??[]){const o=this.marchObjects.get(m.id);if(!o)continue;const [x,y]=parseTile(m.target),target=toWorld(x,y);let p=1;if(m.phase==='outbound')p=Math.max(0,Math.min(1,(now-m.phaseStartedAt)/Math.max(1,m.arriveAt-m.phaseStartedAt)));else if(m.phase==='returning')p=1-Math.max(0,Math.min(1,(now-m.phaseStartedAt)/Math.max(1,m.arriveAt-m.phaseStartedAt)));o.position.x=base.x+(target.x-base.x)*p;o.position.z=base.z+(target.z-base.z)*p;o.position.y=.12;o.rotation.y=Math.atan2(target.x-base.x,target.z-base.z)}}
+ updateMarches(now){
+  const base=toWorld(WORLD_CENTER,WORLD_CENTER)
+  for(const m of this.state.world.marches??[]){const o=this.marchObjects.get(m.id);if(!o)continue;const [x,y]=parseTile(m.target),target=toWorld(x,y);let p=1;if(m.phase==='outbound')p=Math.max(0,Math.min(1,(now-m.phaseStartedAt)/Math.max(1,m.arriveAt-m.phaseStartedAt)));else if(m.phase==='returning')p=1-Math.max(0,Math.min(1,(now-m.phaseStartedAt)/Math.max(1,m.arriveAt-m.phaseStartedAt)));o.position.x=base.x+(target.x-base.x)*p;o.position.z=base.z+(target.z-base.z)*p;o.position.y=.04;o.rotation.y=Math.atan2(target.x-base.x,target.z-base.z)}
+ }
  focusTile(id){const t=this.tiles.get(id);return t?new THREE.Vector3(t.position.x,0,t.position.z):new THREE.Vector3()}
 }
