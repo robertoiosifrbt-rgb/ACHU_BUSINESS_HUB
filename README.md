@@ -1,27 +1,5 @@
-# BUILD — serious mobile strategy prototype
+# ACHU BUSINESS HUB — BUILD 4X prototype
 
-A PixiJS/Vite mobile strategy prototype inspired by the construction/research progression loop of survival strategy games.
+A mobile-first 4X strategy prototype built with Vite + PixiJS.
 
-## Current vertical slice
-- Full-screen 2D city scene using sprite assets
-- Furnace-gated building progression
-- Meat / Wood / Coal / Iron economy
-- Construction queue with live progress
-- Research queue and research branches
-- Alliance Help acceleration
-- Chapter objectives and claimable rewards
-- Resource collection bubbles
-- Mobile pan + pinch zoom
-- Bottom-sheet building UI
-- Local save + offline production
-
-## Run
-```bash
-npm install
-npm run dev
-```
-
-## Build
-```bash
-npm run build
-```
+Current systems include city construction, research, resource production, troop training, world exploration, fog of war, territory expansion, timed marches, gathering, PvE camps, battle losses, and persistent local save.
