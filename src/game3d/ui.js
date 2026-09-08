@@ -3,6 +3,7 @@ import { findResearch,RESEARCH,researchCost } from '../data/research.js'
 import { currentChapter,chapterStatus } from '../data/chapters.js'
 import { worldTile,parseTile,adjacentTo } from '../data/world.js'
 import { HERO_DATA,canRecruitHero } from '../systems/heroes.js'
+import { claimEventReward } from '../systems/events.js'
 
 const short=n=>{const v=Math.floor(Number(n)||0);return v>=1e6?`${(v/1e6).toFixed(1)}M`:v>=1e3?`${(v/1e3).toFixed(1)}K`:`${v}`}
 const time=ms=>{let s=Math.max(0,Math.ceil(ms/1000));if(s<60)return`${s}s`;const m=Math.floor(s/60);s%=60;return`${m}m ${s}s`}
@@ -16,7 +17,7 @@ export class GameUI{
   <button id="update-app" class="update-app">UPDATE</button><div id="queue" class="queue-card"></div><div id="toast" class="toast"></div>
   <div id="sheet" class="sheet hidden"></div>
   <nav class="bottom-nav">
-   <button data-mode="city"><span>⌂</span><b>CITY</b></button><button data-mode="world"><span>◎</span><b>WORLD</b></button><button data-action="army"><span>⚔</span><b>ARMY</b></button><button data-action="tech"><span>⌬</span><b>TECH</b></button><button data-action="guild"><span>👥</span><b>GUILD</b></button><button data-action="heroes"><span>👑</span><b>HEROES</b></button>
+   <button data-mode="city"><span>⌂</span><b>CITY</b></button><button data-mode="world"><span>◎</span><b>WORLD</b></button><button data-action="army"><span>⚔</span><b>ARMY</b></button><button data-action="tech"><span>⌬</span><b>TECH</b></button><button data-action="guild"><span>👥</span><b>GUILD</b></button><button data-action="events"><span>✦</span><b>EVENTS</b></button>
   </nav>`}
  bind(){
   this.root.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>this.game.setMode(b.dataset.mode))
@@ -24,6 +25,7 @@ export class GameUI{
   this.root.querySelector('[data-action="tech"]').onclick=()=>this.openTech()
   this.root.querySelector('[data-action="guild"]').onclick=()=>this.openGuild()
   this.root.querySelector('[data-action="heroes"]').onclick=()=>this.openHeroes()
+  this.root.querySelector('[data-action="events"]').onclick=()=>this.openEvents()
   this.root.querySelector('#quest').onclick=()=>this.questAction()
   this.root.querySelector('#update-app').onclick=()=>window.appUpdater?.checkAndApply?.()
  }
@@ -42,4 +44,5 @@ export class GameUI{
  openTech(){const s=this.game.state,items=Object.values(RESEARCH).flatMap(branch=>Object.entries(branch.items).map(([id,d])=>({id,...d})));this.openSheet(`<header><div><small>SCIENCE</small><h2>Research</h2><p>${s.researchJob?'Queue active':'Research queue idle'}</p></div><button data-close>×</button></header><div class="sheet-body tech-list">${items.map(d=>{const lvl=s.research[d.id]??0,c=researchCost(d,Math.min(d.max,lvl+1));return`<button data-research="${d.id}"><span><b>${d.name}</b><small>Lv. ${lvl}/${d.max}</small></span><em>${lvl>=d.max?'MAX':short(Object.values(c).reduce((a,b)=>a+b,0))}</em></button>`}).join('')}</div>`);this.root.querySelectorAll('[data-research]').forEach(b=>b.onclick=()=>{this.game.research(b.dataset.research);this.hideSheet()})}
  openGuild(){const g=this.game.state.guild;if(!g.id){this.openSheet(`<header><div><small>GUILD</small><h2>No Guild</h2><p>Create or join a guild</p></div><button data-close>×</button></header><div class="sheet-body"><h3>CREATE GUILD</h3><input id="guild-name" type="text" placeholder="Guild name (3-20 chars)" maxlength="20"/><button id="create-guild" class="primary">CREATE</button></div>`);this.root.querySelector('#create-guild').onclick=()=>{const name=this.root.querySelector('#guild-name').value;this.game.createGuild(name)}}else{const members=Object.entries(g.members).map(([id,m])=>`<div><span>${id===g.leader?'👑':''}${id}</span><small>${m.role}</small></div>`).join('');this.openSheet(`<header><div><small>GUILD</small><h2>${g.name}</h2><p>Lv. ${g.level} · ${Object.keys(g.members).length} members</p></div><button data-close>×</button></header><div class="sheet-body"><h3>MEMBERS</h3>${members}<h3>TREASURY</h3><div>${Object.entries(g.treasury).map(([k,v])=>`<div><b>${k.toUpperCase()}</b> ${short(v)}</div>`).join('')}</div></div>`)}}
  openHeroes(){const s=this.game.state,heroes=Object.entries(HERO_DATA).map(([id,data])=>{const recruited=s.world.heroes[id],canRecruit=canRecruitHero(s,id);return`<button data-hero="${id}" class="${recruited?'recruited':canRecruit?'available':'locked'}"><span><b>${data.name}</b><small>${recruited?`Lv. ${recruited.level}`:canRecruit?'Available':'Locked'}</small></span><em>${data.role}</em></button>`}).join('');this.openSheet(`<header><div><small>HEROES</small><h2>Recruitment</h2><p>${Object.keys(s.world.heroes).length} recruited</p></div><button data-close>×</button></header><div class="sheet-body heroes-list">${heroes}</div>`);this.root.querySelectorAll('[data-hero]').forEach(b=>{const id=b.dataset.hero;if(!s.world.heroes[id])b.onclick=()=>this.game.recruitHero(id)})}
+ openEvents(){const events=this.game.state.events.active.map(e=>`<div><span><b>${e.title}</b><small>${e.description}</small></span><em>${short(Object.values(e.reward??{}).reduce((a,b)=>a+b,0))}</em><button data-event-claim="${e.id}">CLAIM</button></div>`).join('');this.openSheet(`<header><div><small>EVENTS</small><h2>Active Events</h2><p>${this.game.state.events.active.length} active</p></div><button data-close>×</button></header><div class="sheet-body events-list">${events||'<p>No active events</p>'}</div>`);this.root.querySelectorAll('[data-event-claim]').forEach(b=>b.onclick=()=>this.game.claimEventReward(b.dataset.eventClaim))}
 }

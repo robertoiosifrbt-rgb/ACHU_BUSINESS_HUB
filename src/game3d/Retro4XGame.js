@@ -15,6 +15,7 @@ import { tickEvents } from '../systems/events.js'
 import { recordBattleWin,recordBattleLoss,checkAchievements } from '../systems/prestige.js'
 import { createGuild } from '../systems/guilds.js'
 import { recruitHero } from '../systems/heroes.js'
+import { claimEventReward } from '../systems/events.js'
 
 const has=(r,c)=>Object.entries(c).every(([k,v])=>(r[k]??0)>=v)
 const spend=(r,c)=>Object.entries(c).forEach(([k,v])=>r[k]-=v)
@@ -44,6 +45,7 @@ export class Retro4XGame{
  research(id){const r=startResearch(this.state,id);this.ui.toast(r.ok?'Research started':r.error);if(r.ok)saveState(this.state);this.ui.refresh()}
  createGuild(name){const r=createGuild(this.state,name);this.ui.toast(r.ok?`Guild "${name}" created`:r.error);if(r.ok)saveState(this.state);this.ui.refresh()}
  recruitHero(id){const r=recruitHero(this.state,id);this.ui.toast(r.ok?`${r.hero.name} recruited`:r.error);if(r.ok)saveState(this.state);this.ui.refresh()}
+ claimEventReward(eventId){const r=claimEventReward(this.state,eventId);this.ui.toast(r.ok?'Reward claimed':'Already claimed');if(r.ok)saveState(this.state);this.ui.refresh()}
  allianceHelp(){const ok=applyAllianceHelp(this.state);this.ui.toast(ok?'Alliance help applied':'No construction to help');if(ok)saveState(this.state);this.ui.refresh()}
  claimChapter(chapter=currentChapter(this.state)){if(!chapter||this.state.claimedChapters?.[chapter.id])return;for(const [k,v] of Object.entries(chapter.reward??{}))this.state.resources[k]=(this.state.resources[k]??0)+v;this.state.claimedChapters[chapter.id]=true;saveState(this.state);this.ui.toast('Chapter reward claimed');this.ui.refresh()}
  productionRates(){const base=resourceProduction(this.state),all=1+researchBonus(this.state,'allOutput');for(const k of Object.keys(base))base[k]*=all*(1+researchBonus(this.state,`${k}Output`));return base}
