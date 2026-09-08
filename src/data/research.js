@@ -1,24 +1,26 @@
 export const RESEARCH={
  growth:{label:'Operations',items:{
-  tools:{name:'Workflow Automation',max:5,baseCost:{meat:90,wood:120,coal:20,iron:4},seconds:70,requires:[],bonus:{constructionSpeed:.04}},
-  architecture:{name:'Process Design',max:5,baseCost:{meat:110,wood:150,coal:30,iron:6},seconds:95,requires:[['tools',2]],bonus:{constructionSpeed:.05}},
-  scholarship:{name:'Data & Insight',max:5,baseCost:{meat:140,wood:170,coal:28,iron:7},seconds:110,requires:[['architecture',2]],bonus:{researchSpeed:.05}},
-  drafting:{name:'Rapid Scaling',max:5,baseCost:{meat:175,wood:210,coal:38,iron:9},seconds:135,requires:[['scholarship',2]],bonus:{constructionSpeed:.06,researchSpeed:.03}}
+  tools:{name:'Workflow Automation',description:'Remove repetitive admin from the day-to-day operation so jobs move from enquiry to completion with fewer manual steps.',businessCase:'Faster development means less time waiting for the next part of the company to come online.',max:5,baseCost:{meat:90,wood:120,coal:20,iron:4},seconds:70,requires:[],bonus:{constructionSpeed:.04}},
+  architecture:{name:'Process Design',description:'Standardise how work is prepared, handed over and completed so the company depends less on memory and improvisation.',businessCase:'Better processes make every future building upgrade finish faster.',max:5,baseCost:{meat:110,wood:150,coal:30,iron:6},seconds:95,requires:[['tools',2]],bonus:{constructionSpeed:.05}},
+  scholarship:{name:'Data & Insight',description:'Use operating data to understand what is working, where time is being lost and which improvements are worth making next.',businessCase:'Better information speeds up future research and reduces blind decisions.',max:5,baseCost:{meat:140,wood:170,coal:28,iron:7},seconds:110,requires:[['architecture',2]],bonus:{researchSpeed:.05}},
+  drafting:{name:'Rapid Scaling',description:'Combine automation, process and planning into a repeatable expansion playbook for opening capacity quickly.',businessCase:'This is a compound upgrade: it improves both company development and future system research.',max:5,baseCost:{meat:175,wood:210,coal:38,iron:9},seconds:135,requires:[['scholarship',2]],bonus:{constructionSpeed:.06,researchSpeed:.03}}
  }},
  economy:{label:'Growth',items:{
-  hunting:{name:'Cashflow Discipline',max:5,baseCost:{meat:85,wood:95,coal:14,iron:2},seconds:62,requires:[],bonus:{meatOutput:.08}},
-  logging:{name:'Smart Procurement',max:5,baseCost:{meat:90,wood:100,coal:16,iron:3},seconds:65,requires:[],bonus:{woodOutput:.08}},
-  coal:{name:'Brand Reach',max:5,baseCost:{meat:110,wood:135,coal:24,iron:5},seconds:90,requires:[['logging',2]],bonus:{coalOutput:.08}},
-  smelting:{name:'Talent Pipeline',max:5,baseCost:{meat:130,wood:150,coal:30,iron:5},seconds:102,requires:[['coal',2]],bonus:{ironOutput:.08}},
-  storage:{name:'Portfolio Optimisation',max:5,baseCost:{meat:125,wood:155,coal:27,iron:6},seconds:105,requires:[['hunting',2],['smelting',2]],bonus:{allOutput:.04}}
+  hunting:{name:'Cashflow Discipline',description:'Tighten quoting, follow-up and payment discipline so more of the work you win turns into usable cash.',businessCase:'Each level permanently increases Cash generation across the business.',max:5,baseCost:{meat:85,wood:95,coal:14,iron:2},seconds:62,requires:[],bonus:{meatOutput:.08}},
+  logging:{name:'Smart Procurement',description:'Buy supplies with better timing, less waste and more predictable stock control.',businessCase:'Each level permanently increases Supplies generation.',max:5,baseCost:{meat:90,wood:100,coal:16,iron:3},seconds:65,requires:[],bonus:{woodOutput:.08}},
+  coal:{name:'Brand Reach',description:'Turn reviews, visible work and local awareness into a stronger presence across the city.',businessCase:'Each level permanently increases Reputation generation.',max:5,baseCost:{meat:110,wood:135,coal:24,iron:5},seconds:90,requires:[['logging',2]],bonus:{coalOutput:.08}},
+  smelting:{name:'Talent Pipeline',description:'Build a repeatable way to attract, assess and retain better candidates before growth creates a staffing emergency.',businessCase:'Each level permanently increases Talent generation.',max:5,baseCost:{meat:130,wood:150,coal:30,iron:5},seconds:102,requires:[['coal',2]],bonus:{ironOutput:.08}},
+  storage:{name:'Portfolio Optimisation',description:'Balance clients, job types and operating capacity so the company grows without one weak area holding everything back.',businessCase:'A broad efficiency gain that increases all four business resources at once.',max:5,baseCost:{meat:125,wood:155,coal:27,iron:6},seconds:105,requires:[['hunting',2],['smelting',2]],bonus:{allOutput:.04}}
  }},
  battle:{label:'People',items:{
-  infantry:{name:'Field Team Training',max:5,baseCost:{meat:135,wood:115,coal:20,iron:5},seconds:80,requires:[],bonus:{troopPower:.04}},
-  lancer:{name:'Fleet Routing',max:5,baseCost:{meat:140,wood:120,coal:22,iron:5},seconds:84,requires:[['infantry',1]],bonus:{troopPower:.04}},
-  marksman:{name:'Specialist Standards',max:5,baseCost:{meat:145,wood:125,coal:24,iron:6},seconds:88,requires:[['infantry',2]],bonus:{troopPower:.05}},
-  command:{name:'Operations Leadership',max:5,baseCost:{meat:180,wood:170,coal:34,iron:9},seconds:125,requires:[['lancer',2],['marksman',2]],bonus:{troopPower:.07}}
+  infantry:{name:'Field Team Training',description:'Teach frontline crews the standard ACHU expects before they represent the company in a client property.',businessCase:'Each level increases the working strength of every crew you send into the city.',max:5,baseCost:{meat:135,wood:115,coal:20,iron:5},seconds:80,requires:[],bonus:{troopPower:.04}},
+  lancer:{name:'Fleet Routing',description:'Improve dispatch planning, route choice and mobile coordination so crews spend less effort getting to the work.',businessCase:'Raises the effective strength of mobile operations and helps the same workforce handle tougher opportunities.',max:5,baseCost:{meat:140,wood:120,coal:22,iron:5},seconds:84,requires:[['infantry',1]],bonus:{troopPower:.04}},
+  marksman:{name:'Specialist Standards',description:'Create clear standards for premium, difficult and high-risk services instead of treating every unusual job as a one-off.',businessCase:'Specialist capability contributes more working strength when pitching for demanding contracts.',max:5,baseCost:{meat:145,wood:125,coal:24,iron:6},seconds:88,requires:[['infantry',2]],bonus:{troopPower:.05}},
+  command:{name:'Operations Leadership',description:'Give supervisors the systems and authority to coordinate multiple crews without every decision returning to the owner.',businessCase:'The strongest people upgrade: every level gives a larger company-wide crew strength increase.',max:5,baseCost:{meat:180,wood:170,coal:34,iron:9},seconds:125,requires:[['lancer',2],['marksman',2]],bonus:{troopPower:.07}}
  }}
 }
 
-export function findResearch(id){for(const [branch,b] of Object.entries(RESEARCH))if(b.items[id])return{branch,...b.items[id]};return null}
+const BONUS_LABELS={constructionSpeed:'Development speed',researchSpeed:'Research speed',meatOutput:'Cash output',woodOutput:'Supplies output',coalOutput:'Reputation output',ironOutput:'Talent output',allOutput:'All resource output',troopPower:'Crew strength'}
+export function findResearch(id){for(const [branch,b] of Object.entries(RESEARCH))if(b.items[id])return{branch,branchLabel:b.label,...b.items[id]};return null}
 export function researchCost(def,target){const m=Math.pow(1.65,target-1);return Object.fromEntries(Object.entries(def.baseCost).map(([k,v])=>[k,Math.round(v*m)]))}
+export function researchEffectLines(def,level){return Object.entries(def?.bonus??{}).map(([k,v])=>`${BONUS_LABELS[k]??k} +${Math.round(v*level*100)}%`)}
