@@ -3,9 +3,10 @@ import { Assets,Rectangle,Texture } from 'pixi.js'
 const SNOW_ATLAS='https://raw.githubusercontent.com/igorko/flare-mod-noname/master/new_game_mod/images/tilesets/tileset_snowplains.png'
 const BUILDING_ATLAS=`${import.meta.env.BASE_URL}assets/winter-city-atlas.svg`
 const FURNACE_ATLAS=`${import.meta.env.BASE_URL}assets/furnace-atlas.svg`
+const STAGE_ATLAS=`${import.meta.env.BASE_URL}assets/building-stage-overlays.svg`
 const IDS=['furnace','shelter','sawmill','huntersHut','coalMine','ironMine','storehouse','infirmary','embassy','infantryCamp','lancerCamp','marksmanCamp','researchCenter']
 
-const visualAssets={snow:[],paths:[],water:[],bridges:[],trees:[],props:[],buildings:{},furnaceLevels:[],foundation:null}
+const visualAssets={snow:[],paths:[],water:[],bridges:[],trees:[],props:[],buildings:{},buildingStages:{},furnaceLevels:[],foundation:null}
 let loaded=false
 
 function frame(base,x,y,w,h){return new Texture({source:base.source,frame:new Rectangle(x,y,w,h)})}
@@ -15,7 +16,7 @@ export {visualAssets}
 
 export async function loadVisualAssets(){
  if(loaded)return visualAssets
- const [atlas,city,furnace]=await Promise.all([Assets.load(SNOW_ATLAS),Assets.load(BUILDING_ATLAS),Assets.load(FURNACE_ATLAS)])
+ const [atlas,city,furnace,stages]=await Promise.all([Assets.load(SNOW_ATLAS),Assets.load(BUILDING_ATLAS),Assets.load(FURNACE_ATLAS),Assets.load(STAGE_ATLAS)])
  visualAssets.snow=row(atlas,0,16,0,64,32)
  visualAssets.paths=row(atlas,0,16,32,64,32)
  visualAssets.water=row(atlas,0,16,608,64,32)
@@ -27,7 +28,7 @@ export async function loadVisualAssets(){
   ...Array.from({length:4},(_,i)=>frame(atlas,512+i*128,1184,128,160)),
  ]
  visualAssets.foundation=frame(atlas,768,160,64,64)
- IDS.forEach((id,i)=>{visualAssets.buildings[id]=frame(city,i*220,0,220,220)})
+ IDS.forEach((id,i)=>{visualAssets.buildings[id]=frame(city,i*220,0,220,220);visualAssets.buildingStages[id]=Array.from({length:4},(_,s)=>frame(stages,i*220,s*220,220,220))})
  visualAssets.furnaceLevels=Array.from({length:12},(_,i)=>frame(furnace,i*320,0,320,320))
  loaded=true
  return visualAssets

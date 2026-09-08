@@ -1,4 +1,5 @@
 import { BUILDINGS,buildingRequirements,nextBuildingLevel } from '../data/buildings.js'
+import { buildingEffects } from '../data/buildingProgression.js'
 import { DEMO_SPEED } from './state.js'
 
 const enough=(r,c)=>Object.entries(c).every(([k,v])=>(r[k]??0)>=v)
@@ -13,4 +14,10 @@ export function startConstruction(state,id){
  state.construction={id,target,startedAt:Date.now(),finishAt:Date.now()+ms};return{ok:true}
 }
 export function tickConstruction(state){const j=state.construction;if(!j||Date.now()<j.finishAt)return false;state.buildings[j.id]=j.target;state.power+=BUILDINGS[j.id].levels[j.target].power;state.construction=null;return true}
-export function allianceHelp(state){if(!state.construction)return false;const left=state.construction.finishAt-Date.now();state.construction.finishAt-=Math.max(300,Math.min(left*.2,2500));return true}
+export function allianceHelp(state){
+ if(!state.construction)return false
+ const embassy=state.buildings.embassy??0,e=embassy?buildingEffects('embassy',embassy):null
+ const reduction=e?.helpReduction??.05,left=state.construction.finishAt-Date.now()
+ state.construction.finishAt-=Math.max(300,Math.min(left*reduction,5000))
+ return true
+}

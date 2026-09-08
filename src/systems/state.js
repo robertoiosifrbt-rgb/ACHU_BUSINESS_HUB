@@ -1,4 +1,5 @@
 const KEY='build_strategy_v13_furnace_first'
+const LEGACY_KEYS=['build_strategy_v04','build_strategy_v03','build_strategy_v02','build_strategy_backup']
 export const DEMO_SPEED=120
 const MAP_VERSION=2
 const SHIFT=5
@@ -39,6 +40,20 @@ function migrate(raw){
  const world=migrateWorld(raw.world??{},base.world)
  return{...base,...raw,resources,buildings,world,collectReady:{...base.collectReady,...raw.collectReady},claimedChapters:{...base.claimedChapters,...raw.claimedChapters},lastSavedAt:raw.lastSavedAt??Date.now()}
 }
-export function loadState(){try{return migrate(JSON.parse(localStorage.getItem(KEY)||'null'))}catch{return defaultState()}}
+const parse=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch{return null}}
+const score=s=>{if(!s)return-1;const b=Object.values(s.buildings??{}).reduce((a,n)=>a+(Number(n)||0),0),r=Object.values(s.resources??{}).reduce((a,n)=>a+Math.log10(1+Math.max(0,Number(n)||0)),0),troops=Object.values(s.world?.troops??{}).reduce((a,n)=>a+(Number(n)||0),0);return b*10000+(Number(s.power)||0)+r+troops}
+export function loadState(){
+ const candidates=[KEY,...LEGACY_KEYS].map(k=>({k,raw:parse(k)})).filter(x=>x.raw)
+ if(!candidates.length)return defaultState()
+ candidates.sort((a,b)=>score(b.raw)-score(a.raw))
+ const best=migrate(candidates[0].raw)
+ try{localStorage.setItem(KEY,JSON.stringify(best))}catch{}
+ return best
+}
 export function saveState(s){s.lastSavedAt=Date.now();localStorage.setItem(KEY,JSON.stringify(s))}
-export function resetState(){localStorage.removeItem(KEY);return defaultState()}
+export function resetState(){
+ const current=parse(KEY)
+ if(current)try{localStorage.setItem('build_strategy_backup',JSON.stringify(current))}catch{}
+ localStorage.removeItem(KEY)
+ return defaultState()
+}
