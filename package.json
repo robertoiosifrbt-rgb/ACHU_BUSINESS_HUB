@@ -1,17 +1,9 @@
 {
-  "name": "build-winter-strategy",
-  "private": true,
-  "version": "0.3.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "pixi.js": "^8.6.6"
-  },
-  "devDependencies": {
-    "vite": "^7.0.0"
-  }
+  "name":"emberfall-4x",
+  "private":true,
+  "version":"3.0.0",
+  "type":"module",
+  "scripts":{"dev":"vite","build":"vite build","preview":"vite preview"},
+  "dependencies":{"three":"^0.180.0"},
+  "devDependencies":{"vite":"^7.0.0"}
 }
