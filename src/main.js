@@ -1,41 +1,29 @@
 import './styles.css'
 import { Retro4XGame } from './game3d/Retro4XGame.js'
 
-export const APP_VERSION='3.0.0'
+export const APP_VERSION='4.0.0'
 const mount=document.querySelector('#app')
 const game=new Retro4XGame(mount)
-console.log('Starting game...')
-try{
- await game.start()
- console.log('Game started successfully')
-}catch(e){
- console.error('Game startup failed:',e)
- document.body.innerHTML+=`<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:red;background:#000;padding:20px;border-radius:10px;max-width:80%;text-align:center;z-index:1000"><h2>Game Error</h2><p>${e.message}</p><small>${e.stack}</small></div>`
+try{await game.start()}catch(e){
+ console.error('ACHU Business Hub startup failed:',e)
+ document.body.innerHTML+=`<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;background:#07141a;padding:20px;border:1px solid #64e5ba55;border-radius:14px;max-width:85%;text-align:center;z-index:1000"><h2>Game Error</h2><p>${e.message}</p></div>`
 }
 
 async function registerUpdater(){
- return null
  if(!('serviceWorker' in navigator))return null
  const base=import.meta.env.BASE_URL
  const registration=await navigator.serviceWorker.register(`${base}sw.js`,{scope:base})
  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!window.__reloadingForUpdate){window.__reloadingForUpdate=true;location.reload()}})
- const updater={
-  version:APP_VERSION,
-  async checkAndApply(){
-   const status=document.querySelector('#update-app');if(status){status.disabled=true;status.textContent='CHECKING'}
-   try{
-    const remote=await fetch(`${base}version.json?t=${Date.now()}`,{cache:'no-store'}).then(r=>r.json())
-    await registration.update()
-    if(registration.waiting){registration.waiting.postMessage({type:'SKIP_WAITING'});return}
-    if(remote.version!==APP_VERSION){
-      if(status)status.textContent='UPDATING'
-      const keys=await caches.keys();await Promise.all(keys.filter(k=>k.startsWith('emberfall-4x-')).map(k=>caches.delete(k)))
-      location.replace(`${base}?v=${encodeURIComponent(remote.version)}&t=${Date.now()}`);return
-    }
-    if(status){status.textContent='UP TO DATE';setTimeout(()=>{status.textContent='UPDATE';status.disabled=false},1200)}
-   }catch(e){console.warn(e);if(status){status.textContent='RETRY';status.disabled=false}}
-  }
- }
+ const updater={version:APP_VERSION,async checkAndApply(){
+  const status=document.querySelector('#update-app');if(status){status.disabled=true;status.textContent='CHECKING'}
+  try{
+   const remote=await fetch(`${base}version.json?t=${Date.now()}`,{cache:'no-store'}).then(r=>r.json())
+   await registration.update()
+   if(registration.waiting){registration.waiting.postMessage({type:'SKIP_WAITING'});return}
+   if(remote.version!==APP_VERSION){if(status)status.textContent='UPDATING';const keys=await caches.keys();await Promise.all(keys.filter(k=>k.startsWith('achu-business-hub-')).map(k=>caches.delete(k)));location.replace(`${base}?v=${encodeURIComponent(remote.version)}&t=${Date.now()}`);return}
+   if(status){status.textContent='CURRENT';setTimeout(()=>{status.textContent='SYNC';status.disabled=false},1200)}
+  }catch(e){console.warn(e);if(status){status.textContent='RETRY';status.disabled=false}}
+ }}
  window.appUpdater=updater
  return updater
 }
