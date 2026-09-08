@@ -1,6 +1,6 @@
-const CACHE='emberfall-4x-v3.0.0';
+const CACHE='emberfall-4x-v3.3.0';
 const BASE='/ACHU_BUSINESS_HUB/';
-const SHELL=[BASE,BASE+'manifest.webmanifest',BASE+'version.json',BASE+'icons/icon-192.png',BASE+'icons/icon-512.png',BASE+'assets/kenney/ui/button_rectangle_depth_gradient.png'];
+const SHELL=[BASE,BASE+'manifest.webmanifest',BASE+'version.json'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL).catch(()=>{})));self.skipWaiting()});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('emberfall-4x-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
 self.addEventListener('message',event=>{if(event.data?.type==='SKIP_WAITING')self.skipWaiting();if(event.data?.type==='CLEAR_CACHES')event.waitUntil(caches.keys().then(keys=>Promise.all(keys.map(k=>caches.delete(k))))) });

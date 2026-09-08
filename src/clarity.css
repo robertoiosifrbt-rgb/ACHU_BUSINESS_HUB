@@ -1,0 +1,40 @@
+/* v3.3 gameplay clarity layer */
+.bottom-nav{grid-template-columns:repeat(6,minmax(0,1fr))!important}
+.bottom-nav button{min-width:0;padding:4px 2px}
+.bottom-nav button b{font-size:8px;letter-spacing:.9px;white-space:nowrap}
+.bottom-nav button span{font-size:20px}
+
+.scene-labels{position:absolute;inset:0;pointer-events:none;z-index:4;overflow:hidden}
+.scene-label{position:absolute;transform:translate(-50%,-100%);pointer-events:none;min-width:86px;max-width:180px;padding:6px 9px;border-radius:11px;background:linear-gradient(180deg,rgba(7,31,38,.94),rgba(4,21,27,.94));border:1px solid rgba(192,235,247,.3);box-shadow:0 6px 16px rgba(0,0,0,.32);text-align:center;color:#f3fbff;backdrop-filter:blur(3px)}
+.scene-label b,.scene-label small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.scene-label b{font-size:8px;letter-spacing:.65px}.scene-label small{font-size:8px;color:#b8d4dc;margin-top:2px}
+.scene-label.timer{border-color:rgba(255,207,105,.55);background:linear-gradient(180deg,rgba(60,44,21,.95),rgba(27,27,24,.94))}
+.scene-label.timer b{color:#ffd878}.scene-label.timer.research{border-color:rgba(113,206,236,.55)}.scene-label.timer.research b{color:#8ee7ff}
+.scene-label.timer.training{border-color:rgba(232,111,98,.55)}.scene-label.timer.training b{color:#ffb1a7}
+.scene-label.timer.healing{border-color:rgba(109,221,151,.55)}.scene-label.timer.healing b{color:#a0f0bd}
+.scene-label.node{min-width:74px;padding:5px 7px;background:rgba(6,25,30,.88)}
+.scene-label.node.wood b{color:#a9db98}.scene-label.node.meat b{color:#f2be8c}.scene-label.node.coal b{color:#c5d0d5}.scene-label.node.iron b{color:#b8e0ea}
+.scene-label.march{border-color:rgba(240,189,86,.58);background:rgba(46,34,15,.92)}.scene-label.march b{color:#ffdc7c}
+
+.stat-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0 12px}
+.stat{padding:10px 11px;border-radius:13px;background:rgba(255,255,255,.055);border:1px solid rgba(187,229,241,.12);min-width:0}
+.stat small,.stat b{display:block}.stat small{font-size:7px;color:#9fc0ca;letter-spacing:1.05px}.stat b{font-size:11px;margin-top:4px;color:#f5fbfd;overflow:hidden;text-overflow:ellipsis}
+.march-selects{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}.march-selects label{font-size:7px;letter-spacing:1px;color:#9fc0ca;font-weight:900}.march-selects select{display:block;width:100%;margin-top:5px;height:42px;border:1px solid #9bddec2e;border-radius:12px;background:#0b303a;color:#f2fbff;padding:0 9px;font:800 10px system-ui}
+.troop-picker{display:grid;grid-template-columns:124px 1fr;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.08)}.troop-picker>div{min-width:0}.troop-picker b,.troop-picker small{display:block}.troop-picker b{font-size:10px}.troop-picker small{font-size:8px;color:#a5c4cc;margin-top:3px}.troop-picker input[type=range]{width:100%;accent-color:#e8bc55}
+
+.tech-tree{display:grid;gap:16px}.tech-branch>h3{margin:2px 0 8px}.tech-card{padding:12px;border-radius:15px;background:rgba(255,255,255,.045);border:1px solid rgba(176,224,237,.14);margin-bottom:8px}.tech-card.locked{opacity:.72;border-color:rgba(255,151,127,.18)}.tech-title{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.tech-title span{display:flex;flex-direction:column;min-width:0}.tech-title b{font-size:12px}.tech-title small{font-size:8px;color:#9fc0ca;margin-top:3px}.tech-title em{font-style:normal;color:#f2d078;font-size:9px;font-weight:900}.tech-card p{font-size:9px;color:#b3ccd3;margin:8px 0}.tech-card .next-bonus{color:#d9eef4}.req-list{display:flex;justify-content:space-between;gap:10px;margin:9px 0;align-items:center}.req-list small{font-size:7px;color:#8eabb4;letter-spacing:1px}.req-list b{font-size:8px;color:#ffd0c4;text-align:right}.tech-card:not(.locked) .req-list b{color:#a8e9b7}.tech-card button{width:100%;min-height:40px;border:1px solid #d9f4ff33;border-radius:11px;background:linear-gradient(180deg,#3a8096,#245a6e);color:#fff;font-weight:900;font-size:9px}.tech-card button:disabled{opacity:.45}
+
+.objective-row,.system-status,.hospital-row,.battle-report{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.09)}
+.objective-row span,.system-status span,.hospital-row span,.battle-report span{display:flex;flex-direction:column;min-width:0}.objective-row b,.system-status b,.hospital-row b,.battle-report b{font-size:10px}.objective-row small,.system-status small,.hospital-row small,.battle-report small{font-size:8px;color:#9fbfc8;margin-top:3px}.objective-row em,.battle-report em{font-style:normal;font-size:9px;color:#f4d071;font-weight:900}.objective-row.done b,.battle-report.win b{color:#a5e9b8}.battle-report.loss b{color:#ffada0}.objective-row button,.hospital-row button{min-width:68px;height:34px;border:1px solid #d9f4ff33;border-radius:10px;background:#2c687b;color:#fff;font-size:8px;font-weight:900}.reward-box{display:flex;flex-wrap:wrap;gap:7px;padding:11px;border-radius:14px;background:linear-gradient(135deg,rgba(119,85,28,.3),rgba(255,211,105,.06));border:1px solid rgba(242,196,91,.22);margin-bottom:10px}.mission-hint{font-size:9px;color:#9ebdc5;text-align:center}
+
+.sheet input[type=text]{width:100%;height:44px;border:1px solid #9bddec33;border-radius:12px;background:#082832;color:#fff;padding:0 12px;margin-bottom:10px}
+.sheet button:disabled{opacity:.45}
+
+@media(max-width:600px){
+ .bottom-nav{left:6px;right:6px;padding:6px 4px;gap:1px;height:84px}.bottom-nav button{border-radius:16px}.bottom-nav button span{font-size:18px}.bottom-nav button b{font-size:7px;letter-spacing:.45px}
+ .queue-card{bottom:105px;min-height:58px;padding:10px 13px}.queue-card b{font-size:10px}.queue-card small{font-size:8px;line-height:1.3}
+ .scene-label{transform:translate(-50%,-92%);max-width:145px}.scene-label b,.scene-label small{font-size:7px}
+ .stat-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.stat{padding:8px}.stat b{font-size:10px}
+ .march-selects{grid-template-columns:1fr}.troop-picker{grid-template-columns:110px 1fr;gap:7px}.troop-picker b{font-size:9px}
+ .sheet{max-height:calc(100% - 215px)}
+}
