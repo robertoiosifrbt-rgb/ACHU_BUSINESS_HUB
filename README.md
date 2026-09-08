@@ -1,5 +1,7 @@
-# ACHU BUSINESS HUB — BUILD 4X prototype
+# ACHU BUSINESS HUB — Business Strategy Game
 
-A mobile-first 4X strategy prototype built with Vite + PixiJS.
+A mobile-first Three.js business strategy game built around growing ACHU from a local operator into a national business platform.
 
-Current systems include city construction, research, resource production, troop training, world exploration, fog of war, territory expansion, timed marches, gathering, PvE camps, battle losses, and persistent local save.
+Core gameplay now focuses on developing the ACHU campus and its departments, recruiting field teams and specialists, improving business systems, researching new markets, opening service areas, winning commercial contracts, building reputation, and growing a partner network.
+
+Version 4.0.0 replaces the legacy Emberfall/4X presentation with a procedural Three.js visual system for the campus, buildings, workforce, market map, opportunities, competitors, and field deployments.
