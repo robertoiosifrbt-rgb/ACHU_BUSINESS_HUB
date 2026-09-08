@@ -5,9 +5,8 @@ import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeom
 const ASSET_ROOT='https://raw.githubusercontent.com/petroulacl/fps-buildings-env-kit/main'
 const ASSETS={
  hdri:`${ASSET_ROOT}/environment/skyboxes/polyhaven-hdri/urban_street_01_2k.hdr`,
- asphalt:`${ASSET_ROOT}/environment/ground-textures/ambientcg/Asphalt021_2K-JPG/Asphalt021.png`,
- brick:`${ASSET_ROOT}/environment/ground-textures/ambientcg/Bricks066_2K-JPG/Bricks066.png`,
- grass:`${ASSET_ROOT}/environment/ground-textures/ambientcg/Grass004_2K-JPG/Grass004.png`,
+ asphalt:`${ASSET_ROOT}/environment/ground-textures/ambientcg/Asphalt021_2K-JPG/Asphalt021_2K-JPG_Color.jpg`,
+ brick:`${ASSET_ROOT}/environment/ground-textures/ambientcg/Bricks066_2K-JPG/Bricks066_2K-JPG_Color.jpg`,
 }
 
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v))
@@ -28,7 +27,7 @@ export class BusinessScene{
  build(){
   this.scene.background=new THREE.Color(0xbfcfcb)
   this.scene.fog=new THREE.Fog(0xc8d4d0,38,76)
-  this.camera=new THREE.PerspectiveCamera(36,1,.1,120)
+  this.camera=new THREE.PerspectiveCamera(40,1,.1,120)
   this.renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'})
   this.renderer.setPixelRatio(Math.min(2,devicePixelRatio))
   this.renderer.shadowMap.enabled=true
@@ -41,9 +40,8 @@ export class BusinessScene{
 
   this.textureLoader=new THREE.TextureLoader()
   this.textures={
-   asphalt:this.loadTexture(ASSETS.asphalt,7,7),
+   asphalt:this.loadTexture(ASSETS.asphalt,5.5,5.5),
    brick:this.loadTexture(ASSETS.brick,2.6,2.2),
-   grass:this.loadTexture(ASSETS.grass,9,7),
   }
   this.loadEnvironment()
 
@@ -57,6 +55,7 @@ export class BusinessScene{
   this.scene.add(sun)
 
   this.world=new THREE.Group()
+  this.world.scale.setScalar(.84)
   this.scene.add(this.world)
   this.createGround()
   this.createRoads()
@@ -112,15 +111,14 @@ export class BusinessScene{
  }
 
  createGround(){
-  const grass=this.mat(0xd7dfd4,.96,0,this.textures.grass)
-  const ground=this.addPlane(48,42,grass,0,-.02,0)
-  ground.material.map.repeat.set(11,9)
-  const verge=this.mat(0xb3c4b7,.94)
+  const grass=this.mat(0xaebfae,.96)
+  this.addPlane(48,42,grass,0,-.02,0)
+  const verge=this.mat(0xc9d1c4,.94)
   this.addPlane(32,18,verge,-2,.005,-6.2)
  }
 
  createRoads(){
-  const asphalt=this.mat(0xffffff,.93,.01,this.textures.asphalt)
+  const asphalt=this.mat(0xffffff,.94,.01,this.textures.asphalt)
   const concrete=this.mat(0xd9dad4,.9)
   const curb=this.mat(0xb9bbb5,.82)
   const paint=this.mat(0xece8dc,.74)
@@ -143,22 +141,22 @@ export class BusinessScene{
   for(let i=0;i<6;i++)this.addPlane(3.6,.28,paint,2.8,.072,-1.25-i*.66)
 
   const bay=this.mat(0xf1eee3,.82)
-  for(const [x,z,rot] of[[-11,-.9,0],[-7,-.9,0],[10,5.15,0],[14,5.15,0]]){
+  for(const [x,z] of[[-11,-.9],[-7,-.9],[10,5.15],[14,5.15]]){
    const g=new THREE.Group()
    const a=new THREE.Mesh(new THREE.BoxGeometry(2.8,.035,.055),bay)
    const b=a.clone();b.position.z=1.1
    const c=new THREE.Mesh(new THREE.BoxGeometry(.055,.035,1.1),bay);c.position.set(-1.4,0,.55)
    const d=c.clone();d.position.x=1.4
-   g.add(a,b,c,d);g.position.set(x,.08,z);g.rotation.y=rot;this.world.add(g)
+   g.add(a,b,c,d);g.position.set(x,.08,z);this.world.add(g)
   }
  }
 
  createBuildings(){
   this.createAchuBase()
   this.createClientHouse()
-  this.createTerrace(-13.2,10.4,5.4,4.8,5.3,0xc8beb2)
-  this.createTerrace(-6.9,10.5,5.5,4.8,6.1,0x8e7567)
-  this.createTerrace(-.4,10.5,5.6,4.8,5.6,0xd8d0c4)
+  this.createTerrace(-13.2,-13.4,5.4,4.8,5.3,0xc8beb2)
+  this.createTerrace(-6.9,-13.5,5.5,4.8,6.1,0x8e7567)
+  this.createTerrace(-.4,-13.5,5.6,4.8,5.6,0xd8d0c4)
   this.createOffice(-15.7,-6.8)
  }
 
@@ -172,7 +170,7 @@ export class BusinessScene{
   const roof=this.addBox(7.4,.25,5.2,dark,-8.1,3.65,-5.5,{radius:.08})
   roof.castShadow=true
 
-  const shutter=this.addBox(3.05,2.35,.12,metal,-9.35,1.23,-2.99,{radius:.04})
+  this.addBox(3.05,2.35,.12,metal,-9.35,1.23,-2.99,{radius:.04})
   for(let y=.3;y<2.2;y+=.28)this.addBox(2.82,.025,.035,dark,-9.35,y,-2.91,{cast:false})
   this.addBox(1.12,2.18,.12,glass,-6.05,1.12,-2.98,{radius:.04})
   this.addBox(1.25,.09,.14,dark,-6.05,2.24,-2.9,{cast:false})
@@ -204,8 +202,7 @@ export class BusinessScene{
   this.addWindow(6.75,3.2,-4.38,1.28,1.1,trim,glass)
   this.addWindow(10.45,3.2,-4.38,1.28,1.1,trim,glass)
 
-  const bay=this.addBox(1.75,1.65,.75,trim,10.05,.88,-3.98,{radius:.04})
-  bay.castShadow=true
+  this.addBox(1.75,1.65,.75,trim,10.05,.88,-3.98,{radius:.04})
   this.addWindow(10.05,1.08,-3.58,1.34,.92,trim,glass)
 
   const path=this.mat(0xc8c7c0,.9)
@@ -222,8 +219,8 @@ export class BusinessScene{
   this.addBox(w,h,d,wall,x,h/2,z,{radius:.03})
   const roof=this.gableRoof(w+.45,d+.3,1.45,roofMat)
   roof.position.set(x,h,z);roof.castShadow=true;this.world.add(roof)
-  for(const yy of[1.25,3.0])for(const xx of[-1.35,1.35])this.addWindow(x+xx,yy,z-d/2-.02,.92,.82,trim,glass)
-  this.addBox(.95,2,.1,this.mat(0x38413d,.55,.12),x,1,z-d/2-.055,{radius:.03})
+  for(const yy of[1.25,3.0])for(const xx of[-1.35,1.35])this.addWindow(x+xx,yy,z+d/2+.02,.92,.82,trim,glass)
+  this.addBox(.95,2,.1,this.mat(0x38413d,.55,.12),x,1,z+d/2+.055,{radius:.03})
  }
 
  createOffice(x,z){
@@ -232,12 +229,12 @@ export class BusinessScene{
   const glass=this.mat(0x55777a,.15,.32)
   this.addBox(6.8,5.6,5.4,stone,x,2.8,z,{radius:.08})
   this.addBox(7.05,.35,5.65,dark,x,5.68,z,{radius:.06})
-  for(const y of[1.35,3.05,4.65])for(const xx of[-2.1,0,2.1])this.addWindow(x+xx,y,z-2.73,1.25,.82,dark,glass)
+  for(const y of[1.35,3.05,4.65])for(const xx of[-2.1,0,2.1])this.addWindow(x+xx,y,z+2.73,1.25,.82,dark,glass)
  }
 
  addWindow(x,y,z,w,h,frame=this.mat(0xeee9df,.7),glass=this.mat(0x648a8d,.18,.28)){
   this.addBox(w+.13,h+.13,.09,frame,x,y,z,{cast:false,radius:.025})
-  this.addBox(w,h,.105,glass,x,y,z-.055,{cast:false,radius:.02})
+  this.addBox(w,h,.105,glass,x,y,z+.055,{cast:false,radius:.02})
  }
 
  addSign(text,x,y,z,w,h){
@@ -326,13 +323,13 @@ export class BusinessScene{
   const w=this.host.clientWidth||innerWidth,h=this.host.clientHeight||innerHeight,aspect=w/h
   this.camera.aspect=aspect
   if(aspect<.7){
-   this.camera.fov=38
-   this.camera.position.set(18.5,20.5,25.5)
-   this.camera.lookAt(0,1,-2.25)
+   this.camera.fov=40
+   this.camera.position.set(10.5,13.5,29.5)
+   this.camera.lookAt(0,1,-4)
   }else{
-   this.camera.fov=35
-   this.camera.position.set(19,17.5,22)
-   this.camera.lookAt(0,.8,-1.8)
+   this.camera.fov=36
+   this.camera.position.set(16,13,25)
+   this.camera.lookAt(0,.9,-3.2)
   }
   this.camera.updateProjectionMatrix()
   this.renderer.setSize(w,h,false)
