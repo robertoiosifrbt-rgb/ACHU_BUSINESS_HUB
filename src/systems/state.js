@@ -1,7 +1,8 @@
 const KEY='build_strategy_v04'
 export const DEMO_SPEED=120
 const initialWorld=()=>({
- scouted:['5,5','5,4','5,6','4,5','6,5'],owned:['5,5'],defeated:[],nodeReady:{},armyPower:780
+ scouted:['5,5','5,4','5,6','4,5','6,5'],owned:['5,5'],defeated:[],nodeReady:{},armyPower:300,
+ troops:{infantry:70,lancer:35,marksman:35},marches:[],battleReports:[],trainingJob:null
 })
 export function defaultState(){return{
  resources:{meat:2200,wood:2200,coal:850,iron:260},
@@ -12,7 +13,7 @@ function migrate(raw){
  const base=defaultState();if(!raw)return base
  const resources={...base.resources,...raw.resources};if(resources.meat==null&&raw.resources?.food!=null)resources.meat=raw.resources.food
  const buildings={...base.buildings,...raw.buildings};if(raw.buildings?.house!=null&&raw.buildings?.shelter==null)buildings.shelter=raw.buildings.house
- const world={...base.world,...raw.world,nodeReady:{...base.world.nodeReady,...raw.world?.nodeReady}}
+ const oldWorld=raw.world??{},world={...base.world,...oldWorld,troops:{...base.world.troops,...oldWorld.troops},nodeReady:{...base.world.nodeReady,...oldWorld.nodeReady},marches:Array.isArray(oldWorld.marches)?oldWorld.marches:[],battleReports:Array.isArray(oldWorld.battleReports)?oldWorld.battleReports:[]}
  return{...base,...raw,resources,buildings,world,collectReady:{...base.collectReady,...raw.collectReady},claimedChapters:{...base.claimedChapters,...raw.claimedChapters},lastSavedAt:raw.lastSavedAt??Date.now()}
 }
 export function loadState(){try{return migrate(JSON.parse(localStorage.getItem(KEY)||'null'))}catch{return defaultState()}}
