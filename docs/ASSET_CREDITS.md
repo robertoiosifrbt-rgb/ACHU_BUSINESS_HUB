@@ -15,19 +15,23 @@ Web-optimized model copies used at runtime:
 
 These optimized copies are served from the public `anshaneja5/skyline-run` repository, whose `CREDITS.md` maps them back to the Quaternius Downtown City MegaKit and records the CC0 license.
 
-## Quaternius — Universal Base Characters
+## Quaternius — clothed crew characters
 
-Source: https://quaternius.com/packs/universalbasecharacters.html
+Sources:
+- Quaternius Universal Base Characters
+- Quaternius Modular Fantasy Outfits
+- public runtime copies in `lord3nd3r/ffxi-browser/public/models/chars`
+
 License: Creative Commons Zero (CC0 1.0 Universal)
 
-The 4X crew now uses an optimized embedded-GLB copy of the free Standard `Superhero_Male_FullBody` base character. The runtime copy is served from the public `Seyamalam/blood-league-kickoff` repository, where its source, conversion and CC0 provenance are documented in `docs/ASSET_CREDITS.md`. It replaces the old capsule-and-sphere placeholder people. If the remote model is unavailable, the game falls back to a locally generated proportional humanoid.
+The ACHU 4X base uses the fully clothed `Male_Peasant` and `Female_Peasant` rigged characters instead of the previous superhero full-body model. The source repository documents all of its 3D assets as free CC0 Quaternius/KayKit packs. The game alternates male and female crew members and scales them to the same world-space human height before animation. If the remote models are unavailable, the game falls back to locally generated clothed humanoids.
 
 ## Quaternius — Universal Animation Library
 
 Source: https://quaternius.com/packs/universalanimationlibrary.html
 License: Creative Commons Zero (CC0 1.0 Universal)
 
-The crew uses the compatible no-root-motion animation library from the same audited runtime source. The shared humanoid skeleton lets the base characters walk naturally around the ACHU base instead of remaining in bind pose.
+The crew uses the compatible no-root-motion animation library from the audited `Seyamalam/blood-league-kickoff` runtime source. Walking crew members follow short point-to-point patrols; stationary crew members use idle animation, preventing the old continuous spinning behaviour.
 
 ## Quaternius — Stylized Nature MegaKit
 
