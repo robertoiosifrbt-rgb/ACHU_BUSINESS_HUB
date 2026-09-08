@@ -18,7 +18,7 @@ export function defaultState(){return{
  events:{active:[],completed:[],log:[],nextEventAt:Date.now()+Math.random()*120000+60000},
  heroPool:{astrid:{level:1,xp:0},kael:{level:1,xp:0},mira:{level:1,xp:0},iris:{level:1,xp:0},torven:{level:1,xp:0},vex:{level:1,xp:0},lyra:{level:1,xp:0},drax:{level:1,xp:0}},
  marketplace:{listings:[],transactionHistory:[]},
- prestige:{battlesWon:0,battlesLost:0,resourcesGathered:0,territoriesOwned:1,heroesRecruited:0,buildingsUpgraded:0,rank:'bronze'}
+ prestige:{stats:{battlesWon:0,battlesLost:0,resourcesGathered:0,territoriesOwned:1,heroesRecruited:0},achievements:{},totalPower:0,totalBuildings:0,rank:0,badges:[]}
 }}
 const shiftId=id=>{if(typeof id!=='string'||!id.includes(','))return id;const [x,y]=id.split(',').map(Number);if(!Number.isFinite(x)||!Number.isFinite(y))return id;return`${x+SHIFT},${y+SHIFT}`}
 const shiftList=list=>(Array.isArray(list)?list:[]).map(shiftId)
