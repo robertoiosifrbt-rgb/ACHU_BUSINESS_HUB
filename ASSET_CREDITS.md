@@ -1,11 +1,15 @@
 # Visual asset notes
 
-The live winter settlement currently uses the Flare snowplains tileset for the playable city and world presentation: snow terrain, roads, water, bridges, vegetation, environmental props, tents, cave entrances and complete isometric building sprites.
+The winter settlement renderer uses:
 
-Source:
-- `igorko/flare-mod-noname`
-- `new_game_mod/images/tilesets/tileset_snowplains.png`
+- project-local `public/assets/winter-city-atlas.svg` for complete city-building sprites;
+- project-local `public/assets/furnace-atlas.svg` for the Furnace's 12 visual levels;
+- the Flare `tileset_snowplains.png` atlas for snow terrain, roads, water, bridges, trees and environmental props.
 
-The source project states that Flare art and data files are released under CC-BY-SA 3.0 or later. The repository remains public and this file keeps the source and license visible.
+The narrow building tiles at positions 208–215 in the Flare atlas are not used as standalone buildings.
 
-The older prototype SVG building atlases remain in the repository for history but are no longer loaded by the live city renderer.
+## Flare snowplains attribution
+
+Source repository: `igorko/flare-mod-noname`
+
+The repository states that Flare art and data files are released under CC-BY-SA 3.0 (later versions permitted). See the upstream README for full credits and attribution.

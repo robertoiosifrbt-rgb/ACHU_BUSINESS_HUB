@@ -1,6 +1,9 @@
 import { Assets,Rectangle,Texture } from 'pixi.js'
 
 const SNOW_ATLAS='https://raw.githubusercontent.com/igorko/flare-mod-noname/master/new_game_mod/images/tilesets/tileset_snowplains.png'
+const CITY_ATLAS=`${import.meta.env.BASE_URL}assets/winter-city-atlas.svg`
+const FURNACE_ATLAS=`${import.meta.env.BASE_URL}assets/furnace-atlas.svg`
+const IDS=['furnace','shelter','sawmill','huntersHut','coalMine','ironMine','storehouse','infirmary','embassy','infantryCamp','lancerCamp','marksmanCamp','researchCenter']
 
 const visualAssets={
  snow:[],paths:[],water:[],bridges:[],trees:[],props:[],tents:[],caves:[],
@@ -15,7 +18,11 @@ export {visualAssets}
 
 export async function loadVisualAssets(){
  if(loaded)return visualAssets
- const atlas=await Assets.load(SNOW_ATLAS)
+ const [atlas,city,furnace]=await Promise.all([
+  Assets.load(SNOW_ATLAS),
+  Assets.load(CITY_ATLAS),
+  Assets.load(FURNACE_ATLAS),
+ ])
 
  visualAssets.snow=row(atlas,0,16,0,64,32)
  visualAssets.paths=row(atlas,0,16,32,64,32)
@@ -36,25 +43,11 @@ export async function loadVisualAssets(){
  ]
  visualAssets.foundation=frame(atlas,768,160,64,64)
 
- const houses=Array.from({length:8},(_,i)=>frame(atlas,i*64,704,64,160))
- visualAssets.buildings={
-  furnace:houses[0],
-  shelter:houses[0],
-  sawmill:houses[1],
-  huntersHut:houses[2],
-  coalMine:visualAssets.caves[0],
-  ironMine:visualAssets.caves[1],
-  storehouse:houses[3],
-  infirmary:houses[4],
-  embassy:houses[5],
-  infantryCamp:visualAssets.tents[0],
-  lancerCamp:visualAssets.tents[1],
-  marksmanCamp:visualAssets.tents[2],
-  researchCenter:houses[6],
- }
+ // Use complete local building sprites. The Flare atlas building row is made of
+ // narrow isometric tiles and must never be stretched as standalone buildings.
+ IDS.forEach((id,i)=>{visualAssets.buildings[id]=frame(city,i*220,0,220,220)})
+ visualAssets.furnaceLevels=Array.from({length:12},(_,i)=>frame(furnace,i*320,0,320,320))
 
- const furnaceFrames=[0,0,1,1,2,2,3,4,5,6,7,7]
- visualAssets.furnaceLevels=furnaceFrames.map(i=>houses[i])
  loaded=true
  return visualAssets
 }
