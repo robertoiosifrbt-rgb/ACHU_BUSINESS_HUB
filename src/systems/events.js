@@ -9,13 +9,13 @@ const EVENT_TYPES={
 }
 
 const EVENT_TEMPLATES={
- ResourceBonus:{title:'Resource Abundance',description:'All resources +30% for 2 hours',reward:{meat:300,wood:300,coal:200,iron:100},duration:7200000},
- Invasion:{title:'Bandit Raid',description:'Defend against raiders. Reward: hero XP',difficulty:'medium',duration:3600000},
- TradingBoost:{title:'Merchant Caravan',description:'Buy/sell resources at 20% discount',discount:0.2,duration:5400000},
- HeroVisit:{title:'Hero Recruitment',description:'Rare hero visiting your kingdom',heroChance:0.3,duration:1800000},
- NaturalDisaster:{title:'Storm Incoming',description:'Prepare defenses or lose 10% resources',penalty:0.1,duration:1800000},
- QuestChain:{title:'Lost Artifact Quest',description:'3-part quest chain. Great rewards.',parts:3,reward:{meat:500,power:100}},
- SeasonalFestival:{title:'Spring Festival',description:'Celebrate with your guild. +20% building speed',buildingSpeedBoost:0.2,duration:86400000}
+ ResourceBonus:{title:'High Demand Week',description:'Demand is up across the market. Extra operating value available.',reward:{meat:300,wood:300,coal:200,iron:100},duration:7200000},
+ Invasion:{title:'Competitor Price Push',description:'Protect client relationships during an aggressive competitor campaign.',difficulty:'medium',duration:3600000},
+ TradingBoost:{title:'Supplier Promotion',description:'Procurement costs are temporarily reduced.',discount:0.2,duration:5400000},
+ HeroVisit:{title:'Senior Manager Available',description:'A high-value operator is available for recruitment.',heroChance:0.3,duration:1800000},
+ NaturalDisaster:{title:'Operational Disruption',description:'A sudden disruption is affecting capacity. Stabilise operations quickly.',penalty:0.1,duration:1800000},
+ QuestChain:{title:'Enterprise Tender',description:'Complete a three-stage commercial tender for a major reward.',parts:3,reward:{meat:500,power:100}},
+ SeasonalFestival:{title:'Growth Campaign',description:'A company-wide campaign is improving development speed.',buildingSpeedBoost:0.2,duration:86400000}
 }
 
 export function generateEvent(){
@@ -55,9 +55,8 @@ export function tickEvents(state){
 
 export function claimEventReward(state,eventId){
  const event=state.events.active.find(e=>e.id===eventId)
- if(!event)return{ok:false,error:'Event not found'}
+ if(!event)return{ok:false,error:'Opportunity not found'}
  if(event.claimed)return{ok:false,error:'Already claimed'}
-
  Object.entries(event.reward??{}).forEach(([k,v])=>{
   if(k in state.resources)state.resources[k]=(state.resources[k]??0)+v
   else if(k==='power')state.power+=v
