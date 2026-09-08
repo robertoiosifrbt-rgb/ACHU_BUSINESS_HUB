@@ -8,7 +8,7 @@ const files={
  wallBDoor:'wall-b-door.glb',wallBWindow:'wall-b-window.glb',wallB:'wall-b.glb',wallBRoof:'wall-b-roof.glb',garage:'wall-a-garage.glb',metalRoof:'roof-metal-type-a.glb',
  scaffold:'scaffolding-structure.glb',barrier:'detail-barrier-strong-type-a.glb',dumpster:'detail-dumpster-closed.glb',pineLarge:'tree-pine-large.glb',pineSmall:'tree-pine-small.glb',truckGreen:'truck-green.glb',truckGrey:'truck-grey.glb'
 }
-function prep(root){root.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});return root}
+function prep(root){root.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;if(!o.material||!o.material.map)o.material=new THREE.MeshStandardMaterial({color:0x8b7355,roughness:0.8,metalness:0.1})}});return root}
 async function loadModel(file){const asset=await gltf.loadAsync(`${RAW}/${file}`);return prep(asset.scene)}
 
 export class AssetBank{
