@@ -6,6 +6,7 @@ const gltf=new GLTFLoader()
 const URBAN='https://raw.githubusercontent.com/ronmurphy/CityBuilder/37244cfa7e40f99cdde4690c13b63d0c98c89dfc/models/IGNORED/Retro%20Urban%20Kit/Models/GLB%20format'
 const DOWNTOWN='https://raw.githubusercontent.com/anshaneja5/skyline-run/main/public/assets/models'
 const CHARACTER='https://raw.githubusercontent.com/Seyamalam/blood-league-kickoff/main/public/assets/vendor/quaternius/night-striker.glb'
+const ANIMATIONS='https://raw.githubusercontent.com/Seyamalam/blood-league-kickoff/main/public/assets/vendor/quaternius/universal-animation-library.glb'
 
 const files={
  wallADoor:[URBAN,'wall-a-door.glb'],wallAWindow:[URBAN,'wall-a-window.glb'],wallA:[URBAN,'wall-a.glb'],wallARoof:[URBAN,'wall-a-roof.glb'],
@@ -46,18 +47,22 @@ function placeholder(name){
 
 async function loadModel(base,file){const asset=await gltf.loadAsync(`${base}/${file}`);return prep(asset.scene)}
 async function loadCharacter(){const asset=await gltf.loadAsync(CHARACTER);return prep(asset.scene)}
+async function loadAnimations(){return gltf.loadAsync(ANIMATIONS)}
 
 export class AssetBank{
- constructor(){this.models={};this.character=null;this.ready=false}
+ constructor(){this.models={};this.character=null;this.characterAnimations=[];this.ready=false}
  async load(){
   const entries=Object.entries(files)
-  const [modelsResult,characterResult]=await Promise.all([
+  const [modelsResult,characterResult,animationResult]=await Promise.all([
    Promise.allSettled(entries.map(([,src])=>loadModel(src[0],src[1]))),
-   Promise.allSettled([loadCharacter()])
+   Promise.allSettled([loadCharacter()]),
+   Promise.allSettled([loadAnimations()])
   ])
   modelsResult.forEach((result,i)=>{const [key,src]=entries[i];if(result.status==='fulfilled')this.models[key]=result.value;else console.warn(`3D asset failed: ${src[1]}`,result.reason)})
   if(characterResult[0]?.status==='fulfilled')this.character=characterResult[0].value
   else console.warn('Humanoid crew asset failed; using fallback crew',characterResult[0]?.reason)
+  if(animationResult[0]?.status==='fulfilled')this.characterAnimations=animationResult[0].value.animations??[]
+  else console.warn('Humanoid animation library failed',animationResult[0]?.reason)
   this.ready=true;return this
  }
  clone(name){const src=this.models[name];return src?prep(src.clone(true)):placeholder(name)}
@@ -69,5 +74,9 @@ export class AssetBank{
   const fitted=new THREE.Box3().setFromObject(root);root.position.y-=fitted.min.y
   root.userData.realCrew=true
   return root
+ }
+ characterClip(preferred='walk'){
+  const clips=this.characterAnimations??[]
+  return clips.find(c=>c.name.toLowerCase().includes(preferred))||clips.find(c=>c.name.toLowerCase().includes('idle'))||clips[0]||null
  }
 }
