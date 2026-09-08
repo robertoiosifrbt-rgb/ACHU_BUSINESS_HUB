@@ -1,0 +1,72 @@
+name: Living City Visual QA
+
+on:
+  push:
+    branches:
+      - surprise/living-business-city
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  visual:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npm run build
+      - run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start isolated preview
+        run: |
+          nohup npm run preview -- --host 127.0.0.1 --port 4173 > /tmp/achu-preview.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:4173/ACHU_BUSINESS_HUB/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/achu-preview.log
+          exit 1
+      - name: Capture living business city
+        run: |
+          mkdir -p visual-check
+          cat > visual-check/check.mjs <<'EOF'
+          import { chromium } from 'playwright'
+          import fs from 'node:fs'
+          const errors=[],failed=[]
+          const browser=await chromium.launch({headless:true,args:['--use-angle=swiftshader','--enable-webgl','--ignore-gpu-blocklist']})
+          const page=await browser.newPage({viewport:{width:430,height:932},deviceScaleFactor:1})
+          page.on('console',m=>{if(m.type()==='error')errors.push(`console: ${m.text()}`)})
+          page.on('pageerror',e=>errors.push(`page: ${e.message}`))
+          page.on('requestfailed',r=>failed.push(`${r.method()} ${r.url()} :: ${r.failure()?.errorText??'failed'}`))
+          page.on('response',r=>{if(r.status()>=400)failed.push(`${r.status()} ${r.url()}`)})
+          await page.addInitScript(()=>{
+            const scouted=[];for(let y=5;y<=15;y++)for(let x=5;x<=15;x++)scouted.push(`${x},${y}`)
+            localStorage.setItem('build_strategy_v13_furnace_first',JSON.stringify({
+              resources:{meat:28500,wood:7400,coal:1280,iron:290},power:12850,
+              buildings:{furnace:7,shelter:4,sawmill:4,huntersHut:4,coalMine:4,ironMine:3,storehouse:3,infirmary:3,embassy:3,infantryCamp:4,lancerCamp:3,marksmanCamp:3,researchCenter:4},
+              world:{mapVersion:2,scouted,owned:['10,10','10,9','10,11','9,10','11,10','9,9','11,11'],defeated:[],nodeReady:{},armyPower:120,troops:{infantry:62,lancer:34,marksman:18},marches:[],battleReports:[],trainingJob:null,selectedHero:'astrid',formation:'balanced',heroes:{astrid:{level:1,xp:0}},settlementCooldown:{},rally:null},
+              research:{},construction:null,researchJob:null,collectReady:{},claimedChapters:{},lastSavedAt:Date.now()
+            }))
+          })
+          const url='http://127.0.0.1:4173/ACHU_BUSINESS_HUB/'
+          await page.goto(url,{waitUntil:'networkidle',timeout:90000});await page.waitForTimeout(9000)
+          await page.screenshot({path:'visual-check/my-place.png',fullPage:true})
+          const market=page.locator('[data-mode="world"]');if(!(await market.count()))throw new Error('THE CITY button missing');await market.first().click();await page.waitForTimeout(6000)
+          await page.screenshot({path:'visual-check/the-city.png',fullPage:true})
+          const report={canvasCount:await page.locator('canvas').count(),mode:(await page.locator('#mode-tag').innerText()).trim(),errors,failed,body:(await page.locator('body').innerText()).slice(0,5000)}
+          fs.writeFileSync('visual-check/report.json',JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2));await browser.close()
+          if(report.canvasCount<1||report.mode!=='THE CITY'||errors.length||failed.length)process.exitCode=1
+          EOF
+          node visual-check/check.mjs
+      - name: Upload visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: living-city-visual
+          path: visual-check
+          if-no-files-found: warn
