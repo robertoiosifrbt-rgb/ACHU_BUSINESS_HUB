@@ -15,7 +15,7 @@ function fallbackCrew(accent=0x42b98e){
 }
 
 export class Business4XGame extends Retro4XGame{
- constructor(mount){super(mount);this.mode='world';this.audio=new GameAudio()}
+ constructor(mount){super(mount);this.mode='world';this.audio=new GameAudio();this.workerAnimAt=0}
  async start(){
   await super.start()
   this.ui?.root?.remove()
@@ -34,14 +34,25 @@ export class Business4XGame extends Retro4XGame{
   return this
  }
  addWorkers(){
-  this.workers=[]
+  this.workers=[];this.workerAnimAt=performance.now()
   if(!this.city)return
-  const spots=[[-4.6,2.4,.15],[-2.2,3.3,1.2],[1.2,2.7,2.1],[4.2,2.1,2.9],[-3.4,5.2,.7],[2.7,5.1,2.45]]
+  const spots=[[-4.6,2.4,.15],[-2.2,3.3,1.2],[1.2,2.7,2.1],[4.2,2.1,2.9],[-3.4,5.2,.7],[2.7,5.1,2.45]],clip=this.assets?.characterClip?.('walk')
   spots.forEach(([x,z,phase],i)=>{
    const view=this.assets?.cloneCharacter?.()||fallbackCrew([0x3da982,0x4f91c7,0xd19b4f,0x9b79c8][i%4])
    view.position.set(x,.02,z);view.rotation.y=(i%3)*1.25;this.city.add(view)
-   this.workers.push({view,phase,baseX:x,baseZ:z})
+   let mixer=null
+   if(view.userData.realCrew&&clip){mixer=new THREE.AnimationMixer(view);const action=mixer.clipAction(clip);action.timeScale=.72+(i%3)*.06;action.play();mixer.update(i*.11)}
+   this.workers.push({view,mixer,phase,baseX:x,baseZ:z})
   })
+ }
+ animateWorkers(t){
+  const dt=Math.min(.05,Math.max(0,(t-(this.workerAnimAt||t))/1000));this.workerAnimAt=t
+  for(const [i,w] of(this.workers??[]).entries()){
+   w.mixer?.update(dt)
+   const a=t*.00016+w.phase,x=Math.sin(a*5+i)*.68,z=Math.cos(a*4.4+i)*.48
+   w.view.position.x=w.baseX+x;w.view.position.z=w.baseZ+z
+   w.view.rotation.y=Math.atan2(Math.cos(a*5+i)*.68,-Math.sin(a*4.4+i)*.48)
+  }
  }
  setMode(mode){
   this.mode=mode
