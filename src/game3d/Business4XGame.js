@@ -4,13 +4,14 @@ import { buildCity4X,buildingPosition4X } from './cityFactory4x.js'
 import { World3D4X } from './worldFactory4x.js'
 import { GameUI4X } from './ui4x.js'
 import { GameAudio } from './audio.js'
+import { currentChapter } from '../data/chapters.js'
 
 function fallbackCrew(accent=0x42b98e){
- const g=new THREE.Group(),skin=new THREE.MeshStandardMaterial({color:0xd9a47f,roughness:.76}),shirt=new THREE.MeshStandardMaterial({color:accent,roughness:.68}),dark=new THREE.MeshStandardMaterial({color:0x22312e,roughness:.88}),hair=new THREE.MeshStandardMaterial({color:0x362b27,roughness:.9})
- const torso=new THREE.Mesh(new THREE.CapsuleGeometry(.18,.44,6,12),shirt);torso.position.y=.92;g.add(torso)
- const head=new THREE.Mesh(new THREE.SphereGeometry(.17,18,14),skin);head.position.y=1.43;g.add(head)
- const hairCap=new THREE.Mesh(new THREE.SphereGeometry(.174,16,10,0,Math.PI*2,0,Math.PI*.46),hair);hairCap.position.y=1.49;g.add(hairCap)
- for(const x of[-.12,.12]){const leg=new THREE.Mesh(new THREE.CapsuleGeometry(.055,.36,4,8),dark);leg.position.set(x,.38,0);g.add(leg);const arm=new THREE.Mesh(new THREE.CapsuleGeometry(.045,.32,4,8),skin);arm.position.set(x<0?-.25:.25,.9,0);arm.rotation.z=x<0?-.16:.16;g.add(arm)}
+ const g=new THREE.Group(),skin=new THREE.MeshStandardMaterial({color:0xd9a47f,roughness:.76}),shirt=new THREE.MeshStandardMaterial({color:accent,roughness:.68}),trousers=new THREE.MeshStandardMaterial({color:0x263b43,roughness:.88}),hair=new THREE.MeshStandardMaterial({color:0x362b27,roughness:.9})
+ const torso=new THREE.Mesh(new THREE.CapsuleGeometry(.2,.5,6,12),shirt);torso.position.y=1.02;g.add(torso)
+ const head=new THREE.Mesh(new THREE.SphereGeometry(.17,18,14),skin);head.position.y=1.53;g.add(head)
+ const hairCap=new THREE.Mesh(new THREE.SphereGeometry(.174,16,10,0,Math.PI*2,0,Math.PI*.46),hair);hairCap.position.y=1.59;g.add(hairCap)
+ for(const x of[-.12,.12]){const leg=new THREE.Mesh(new THREE.CapsuleGeometry(.06,.42,4,8),trousers);leg.position.set(x,.42,0);g.add(leg);const arm=new THREE.Mesh(new THREE.CapsuleGeometry(.05,.34,4,8),shirt);arm.position.set(x<0?-.27:.27,1.03,0);arm.rotation.z=x<0?-.12:.12;g.add(arm)}
  g.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});return g
 }
 
@@ -30,28 +31,44 @@ export class Business4XGame extends Retro4XGame{
   this.scene.background.setHex(0xc4d2cc)
   if(this.scene.fog){this.scene.fog.color.setHex(0xc4d2cc);this.scene.fog.density=.009}
   this.controls.target.set(0,0,0);this.camera.position.set(19,26,19);this.camera.zoom=1;this.resize();this.ui.refresh()
-  window.addEventListener('pointerdown',()=>this.audio.unlock(),{once:true,capture:true})
+  const unlock=()=>this.audio.unlock()
+  window.addEventListener('pointerdown',unlock,{capture:true})
+  window.addEventListener('touchstart',unlock,{capture:true,passive:true})
+  setTimeout(()=>this.ui?.showChapterIfNew?.(),500)
   return this
  }
  addWorkers(){
   this.workers=[];this.workerAnimAt=performance.now()
   if(!this.city)return
-  const spots=[[-4.6,2.4,.15],[-2.2,3.3,1.2],[1.2,2.7,2.1],[4.2,2.1,2.9],[-3.4,5.2,.7],[2.7,5.1,2.45]],clip=this.assets?.characterClip?.('walk')
-  spots.forEach(([x,z,phase],i)=>{
-   const view=this.assets?.cloneCharacter?.()||fallbackCrew([0x3da982,0x4f91c7,0xd19b4f,0x9b79c8][i%4])
-   view.position.set(x,.02,z);view.rotation.y=(i%3)*1.25;this.city.add(view)
+  const patrols=[
+   {from:[-5.4,2.1],to:[-2.8,2.8],phase:.1,speed:.11,moving:true},
+   {from:[-.8,3.4],to:[2.2,3.1],phase:.55,speed:.095,moving:true},
+   {from:[3.5,1.8],to:[5.2,3.7],phase:1.1,speed:.105,moving:true},
+   {from:[-3.7,5.2],to:[-3.7,5.2],phase:0,speed:0,moving:false},
+   {from:[1.6,5.25],to:[1.6,5.25],phase:0,speed:0,moving:false},
+   {from:[4.8,5.0],to:[4.8,5.0],phase:0,speed:0,moving:false}
+  ]
+  const walk=this.assets?.characterClip?.('walk'),idle=this.assets?.characterClip?.('idle')
+  patrols.forEach((p,i)=>{
+   const view=this.assets?.cloneCharacter?.(i)||fallbackCrew([0x3da982,0x4f91c7,0xd19b4f,0x7d86b8][i%4])
+   view.position.set(p.from[0],.02,p.from[1]);this.city.add(view)
    let mixer=null
-   if(view.userData.realCrew&&clip){mixer=new THREE.AnimationMixer(view);const action=mixer.clipAction(clip);action.timeScale=.72+(i%3)*.06;action.play();mixer.update(i*.11)}
-   this.workers.push({view,mixer,phase,baseX:x,baseZ:z})
+   const clip=p.moving?walk:idle
+   if(view.userData.realCrew&&clip){mixer=new THREE.AnimationMixer(view);const action=mixer.clipAction(clip);action.timeScale=p.moving?.82:1;action.play();mixer.update(i*.07)}
+   const dx=p.to[0]-p.from[0],dz=p.to[1]-p.from[1],baseYaw=Math.atan2(dx,dz)
+   view.rotation.y=baseYaw
+   this.workers.push({view,mixer,...p,baseYaw,lastDirection:1})
   })
  }
  animateWorkers(t){
   const dt=Math.min(.05,Math.max(0,(t-(this.workerAnimAt||t))/1000));this.workerAnimAt=t
-  for(const [i,w] of(this.workers??[]).entries()){
+  for(const w of(this.workers??[])){
    w.mixer?.update(dt)
-   const a=t*.00016+w.phase,x=Math.sin(a*5+i)*.68,z=Math.cos(a*4.4+i)*.48
-   w.view.position.x=w.baseX+x;w.view.position.z=w.baseZ+z
-   w.view.rotation.y=Math.atan2(Math.cos(a*5+i)*.68,-Math.sin(a*4.4+i)*.48)
+   if(!w.moving)continue
+   const cycle=((t/1000)*w.speed+w.phase)%2,p=cycle<=1?cycle:2-cycle,direction=cycle<=1?1:-1
+   w.view.position.x=THREE.MathUtils.lerp(w.from[0],w.to[0],p)
+   w.view.position.z=THREE.MathUtils.lerp(w.from[1],w.to[1],p)
+   if(direction!==w.lastDirection){w.lastDirection=direction;w.view.rotation.y=w.baseYaw+(direction<0?Math.PI:0)}
   }
  }
  setMode(mode){
@@ -75,7 +92,15 @@ export class Business4XGame extends Retro4XGame{
  upgradeBuilding(id){const before=this.state.construction;super.upgradeBuilding(id);if(!before&&this.state.construction)this.audio.build()}
  research(id){const before=this.state.researchJob;super.research(id);if(!before&&this.state.researchJob)this.audio.research()}
  dispatch(type,id,cost={}){const ok=super.dispatch(type,id,cost);if(ok)this.audio.dispatch(type);return ok}
- claimChapter(chapter){const before=chapter&&this.state.claimedChapters?.[chapter.id];super.claimChapter(chapter);if(chapter&&!before&&this.state.claimedChapters?.[chapter.id])this.audio.success()}
+ claimChapter(chapter=currentChapter(this.state)){
+  const before=chapter&&this.state.claimedChapters?.[chapter.id]
+  super.claimChapter(chapter)
+  if(chapter&&!before&&this.state.claimedChapters?.[chapter.id]){
+   this.audio.success()
+   const next=currentChapter(this.state)
+   if(next)setTimeout(()=>this.ui?.openMission?.(next,{markSeen:true}),320)
+  }
+ }
  trainTroops(type){const before=this.state.world.trainingJob;super.trainTroops(type);if(!before&&this.state.world.trainingJob)this.audio.build()}
  finishOutbound(m,now){
   const type=m.type;super.finishOutbound(m,now)
