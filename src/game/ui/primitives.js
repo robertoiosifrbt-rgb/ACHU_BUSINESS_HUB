@@ -1,6 +1,8 @@
 import { Container,Graphics,Text } from 'pixi.js'
 export const text=(s,size=15,color=0xffffff,weight='700')=>new Text({text:s,style:{fontFamily:'Arial',fontSize:size,fill:color,fontWeight:weight}})
-export const panel=(w,h,a=.90,color=0x102b38,r=18)=>new Graphics().roundRect(0,0,w,h,r).fill({color,alpha:a}).stroke({color:0xffffff,alpha:.20,width:1})
-export function button(label,w=120,h=42,color=0x2f86c9){const c=new Container();const g=new Graphics().roundRect(0,0,w,h,13).fill({color,alpha:.96}).stroke({color:0xffffff,alpha:.36,width:2});const t=text(label,12);t.anchor.set(.5);t.position.set(w/2,h/2);c.addChild(g,t);c.eventMode='static';c.cursor='pointer';return c}
+export function panel(w,h,a=.91,color=0x102b38,r=18){const g=new Graphics();g.roundRect(4,6,w,h,r).fill({color:0x001119,alpha:.32});g.roundRect(0,0,w,h,r).fill({color,alpha:a}).stroke({color:0xdaf4ff,alpha:.22,width:1});g.roundRect(2,2,w-4,8,Math.max(4,r-4)).fill({color:0xffffff,alpha:.045});return g}
+export function button(label,w=120,h=42,color=0x2f86c9){const c=new Container(),g=new Graphics();g.roundRect(2,4,w,h,13).fill({color:0x00141d,alpha:.34});g.roundRect(0,0,w,h,13).fill({color,alpha:.98}).stroke({color:0xe6f8ff,alpha:.42,width:1.5});g.roundRect(3,3,w-6,7,8).fill({color:0xffffff,alpha:.08});const t=text(label,11,0xffffff,'900');t.anchor.set(.5);t.position.set(w/2,h/2);c.addChild(g,t);c.eventMode='static';c.cursor='pointer';return c}
+export function roundButton(icon,label,color=0x2e7898){const c=new Container(),g=new Graphics();g.circle(2,4,25).fill({color:0x00141d,alpha:.32});g.circle(0,0,25).fill({color,alpha:.97}).stroke({color:0xffffff,alpha:.42,width:1.5});const i=text(icon,18,0xffffff,'900');i.anchor.set(.5);i.position.set(0,-1);const l=text(label,8,0xffffff,'800');l.anchor.set(.5);l.position.set(0,34);c.addChild(g,i,l);c.eventMode='static';c.cursor='pointer';return c}
 export const fmt=n=>Math.floor(n).toLocaleString()
-export const fmtTime=ms=>{const s=Math.max(0,Math.ceil(ms/1000));return s<60?`${s}s`:`${Math.floor(s/60)}m ${s%60}s`}
+export const fmtShort=n=>{const v=Math.floor(n);return v>=1e6?`${(v/1e6).toFixed(v>=1e7?0:1)}M`:v>=1e3?`${(v/1e3).toFixed(v>=1e4?0:1)}K`:`${v}`}
+export const fmtTime=ms=>{const s=Math.max(0,Math.ceil(ms/1000));if(s<60)return`${s}s`;const m=Math.floor(s/60);return m<60?`${m}m ${s%60}s`:`${Math.floor(m/60)}h ${m%60}m`}
