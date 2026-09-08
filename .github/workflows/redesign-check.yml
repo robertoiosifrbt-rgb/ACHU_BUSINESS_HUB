@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - redesign/game-rebuild
+      - fix/v4-real-assets
   workflow_dispatch:
 
 permissions:
