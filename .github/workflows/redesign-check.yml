@@ -55,31 +55,36 @@ jobs:
           page.on('requestfailed',r=>failed.push(`${r.method()} ${r.url()} :: ${r.failure()?.errorText??'failed'}`))
           page.on('response',r=>{if(r.status()>=400)failed.push(`${r.status()} ${r.url()}`)})
 
-          const url='http://127.0.0.1:4173/ACHU_BUSINESS_HUB/'
-          await page.goto(url,{waitUntil:'networkidle',timeout:60000})
-          await page.waitForTimeout(5000)
-          await page.screenshot({path:'visual-check/city-start.png',fullPage:true})
-
-          await page.evaluate(()=>{
-            const key='build_strategy_v13_furnace_first'
-            const s=JSON.parse(localStorage.getItem(key))
-            s.resources={meat:250000,wood:250000,coal:60000,iron:15000}
-            s.buildings={
-              furnace:8,shelter:6,sawmill:6,huntersHut:6,coalMine:5,ironMine:4,
-              storehouse:5,infirmary:5,embassy:5,infantryCamp:5,lancerCamp:4,
-              marksmanCamp:4,researchCenter:4
-            }
-            s.power=18500
+          await page.addInitScript(()=>{
             const scouted=[]
             for(let y=6;y<=14;y++)for(let x=6;x<=14;x++)scouted.push(`${x},${y}`)
-            s.world.scouted=scouted
-            s.world.owned=['10,10','10,9','10,11','9,10','11,10']
-            s.world.defeated=[]
-            s.world.marches=[]
-            localStorage.setItem(key,JSON.stringify(s))
+            const heroes={astrid:{level:3,xp:0},kael:{level:2,xp:0},mira:{level:2,xp:0}}
+            const state={
+              playerId:'visual-qa',
+              resources:{meat:250000,wood:250000,coal:60000,iron:15000},
+              buildings:{
+                furnace:8,shelter:6,sawmill:6,huntersHut:6,coalMine:5,ironMine:4,
+                storehouse:5,infirmary:5,embassy:5,infantryCamp:5,lancerCamp:4,
+                marksmanCamp:4,researchCenter:4
+              },
+              research:{},construction:null,researchJob:null,power:18500,lastSavedAt:Date.now(),
+              collectReady:{},claimedChapters:{},
+              world:{
+                mapVersion:2,scouted,owned:['10,10','10,9','10,11','9,10','11,10'],defeated:[],nodeReady:{},armyPower:2500,
+                troops:{infantry:120,lancer:80,marksman:60},marches:[],battleReports:[],trainingJob:null,
+                selectedHero:'astrid',formation:'balanced',heroes,settlementCooldown:{},rally:null
+              },
+              guild:{id:null,name:'',leader:null,members:{},treasury:{},level:1,perks:[],wars:[],allies:[],enemies:[],createdAt:0},
+              events:{active:[],completed:[],log:[],nextEventAt:Date.now()+3600000},
+              heroPool:{...heroes,iris:{level:1,xp:0},torven:{level:1,xp:0},vex:{level:1,xp:0},lyra:{level:1,xp:0},drax:{level:1,xp:0}},
+              marketplace:{listings:[],transactionHistory:[]},
+              prestige:{stats:{battlesWon:0,battlesLost:0,resourcesGathered:0,territoriesOwned:5,heroesRecruited:0},achievements:{},totalPower:0,totalBuildings:0,rank:0,badges:[]}
+            }
+            localStorage.setItem('build_strategy_v13_furnace_first',JSON.stringify(state))
           })
 
-          await page.reload({waitUntil:'networkidle',timeout:60000})
+          const url='http://127.0.0.1:4173/ACHU_BUSINESS_HUB/'
+          await page.goto(url,{waitUntil:'networkidle',timeout:60000})
           await page.waitForTimeout(7000)
           await page.screenshot({path:'visual-check/city-progressed.png',fullPage:true})
 
@@ -90,7 +95,7 @@ jobs:
           const market=page.locator('[data-mode="world"]')
           if(!(await market.count()))throw new Error('MARKET button missing')
           await market.first().click()
-          await page.waitForTimeout(4500)
+          await page.waitForTimeout(5000)
           const marketMode=(await page.locator('#mode-tag').innerText()).trim()
           await page.screenshot({path:'visual-check/market.png',fullPage:true})
 
