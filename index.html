@@ -3,89 +3,149 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
-<meta name="theme-color" content="#86c7ff" />
+<meta name="theme-color" content="#8fcaf0" />
 <title>BUILD — v0.1</title>
 <style>
-:root{color-scheme:light;--ink:#17314c;--muted:#68839b;--line:#c9dceb;--card:rgba(255,255,255,.92);--blue:#2388e8;--blue2:#5fb3ff;--good:#2d9d66;--danger:#d65050;--shadow:0 10px 30px rgba(41,81,118,.14)}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:linear-gradient(#bfe6ff,#edf8ff 40%,#d8f0da);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink)}body{min-height:100vh;overflow-x:hidden}.app{max-width:980px;margin:0 auto;padding:max(10px,env(safe-area-inset-top)) 10px max(18px,env(safe-area-inset-bottom))}.hud{display:flex;align-items:center;gap:8px}.brand{min-width:0;flex:1}.brand h1{font-size:20px;margin:0;letter-spacing:-.04em}.brand p{font-size:11px;color:var(--muted);margin:2px 0 0}.level{background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 11px;font-size:12px;font-weight:800;box-shadow:var(--shadow);white-space:nowrap}.resources{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}.resource{background:var(--card);border:1px solid rgba(201,220,235,.9);border-radius:15px;padding:8px 9px;box-shadow:var(--shadow);min-width:0}.resource span{font-size:10px;color:var(--muted);display:block}.resource b{font-size:15px;display:block;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.resource i{font-style:normal;font-size:9px;color:var(--good)}.mission{margin:8px 0;background:rgba(255,255,255,.9);border:1px solid rgba(201,220,235,.9);border-radius:15px;padding:9px 11px;box-shadow:var(--shadow);display:flex;justify-content:space-between;gap:10px;align-items:center}.mission strong{font-size:12px}.mission small{display:block;color:var(--muted);font-size:10px;margin-top:2px}.mission .badge{font-size:11px;font-weight:800;color:var(--blue);white-space:nowrap}.game-shell{position:relative;border:1px solid rgba(126,173,205,.6);border-radius:24px;overflow:hidden;background:linear-gradient(#8ed0ff,#c6ecff 56%,#9ed28d 57%);box-shadow:0 18px 45px rgba(37,84,120,.18)}canvas{display:block;width:100%;height:auto;aspect-ratio:1.15;touch-action:manipulation}.hint{position:absolute;top:10px;left:10px;background:rgba(255,255,255,.82);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.8);border-radius:12px;padding:7px 9px;font-size:10px;color:#49677e;pointer-events:none}.buildbar{display:flex;gap:7px;overflow-x:auto;padding:9px 2px 4px;scrollbar-width:none}.buildbar::-webkit-scrollbar{display:none}.build{min-width:112px;min-height:72px;border:1px solid var(--line);border-radius:17px;background:rgba(255,255,255,.94);box-shadow:var(--shadow);padding:8px 9px;text-align:left;color:var(--ink);position:relative}.build.active{border:2px solid var(--blue);padding:7px 8px;background:#f5fbff}.build.locked{opacity:.48}.build .icon{font-size:22px;line-height:1}.build strong{display:block;font-size:11px;margin-top:3px}.build small{display:block;color:var(--muted);font-size:9px;line-height:1.25;margin-top:2px}.tools{display:flex;gap:7px;margin-top:5px}.tool{flex:1;min-height:44px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.93);color:var(--ink);font-weight:750;font-size:12px}.tool.danger.active{border-color:#e9a6a6;background:#fff2f2;color:var(--danger)}.sheet{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(100%,520px);background:#fff;border-radius:22px 22px 0 0;box-shadow:0 -18px 60px rgba(31,63,90,.24);padding:14px 14px max(18px,env(safe-area-inset-bottom));z-index:5;display:none}.sheet.show{display:block}.sheet .grab{width:38px;height:4px;border-radius:999px;background:#d7e3eb;margin:0 auto 10px}.sheet h3{margin:0;font-size:16px}.sheet p{font-size:12px;color:var(--muted);margin:5px 0 12px}.sheet-actions{display:flex;gap:8px}.sheet button{flex:1;min-height:44px;border-radius:13px;border:1px solid var(--line);background:#f8fbfd;color:var(--ink);font-weight:750}.sheet .destroy{background:#fff2f2;border-color:#efc2c2;color:var(--danger)}.toast{position:fixed;left:50%;bottom:84px;transform:translate(-50%,10px);background:rgba(23,49,76,.94);color:#fff;border-radius:999px;padding:9px 13px;font-size:11px;opacity:0;pointer-events:none;transition:.16s ease;z-index:9;max-width:88%;text-align:center}.toast.show{opacity:1;transform:translate(-50%,0)}@media(min-width:720px){.app{padding-left:18px;padding-right:18px}.brand h1{font-size:25px}.resource b{font-size:18px}.game-shell{border-radius:28px}.buildbar{justify-content:center}.build{min-width:145px}}
+:root{color-scheme:light;--ink:#16324a;--muted:#6e8799;--line:#c8dbe7;--card:rgba(255,255,255,.92);--blue:#217ed0;--danger:#c95050;--shadow:0 12px 34px rgba(36,77,105,.16)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;background:linear-gradient(#bfe6fb,#eff9ff 46%,#d9efd9);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink)}body{min-height:100vh;overflow-x:hidden}.app{width:min(100%,1040px);margin:0 auto;padding:max(10px,env(safe-area-inset-top)) 10px max(22px,env(safe-area-inset-bottom))}.top{display:flex;align-items:center;gap:9px}.brand{flex:1;min-width:0}.brand h1{margin:0;font-size:23px;letter-spacing:-.045em}.brand p{margin:2px 0 0;color:var(--muted);font-size:11px}.pill{background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 11px;font-size:11px;font-weight:800;box-shadow:var(--shadow);white-space:nowrap}.resources{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:8px 0}.res{background:var(--card);border:1px solid rgba(200,219,231,.95);border-radius:15px;padding:8px 9px;box-shadow:var(--shadow);min-width:0}.res span{display:block;color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.07em}.res b{display:block;margin-top:2px;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.res i{display:block;min-height:11px;font-size:9px;font-style:normal;color:#2b9662}.mission{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px;background:rgba(255,255,255,.9);border:1px solid rgba(200,219,231,.95);border-radius:15px;padding:9px 11px;box-shadow:var(--shadow)}.mission strong{font-size:12px}.mission small{display:block;color:var(--muted);font-size:10px;margin-top:2px}.mission b{font-size:11px;color:var(--blue);white-space:nowrap}.stage{position:relative;border-radius:24px;overflow:hidden;border:1px solid rgba(101,153,184,.45);box-shadow:0 20px 50px rgba(42,85,112,.19);background:#8fcdf1}.stage canvas{display:block;width:100%;height:auto;aspect-ratio:1.44;touch-action:manipulation}.stage-note{position:absolute;top:10px;left:10px;padding:7px 9px;border-radius:12px;background:rgba(255,255,255,.78);border:1px solid rgba(255,255,255,.88);backdrop-filter:blur(8px);font-size:10px;color:#557086;pointer-events:none}.buildbar{display:flex;gap:7px;overflow-x:auto;padding:9px 2px 4px;scrollbar-width:none}.buildbar::-webkit-scrollbar{display:none}.build{flex:0 0 128px;min-height:70px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.95);box-shadow:var(--shadow);padding:9px 10px;text-align:left;color:var(--ink)}.build.active{border:2px solid var(--blue);padding:8px 9px;background:#f5fbff}.build .mini{display:block;width:30px;height:18px;margin-bottom:5px;position:relative}.build .mini:before,.build .mini:after{content:"";position:absolute}.mini.house:before{left:5px;top:6px;width:20px;height:11px;background:#f2dfc4;border:1px solid #b58a67}.mini.house:after{left:3px;top:1px;width:23px;height:10px;background:#b95848;clip-path:polygon(50% 0,100% 55%,82% 100%,18% 100%,0 55%)}.mini.lumber:before{left:5px;top:6px;width:21px;height:11px;background:#9d6940;border:1px solid #684329}.mini.lumber:after{left:2px;top:2px;width:27px;height:7px;background:#415d36;transform:skewX(-28deg)}.mini.farm:before{left:1px;top:4px;width:28px;height:13px;background:repeating-linear-gradient(90deg,#d4bd45 0 3px,#6f9d45 3px 6px);transform:skewY(-14deg)}.mini.farm:after{right:1px;top:0;width:8px;height:10px;background:#aa5945}.mini.market:before{left:4px;top:7px;width:22px;height:10px;background:#e8d4a8;border:1px solid #9d805f}.mini.market:after{left:2px;top:1px;width:26px;height:9px;background:repeating-linear-gradient(90deg,#d94e4e 0 6px,#f4eee1 6px 12px);clip-path:polygon(8% 0,92% 0,100% 100%,0 100%)}.mini.road:before{left:2px;top:4px;width:27px;height:12px;background:#a7a39c;transform:skewY(-15deg);border:1px solid #7e7b76}.build strong{display:block;font-size:11px}.build small{display:block;color:var(--muted);font-size:9px;line-height:1.3;margin-top:2px}.toolbar{display:flex;gap:7px;margin-top:5px}.tool{flex:1;min-height:44px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.94);color:var(--ink);font-size:11px;font-weight:800}.tool.active{border-color:#e0a0a0;color:var(--danger);background:#fff4f4}.sheet{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(100%,520px);background:#fff;border-radius:23px 23px 0 0;box-shadow:0 -20px 60px rgba(34,67,89,.24);padding:14px 14px max(18px,env(safe-area-inset-bottom));z-index:8;display:none}.sheet.show{display:block}.grab{width:38px;height:4px;border-radius:99px;background:#d7e2e8;margin:0 auto 10px}.sheet h3{margin:0;font-size:16px}.sheet p{margin:5px 0 12px;color:var(--muted);font-size:11px}.sheet-actions{display:flex;gap:8px}.sheet button{flex:1;min-height:44px;border-radius:13px;border:1px solid var(--line);background:#f8fbfd;color:var(--ink);font-weight:800}.sheet .destroy{border-color:#efc1c1;background:#fff3f3;color:var(--danger)}.toast{position:fixed;left:50%;bottom:82px;transform:translate(-50%,10px);opacity:0;pointer-events:none;z-index:12;max-width:88%;text-align:center;background:rgba(20,48,70,.94);color:#fff;border-radius:999px;padding:9px 13px;font-size:11px;transition:.16s ease}.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:520px){.resources{grid-template-columns:repeat(2,1fr)}.stage{border-radius:20px}.build{flex-basis:115px}.brand h1{font-size:21px}}@media(min-width:760px){.app{padding-left:18px;padding-right:18px}.brand h1{font-size:28px}.res b{font-size:19px}.buildbar{justify-content:center}.build{flex-basis:145px}}
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="hud"><div class="brand"><h1>BUILD</h1><p>Isometric city builder · v0.1</p></div><div class="level" id="level">Level 1</div></div>
+  <div class="top"><div class="brand"><h1>BUILD</h1><p>Isometric settlement · v0.1</p></div><div class="pill" id="levelPill">Level 1</div></div>
   <div class="resources">
-    <div class="resource"><span>🪙 Credits</span><b id="credits">0</b><i id="creditsRate"></i></div>
-    <div class="resource"><span>🪵 Wood</span><b id="wood">0</b><i id="woodRate"></i></div>
-    <div class="resource"><span>🌾 Food</span><b id="food">0</b><i id="foodRate"></i></div>
-    <div class="resource"><span>👥 Population</span><b id="pop">0</b><i id="popRate"></i></div>
+    <div class="res"><span>Credits</span><b id="credits">0</b><i id="creditsRate"></i></div>
+    <div class="res"><span>Wood</span><b id="wood">0</b><i id="woodRate"></i></div>
+    <div class="res"><span>Food</span><b id="food">0</b><i id="foodRate"></i></div>
+    <div class="res"><span>Population</span><b id="population">0</b><i id="populationRate"></i></div>
   </div>
-  <div class="mission"><div><strong id="missionTitle">Found a settlement</strong><small id="missionText"></small></div><div class="badge" id="missionProgress"></div></div>
-  <div class="game-shell">
-    <canvas id="world" width="900" height="780" aria-label="Isometric city map"></canvas>
-    <div class="hint" id="hint">Choose a building, then tap land</div>
+  <div class="mission"><div><strong id="missionTitle">Found your settlement</strong><small id="missionText">Build two houses.</small></div><b id="missionProgress">0 / 2</b></div>
+  <div class="stage"><canvas id="game" width="960" height="665" aria-label="Isometric city building game"></canvas><div class="stage-note" id="stageNote">Choose a building, then tap a green tile.</div></div>
+  <div class="buildbar" id="buildbar">
+    <button class="build" data-build="house"><span class="mini house"></span><strong>House</strong><small>80 credits · 45 wood<br>+4 population</small></button>
+    <button class="build" data-build="lumber"><span class="mini lumber"></span><strong>Lumber yard</strong><small>120 credits · 65 wood<br>+2 wood / sec</small></button>
+    <button class="build" data-build="farm"><span class="mini farm"></span><strong>Farm</strong><small>100 credits · 35 wood<br>+2 food / sec</small></button>
+    <button class="build" data-build="market"><span class="mini market"></span><strong>Market</strong><small>190 credits · 85 wood<br>+5 credits / sec</small></button>
+    <button class="build" data-build="road"><span class="mini road"></span><strong>Stone road</strong><small>10 credits<br>Decoration</small></button>
   </div>
-  <div class="buildbar" id="buildbar"></div>
-  <div class="tools"><button class="tool" id="inspect">Inspect</button><button class="tool danger" id="bulldoze">Bulldoze</button><button class="tool" id="reset">New city</button></div>
+  <div class="toolbar"><button class="tool" id="cancelBuild">Cancel selection</button><button class="tool" id="resetGame">New settlement</button></div>
 </div>
-<div class="sheet" id="sheet"><div class="grab"></div><h3 id="sheetTitle"></h3><p id="sheetBody"></p><div class="sheet-actions"><button id="sheetClose">Close</button><button class="destroy" id="sheetDestroy">Demolish</button></div></div>
+<div class="sheet" id="sheet"><div class="grab"></div><h3 id="sheetTitle"></h3><p id="sheetText"></p><div class="sheet-actions"><button id="sheetClose">Close</button><button class="destroy" id="sheetDestroy">Demolish</button></div></div>
 <div class="toast" id="toast"></div>
 <script>
 (()=>{
 'use strict';
-const canvas=document.getElementById('world'),ctx=canvas.getContext('2d');
-const $=id=>document.getElementById(id);
-const N=8,SAVE='build-v01-isometric';
+const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
+const N=9,TW=74,TH=38,OX=480,OY=184,DEPTH=18,SAVE_KEY='build_v01_polished';
 const defs={
- house:{name:'House',icon:'🏠',cost:{credits:170,wood:28},gain:{pop:4},desc:'+4 population'},
- lumber:{name:'Lumber Yard',icon:'🪵',cost:{credits:240,food:18},rate:{wood:1.5},desc:'+1.5 wood/sec'},
- farm:{name:'Farm',icon:'🌾',cost:{credits:220,wood:22},rate:{food:1.35},desc:'+1.35 food/sec'},
- market:{name:'Market',icon:'🏪',cost:{credits:430,wood:36,food:24},rate:{credits:3.2},desc:'+3.2 credits/sec'}
+ house:{label:'House',cost:{credits:80,wood:45},refund:{credits:28,wood:16}},
+ lumber:{label:'Lumber yard',cost:{credits:120,wood:65},refund:{credits:42,wood:23}},
+ farm:{label:'Farm',cost:{credits:100,wood:35},refund:{credits:35,wood:12}},
+ market:{label:'Market',cost:{credits:190,wood:85},refund:{credits:66,wood:30}},
+ road:{label:'Stone road',cost:{credits:10},refund:{credits:3}}
 };
-const defaultState=()=>({credits:1000,wood:150,food:120,pop:5,level:1,grid:Array(N*N).fill(null),selected:'house',mode:'build',last:Date.now()});
-let state=defaultState(); state.grid[3*N+3]='hq'; let selectedCell=null; let toastTimer=0; let t=0;
-try{const s=JSON.parse(localStorage.getItem(SAVE)||'null');if(s&&Array.isArray(s.grid)&&s.grid.length===N*N)state={...defaultState(),...s,last:Date.now()}}catch(e){}
-function save(){try{localStorage.setItem(SAVE,JSON.stringify({...state,last:Date.now()}))}catch(e){}}
-function count(type){return state.grid.filter(x=>x===type).length}
-function rates(){const r={credits:0,wood:0,food:0};for(const b of state.grid){if(defs[b]?.rate)for(const [k,v] of Object.entries(defs[b].rate))r[k]+=v}return r}
-function fmt(n){return n>=1000?(n/1000).toFixed(n>=10000?0:1)+'k':Math.floor(n).toString()}
-function objective(){if(state.level===1)return{title:'Found a settlement',text:'Build 2 Houses, 1 Lumber Yard and 1 Farm',ok:count('house')>=2&&count('lumber')>=1&&count('farm')>=1,progress:`${Math.min(count('house'),2)+Math.min(count('lumber'),1)+Math.min(count('farm'),1)}/4`};if(state.level===2)return{title:'Grow the town',text:'Reach 17 population and build a Market',ok:state.pop>=17&&count('market')>=1,progress:`${Math.min(Math.floor(state.pop/17*50),50)+Math.min(count('market')*50,50)}%`};return{title:'Prosper',text:'Build 12 structures and earn 10 credits/sec',ok:false,progress:`${Math.min(count('house')+count('lumber')+count('farm')+count('market'),12)}/12`}}
-function checkLevel(){const o=objective();if(o.ok&&state.level<3){state.level++;showToast('Level up! New building unlocked');save();renderUI()}}
-function renderUI(){const r=rates();$('credits').textContent=fmt(state.credits);$('wood').textContent=fmt(state.wood);$('food').textContent=fmt(state.food);$('pop').textContent=fmt(state.pop);$('creditsRate').textContent=r.credits?`+${r.credits.toFixed(1)}/s`:'';$('woodRate').textContent=r.wood?`+${r.wood.toFixed(1)}/s`:'';$('foodRate').textContent=r.food?`+${r.food.toFixed(1)}/s`:'';$('popRate').textContent='';$('level').textContent='Level '+state.level;const o=objective();$('missionTitle').textContent=o.title;$('missionText').textContent=o.text;$('missionProgress').textContent=o.progress;$('hint').textContent=state.mode==='build'?`Build: ${defs[state.selected].name}`:state.mode==='bulldoze'?'Tap a building to demolish':'Tap a building to inspect';renderBuildbar()}
-function renderBuildbar(){const bar=$('buildbar');bar.innerHTML='';for(const [key,d] of Object.entries(defs)){const locked=key==='market'&&state.level<2;const b=document.createElement('button');b.className='build'+(state.mode==='build'&&state.selected===key?' active':'')+(locked?' locked':'');b.disabled=locked;b.innerHTML=`<div class="icon">${d.icon}</div><strong>${d.name}</strong><small>${costText(d.cost)}<br>${d.desc}</small>`;b.addEventListener('click',()=>{state.selected=key;state.mode='build';selectedCell=null;renderUI()});bar.appendChild(b)}}
-function costText(c){return Object.entries(c).map(([k,v])=>`${k==='credits'?'🪙':k==='wood'?'🪵':'🌾'} ${v}`).join(' · ')}
-function canAfford(c){return Object.entries(c).every(([k,v])=>state[k]>=v)}
-function spend(c){for(const[k,v]of Object.entries(c))state[k]-=v}
-function refund(type){const c=defs[type]?.cost||{};for(const[k,v]of Object.entries(c))state[k]+=Math.floor(v*.35);if(defs[type]?.gain?.pop)state.pop=Math.max(0,state.pop-defs[type].gain.pop)}
-function showToast(msg){const el=$('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),1500)}
-function resize(){const rect=canvas.getBoundingClientRect(),dpr=Math.min(devicePixelRatio||1,2);canvas.width=Math.max(600,Math.floor(rect.width*dpr));canvas.height=Math.floor(canvas.width/1.15);ctx.setTransform(dpr,0,0,dpr,0,0)}
-function dims(){const w=canvas.clientWidth,h=canvas.clientHeight;const tw=Math.min(74,w/(N+1)*1.36),th=tw*.5;return{w,h,tw,th,ox:w/2,oy:Math.max(86,h*.16)}}
-function iso(x,y,d){return{x:d.ox+(x-y)*d.tw/2,y:d.oy+(x+y)*d.th/2}}
-function poly(points,fill,stroke){ctx.beginPath();ctx.moveTo(points[0][0],points[0][1]);for(let i=1;i<points.length;i++)ctx.lineTo(points[i][0],points[i][1]);ctx.closePath();ctx.fillStyle=fill;ctx.fill();if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=1;ctx.stroke()}}
-function line(x1,y1,x2,y2,color,width=1){ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.strokeStyle=color;ctx.lineWidth=width;ctx.stroke()}
-function ellipse(x,y,rx,ry,fill){ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);ctx.fillStyle=fill;ctx.fill()}
-function tilePoly(x,y,d){const p=iso(x,y,d);return[[p.x,p.y-d.th/2],[p.x+d.tw/2,p.y],[p.x,p.y+d.th/2],[p.x-d.tw/2,p.y]]}
-function drawBackground(d){const g=ctx.createLinearGradient(0,0,0,d.h);g.addColorStop(0,'#8fd1ff');g.addColorStop(.48,'#d9f3ff');g.addColorStop(.49,'#79b9d7');g.addColorStop(.63,'#8acbd6');g.addColorStop(.64,'#77af6c');g.addColorStop(1,'#4f8754');ctx.fillStyle=g;ctx.fillRect(0,0,d.w,d.h);for(let i=0;i<4;i++){const cx=(i*237+t*4)%(d.w+180)-90,cy=32+(i%2)*28;ctx.globalAlpha=.65;ellipse(cx,cy,48,12,'white');ellipse(cx+30,cy-7,34,13,'white')}ctx.globalAlpha=1}
-function drawIsland(d){const a=iso(0,0,d),b=iso(N-1,0,d),c=iso(N-1,N-1,d),e=iso(0,N-1,d);poly([[a.x,a.y-d.th*.72],[b.x+d.tw*.55,b.y],[c.x,c.y+d.th*.72+18],[e.x-d.tw*.55,e.y]],'#6b9d58');poly([[a.x,a.y-d.th*.62],[b.x+d.tw*.48,b.y],[c.x,c.y+d.th*.62],[e.x-d.tw*.48,e.y]],'#8fcf72')}
-function noise(x,y){return ((x*73+y*151+x*y*37)%17)/17}
-function drawTiles(d){for(let s=0;s<=2*(N-1);s++)for(let x=0;x<N;x++){const y=s-x;if(y<0||y>=N)continue;const p=iso(x,y,d),shade=noise(x,y);poly(tilePoly(x,y,d),shade>.5?'#94d477':'#8dce70','rgba(75,126,73,.35)');const type=state.grid[y*N+x];if(!type&&shade>.73&&!(Math.abs(x-3)<=1&&Math.abs(y-3)<=1))drawTree(p.x,p.y-d.th*.08,0.72+shade*.2);if(type)drawBuilding(type,p.x,p.y,d,x,y)}}
-function drawTree(x,y,s=1){ellipse(x+5*s,y+8*s,13*s,5*s,'rgba(34,72,39,.18)');ctx.fillStyle='#70502f';ctx.fillRect(x-2*s,y-5*s,4*s,15*s);poly([[x,y-34*s],[x+17*s,y-8*s],[x-17*s,y-8*s]],'#2f8248');poly([[x,y-26*s],[x+20*s,y-2*s],[x-20*s,y-2*s]],'#399552')}
-function box(x,y,w,h,z,top,left,right){ellipse(x+4,y+8,w*.48,h*.16,'rgba(28,61,35,.16)');poly([[x-w/2,y],[x,y+h/4],[x,y+h/4-z],[x-w/2,y-z]],left);poly([[x+w/2,y],[x,y+h/4],[x,y+h/4-z],[x+w/2,y-z]],right);poly([[x,y-h/4-z],[x+w/2,y-z],[x,y+h/4-z],[x-w/2,y-z]],top)}
-function drawBuilding(type,x,y,d,gx,gy){if(type==='hq'){box(x,y,42,38,43,'#d5edf7','#8aaabd','#6f93aa');box(x,y-25,31,28,28,'#edf8ff','#9dbccc','#84a8ba');ctx.fillStyle='#536f80';ctx.fillRect(x-2,y-79,3,23);poly([[x+1,y-78],[x+19,y-72],[x+1,y-66]],'#ff6c5f');ctx.fillStyle='#4a6a7e';ctx.fillRect(x-5,y-29,10,16);return}
- if(type==='house'){box(x,y,38,31,25,'#f3e2b4','#d5bb8b','#c49e6e');poly([[x,y-54],[x+25,y-35],[x,y-18],[x-25,y-35]],'#cf5c4e','#9f4038');ctx.fillStyle='#7cc4e8';ctx.fillRect(x-5,y-15,9,10);ctx.fillStyle='#6d4b33';ctx.fillRect(x+9,y-10,7,12);return}
- if(type==='lumber'){box(x,y,43,32,17,'#b8c594','#84966e','#71845e');for(let i=-1;i<=1;i++){ctx.strokeStyle='#785136';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(x-15+i*10,y-6+i*2);ctx.lineTo(x+9+i*10,y+5+i*2);ctx.stroke()}drawTree(x-19,y-20,.55);return}
- if(type==='farm'){poly([[x,y-d.th*.42],[x+d.tw*.42,y],[x,y+d.th*.42],[x-d.tw*.42,y]],'#d6bd55','#a28f43');for(let i=-3;i<=3;i++)line(x-26+i*6,y+1-i*2,x+2+i*6,y+14-i*2,'#8b7834',2);box(x+14,y-5,25,20,18,'#e4d5ac','#b7906b','#9e7355');poly([[x+14,y-33],[x+29,y-22],[x+14,y-12],[x-1,y-22]],'#b64d44');return}
- if(type==='market'){box(x,y,42,34,20,'#f1e2ba','#c7aa80','#b99168');const aw='#f05656';poly([[x-24,y-24],[x+24,y-24],[x+18,y-14],[x-18,y-14]],aw);for(let i=-18;i<24;i+=12)poly([[x+i,y-24],[x+i+6,y-24],[x+i+3,y-14],[x+i-3,y-14]],'#fff1de');ctx.fillStyle='#6c4b31';ctx.fillRect(x-12,y-10,24,4);return}}
-function drawPeople(d){const hq=iso(3,3,d);for(let i=0;i<Math.min(5,Math.floor(state.pop/4));i++){const a=t*.8+i*1.37,rx=28+10*(i%2),ry=12+4*(i%2);const x=hq.x+Math.cos(a)*rx,y=hq.y+15+Math.sin(a)*ry;ellipse(x,y+4,3,1.4,'rgba(28,51,41,.18)');ctx.fillStyle=i%2?'#f15f5f':'#3a83cc';ctx.fillRect(x-2,y-7,4,7);ellipse(x,y-9,2.5,2.5,'#f2c3a4')}}
-function drawSelection(d){if(!selectedCell)return;const {x,y}=selectedCell;poly(tilePoly(x,y,d),'rgba(56,151,235,.22)','rgba(30,126,217,.95)')}
-function render(){const d=dims();drawBackground(d);drawIsland(d);drawTiles(d);drawPeople(d);drawSelection(d);t+=.016;requestAnimationFrame(render)}
-function pointIn(poly,x,y){let ins=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const xi=poly[i][0],yi=poly[i][1],xj=poly[j][0],yj=poly[j][1];if(((yi>y)!=(yj>y))&&(x<(xj-xi)*(y-yi)/(yj-yi)+xi))ins=!ins}return ins}
-function hit(clientX,clientY){const r=canvas.getBoundingClientRect(),px=clientX-r.left,py=clientY-r.top,d=dims();for(let s=2*(N-1);s>=0;s--)for(let x=N-1;x>=0;x--){const y=s-x;if(y>=0&&y<N&&pointIn(tilePoly(x,y,d),px,py))return{x,y,index:y*N+x}}return null}
-function handleCell(cell){if(!cell)return;selectedCell=cell;const type=state.grid[cell.index];if(state.mode==='build'){if(type){openSheet(cell,type);return}const d=defs[state.selected];if(!canAfford(d.cost)){showToast('Not enough resources');return}spend(d.cost);state.grid[cell.index]=state.selected;if(d.gain?.pop)state.pop+=d.gain.pop;showToast(`${d.name} built`);save();checkLevel();renderUI();return}if(state.mode==='bulldoze'){if(!type||type==='hq'){showToast(type==='hq'?'HQ cannot be demolished':'Nothing here');return}refund(type);state.grid[cell.index]=null;showToast('Building demolished · 35% refunded');save();renderUI();return}if(type)openSheet(cell,type);else showToast('Empty land')}
-function openSheet(cell,type){selectedCell=cell;const d=defs[type];$('sheetTitle').textContent=type==='hq'?'Town Hall':d.name;$('sheetBody').textContent=type==='hq'?'The heart of your settlement. It cannot be demolished.':`${d.desc}. Demolition refunds 35% of construction resources.`;$('sheetDestroy').style.display=type==='hq'?'none':'';$('sheet').classList.add('show')}
-canvas.addEventListener('pointerup',e=>handleCell(hit(e.clientX,e.clientY)));
-$('inspect').addEventListener('click',()=>{state.mode='inspect';selectedCell=null;renderUI()});$('bulldoze').addEventListener('click',()=>{state.mode=state.mode==='bulldoze'?'build':'bulldoze';selectedCell=null;renderUI();$('bulldoze').classList.toggle('active',state.mode==='bulldoze')});$('sheetClose').addEventListener('click',()=>{$('sheet').classList.remove('show');selectedCell=null});$('sheetDestroy').addEventListener('click',()=>{if(!selectedCell)return;const type=state.grid[selectedCell.index];if(type&&type!=='hq'){refund(type);state.grid[selectedCell.index]=null;save();renderUI()}$('sheet').classList.remove('show');selectedCell=null});$('reset').addEventListener('click',()=>{if(!confirm('Start a new city? Your current city will be erased.'))return;state=defaultState();state.grid[3*N+3]='hq';save();renderUI();showToast('New city started')});
-setInterval(()=>{const r=rates();state.credits+=r.credits;state.wood+=r.wood;state.food+=r.food;renderUI();checkLevel();save()},1000);
-window.addEventListener('resize',resize);resize();renderBuildbar();renderUI();render();
+const missions=[
+ {level:1,title:'Found your settlement',text:'Build two houses.',kind:'house',need:2},
+ {level:2,title:'Secure supplies',text:'Build a lumber yard and a farm.',kind:'supply',need:2},
+ {level:3,title:'Create an economy',text:'Build a market.',kind:'market',need:1},
+ {level:4,title:'Settlement established',text:'Keep expanding your town.',kind:'all',need:12}
+];
+let state={credits:560,wood:220,food:160,world:Array.from({length:N},()=>Array(N).fill(null)),level:1,selected:null,selectedTile:null};
+state.world[4][4]='hq';state.world[4][3]='road';state.world[4][5]='road';state.world[3][4]='road';state.world[5][4]='road';
+let hover=null,lastTick=performance.now(),toastTimer=0,cloudPhase=0;
+const villagers=[{p:0.10,s:.000035,row:4,col:4},{p:.43,s:.000028,row:4,col:4},{p:.72,s:.000031,row:4,col:4},{p:.9,s:.000025,row:4,col:4}];
+function load(){try{const raw=localStorage.getItem(SAVE_KEY);if(!raw)return;const x=JSON.parse(raw);if(!x||!Array.isArray(x.world)||x.world.length!==N)return;state={...state,...x,selected:null,selectedTile:null};}catch(_){}}
+function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify({...state,selected:null,selectedTile:null}));}catch(_){}}
+function iso(r,c){return{x:OX+(c-r)*TW/2,y:OY+(c+r)*TH/2};}
+function poly(points,fill,stroke=null,w=1){ctx.beginPath();ctx.moveTo(points[0][0],points[0][1]);for(let i=1;i<points.length;i++)ctx.lineTo(points[i][0],points[i][1]);ctx.closePath();ctx.fillStyle=fill;ctx.fill();if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=w;ctx.stroke();}}
+function line(points,stroke,w=1){ctx.beginPath();ctx.moveTo(points[0][0],points[0][1]);for(let i=1;i<points.length;i++)ctx.lineTo(points[i][0],points[i][1]);ctx.strokeStyle=stroke;ctx.lineWidth=w;ctx.stroke();}
+function hash(r,c,k=0){const x=Math.sin((r*91.7+c*177.3+k*33.1)*12.9898)*43758.5453;return x-Math.floor(x);}
+function ellipse(x,y,rx,ry,fill){ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);ctx.fillStyle=fill;ctx.fill();}
+function diamond(x,y,w,h,fill,stroke=null){poly([[x,y-h/2],[x+w/2,y],[x,y+h/2],[x-w/2,y]],fill,stroke);}
+function prism(x,y,w,d,h,top,left,right,stroke='rgba(55,71,68,.22)'){
+ poly([[x,y-h-d/2],[x+w/2,y-h],[x,y-h+d/2],[x-w/2,y-h]],top,stroke);
+ poly([[x-w/2,y-h],[x,y-h+d/2],[x,y+d/2],[x-w/2,y]],left,stroke);
+ poly([[x+w/2,y-h],[x,y-h+d/2],[x,y+d/2],[x+w/2,y]],right,stroke);
+}
+function roof(x,y,w,d,h,colorL,colorR,colorTop){
+ poly([[x-w/2-4,y-h],[x,y-h-d/2-17],[x,y-h+3],[x-w/2-4,y+3]],colorL,'rgba(90,55,45,.25)');
+ poly([[x+w/2+4,y-h],[x,y-h-d/2-17],[x,y-h+3],[x+w/2+4,y+3]],colorR,'rgba(90,55,45,.25)');
+ line([[x-w/2-4,y-h],[x,y-h-d/2-17],[x+w/2+4,y-h]],colorTop,2);
+}
+function drawSky(t){
+ const g=ctx.createLinearGradient(0,0,0,520);g.addColorStop(0,'#8dcef2');g.addColorStop(.53,'#d9f1fb');g.addColorStop(.54,'#b4d49a');g.addColorStop(1,'#89b779');ctx.fillStyle=g;ctx.fillRect(0,0,960,665);
+ ctx.fillStyle='#9cc8a2';ctx.beginPath();ctx.moveTo(0,350);for(let x=0;x<=960;x+=80)ctx.lineTo(x,315+Math.sin(x*.014)*25+Math.cos(x*.006)*18);ctx.lineTo(960,480);ctx.lineTo(0,480);ctx.fill();
+ ctx.fillStyle='#7fae80';ctx.beginPath();ctx.moveTo(0,380);for(let x=0;x<=960;x+=55)ctx.lineTo(x,348+Math.sin(x*.022+1.2)*18+Math.cos(x*.009)*22);ctx.lineTo(960,500);ctx.lineTo(0,500);ctx.fill();
+ cloudPhase=t*.006;for(let i=0;i<5;i++){let x=((i*225+cloudPhase*18)%1250)-140,y=68+i*27;ctx.globalAlpha=.28;ellipse(x,y,42,14,'#fff');ellipse(x+35,y-8,33,17,'#fff');ellipse(x+65,y,38,13,'#fff');ctx.globalAlpha=1;}
+ ctx.fillStyle='#8bc8da';ctx.fillRect(0,500,960,165);for(let i=0;i<12;i++){ctx.globalAlpha=.09;line([[0,520+i*13],[960,515+i*13]],'#fff',2);ctx.globalAlpha=1;}
+}
+function drawIslandBase(){
+ const top=iso(0,0),right=iso(0,N-1),bottom=iso(N-1,N-1),left=iso(N-1,0);
+ poly([[top.x,top.y],[right.x+TW/2,right.y],[bottom.x,bottom.y+TH/2+DEPTH],[left.x-TW/2,left.y]],'#7e633e');
+ poly([[right.x+TW/2,right.y],[bottom.x,bottom.y+TH/2],[bottom.x,bottom.y+TH/2+DEPTH],[right.x+TW/2,right.y+DEPTH]],'#72583a');
+ poly([[left.x-TW/2,left.y],[bottom.x,bottom.y+TH/2],[bottom.x,bottom.y+TH/2+DEPTH],[left.x-TW/2,left.y+DEPTH]],'#8a6d46');
+}
+function drawTile(r,c){
+ const p=iso(r,c),v=hash(r,c);let fill=v>.67?'#78ad59':v>.35?'#82b861':'#74a855';
+ if(state.world[r][c]==='road')fill='#a9a49a';
+ diamond(p.x,p.y,TW-1,TH-1,fill,'rgba(58,91,50,.28)');
+ if(state.world[r][c]!=='road'){
+  ctx.globalAlpha=.18;for(let k=0;k<3;k++){const a=hash(r,c,k+5),b=hash(r,c,k+15);ellipse(p.x+(a-.5)*38,p.y+(b-.5)*13,1.2,0.8,'#285f31');}ctx.globalAlpha=1;
+ }else{
+  ctx.globalAlpha=.22;line([[p.x-25,p.y],[p.x,p.y+12],[p.x+25,p.y]],'#6f6d67',1);line([[p.x,p.y-13],[p.x,p.y+13]],'#d7d3c9',1);ctx.globalAlpha=1;
+ }
+ const isHover=hover&&hover.r===r&&hover.c===c;
+ if(isHover){diamond(p.x,p.y,TW-5,TH-5,state.selected?'rgba(71,170,236,.22)':'rgba(255,255,255,.18)',state.selected?'#3ca1e5':'#eef8ff');}
+}
+function drawTree(r,c,slot=0){
+ const p=iso(r,c),dx=(hash(r,c,slot+40)-.5)*32,dy=(hash(r,c,slot+50)-.5)*10,x=p.x+dx,y=p.y+dy;
+ ellipse(x+5,y+5,10,4,'rgba(30,58,36,.18)');ctx.fillStyle='#735338';ctx.fillRect(x-2,y-20,4,20);ellipse(x,y-27,11,9,'#356c3f');ellipse(x-7,y-20,10,8,'#407d47');ellipse(x+8,y-19,9,8,'#2f6638');ellipse(x,y-36,8,7,'#4c8c50');
+}
+function drawHouse(r,c){const p=iso(r,c),x=p.x,y=p.y-4;ellipse(x+6,y+10,32,9,'rgba(40,60,46,.18)');prism(x,y,46,25,31,'#f5e5c9','#d9c39f','#ead7b6');roof(x,y-1,55,31,31,'#a54e43','#c45d4e','#7e3c35');ctx.fillStyle='#694d39';ctx.fillRect(x-4,y-25,8,25);ctx.fillStyle='#8ad2ef';ctx.fillRect(x+10,y-27,8,8);ctx.fillRect(x-19,y-19,7,7);ctx.fillStyle='#6a3d32';ctx.fillRect(x+14,y-64,5,17);ctx.fillStyle='rgba(255,255,255,.45)';ctx.fillRect(x+11,y-26,2,5);}
+function drawLumber(r,c){const p=iso(r,c),x=p.x,y=p.y+1;ellipse(x+5,y+7,35,8,'rgba(40,60,46,.18)');prism(x,y,50,28,27,'#c39158','#8e623b','#a97242');poly([[x-30,y-27],[x,y-48],[x+30,y-27],[x,y-9]],'#475e37','#31442b');ctx.fillStyle='#432d20';ctx.fillRect(x-5,y-22,10,22);for(let i=0;i<3;i++){ctx.strokeStyle='#6e4729';ctx.lineWidth=6;ctx.beginPath();ctx.moveTo(x+22+i*2,y+4-i*4);ctx.lineTo(x+41+i*2,y-5-i*4);ctx.stroke();ellipse(x+42+i*2,y-5-i*4,3.3,3,'#c18b52');}}
+function drawFarm(r,c){const p=iso(r,c),x=p.x,y=p.y;ellipse(x+2,y+9,35,8,'rgba(40,60,46,.16)');for(let i=-3;i<=3;i++){const off=i*6;line([[x-30+off*.3,y-1+off*.12],[x+2+off*.3,y+15+off*.12]],i%2?'#d6bd45':'#6e9845',3);}prism(x+21,y-8,26,17,26,'#ddb980','#c39264','#d1a574');roof(x+21,y-8,31,21,26,'#9e4c42','#b85b4d','#763b35');ctx.fillStyle='#684536';ctx.fillRect(x+17,y-29,8,21);ctx.fillStyle='#f3d868';ellipse(x-17,y-4,7,3,'#e3cb52');}
+function drawMarket(r,c){const p=iso(r,c),x=p.x,y=p.y;ellipse(x+2,y+9,35,8,'rgba(40,60,46,.17)');prism(x,y+1,49,29,17,'#e9d8b7','#d2bb95','#dfc9a6');for(let i=-1;i<=1;i++){const xx=x+i*15;poly([[xx-10,y-18],[xx,y-27],[xx+10,y-18],[xx,y-9]],i===0?'#f1eee5':'#ce554f','#9f6b61');ctx.strokeStyle='#73533d';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(xx-6,y-11);ctx.lineTo(xx-6,y+5);ctx.moveTo(xx+6,y-11);ctx.lineTo(xx+6,y+5);ctx.stroke();}ctx.fillStyle='#8a5b35';ctx.fillRect(x-28,y+1,8,6);ctx.fillRect(x+20,y+2,9,6);}
+function drawHQ(r,c){const p=iso(r,c),x=p.x,y=p.y+3;ellipse(x+4,y+8,47,11,'rgba(35,54,43,.22)');prism(x,y,62,37,48,'#e3e8e5','#b7c3c0','#cbd5d2');prism(x-27,y-15,24,19,67,'#dbe3e1','#aebbb8','#c5d0cd');prism(x+27,y-15,24,19,67,'#dbe3e1','#aebbb8','#c5d0cd');roof(x-27,y-15,29,24,67,'#315f85','#3f78a5','#244d6e');roof(x+27,y-15,29,24,67,'#315f85','#3f78a5','#244d6e');roof(x,y-1,68,43,48,'#3b6e96','#4a83ad','#285777');ctx.fillStyle='#5f493c';ctx.fillRect(x-6,y-37,12,37);ctx.fillStyle='#8ed4ec';for(const dx of[-21,13])ctx.fillRect(x+dx,y-40,8,10);ctx.fillStyle='#2d6ba0';ctx.fillRect(x-31,y-92,4,30);poly([[x-27,y-92],[x-10,y-87],[x-27,y-80]],'#f4cc4c');}
+function drawBuilding(r,c,type){if(type==='hq')drawHQ(r,c);else if(type==='house')drawHouse(r,c);else if(type==='lumber')drawLumber(r,c);else if(type==='farm')drawFarm(r,c);else if(type==='market')drawMarket(r,c);}
+function drawDecorations(){
+ for(let r=0;r<N;r++)for(let c=0;c<N;c++){if(state.world[r][c])continue;const edge=r===0||c===0||r===N-1||c===N-1;if(edge&&hash(r,c)>.34)drawTree(r,c,0);else if(hash(r,c)>.82)drawTree(r,c,1);}
+}
+function drawVillagers(t){
+ const anchors=[[4,3],[3,4],[4,5],[5,4],[4,4]];
+ villagers.forEach((v,i)=>{v.p=(v.p+v.s*16)%1;const a=anchors[i%4],b=anchors[(i+1)%4];const pa=iso(a[0],a[1]),pb=iso(b[0],b[1]),q=(Math.sin(t*.00035+i*1.7)+1)/2,x=pa.x+(pb.x-pa.x)*q,y=pa.y+(pb.y-pa.y)*q-5;ellipse(x+2,y+3,4,2,'rgba(30,50,35,.18)');ctx.fillStyle=i%2?'#426d9e':'#9a5949';ctx.fillRect(x-2,y-8,4,8);ellipse(x,y-10,3,3,'#e1b188');});
+}
+function render(t){
+ drawSky(t);drawIslandBase();
+ for(let s=0;s<=2*(N-1);s++)for(let r=0;r<N;r++){const c=s-r;if(c<0||c>=N)continue;drawTile(r,c);}
+ drawDecorations();
+ for(let s=0;s<=2*(N-1);s++)for(let r=0;r<N;r++){const c=s-r;if(c<0||c>=N)continue;const type=state.world[r][c];if(type&&type!=='road')drawBuilding(r,c,type);}
+ drawVillagers(t);
+ if(state.selectedTile){const p=iso(state.selectedTile.r,state.selectedTile.c);diamond(p.x,p.y,TW-8,TH-8,'rgba(255,255,255,.08)','#fff');}
+ requestAnimationFrame(render);
+}
+function counts(){const out={house:0,lumber:0,farm:0,market:0,road:0,total:0};for(const row of state.world)for(const t of row)if(t&&t!=='hq'){out.total++;if(out[t]!==undefined)out[t]++;}return out;}
+function rates(){const c=counts();return{credits:c.market*5,wood:c.lumber*2,food:c.farm*2,pop:8+c.house*4};}
+function missionStatus(){const m=missions[Math.min(state.level-1,missions.length-1)],c=counts();let cur=0;if(m.kind==='house')cur=c.house;if(m.kind==='supply')cur=Math.min(1,c.lumber)+Math.min(1,c.farm);if(m.kind==='market')cur=c.market;if(m.kind==='all')cur=c.total;return{m,cur};}
+function advance(){let changed=false;while(state.level<missions.length){const x=missionStatus();if(x.cur<x.m.need)break;state.level++;state.credits+=120;state.wood+=60;changed=true;toast('Level up — resources awarded');}if(changed)save();}
+function updateHud(){advance();const r=rates(),m=missionStatus();credits.textContent=Math.floor(state.credits);wood.textContent=Math.floor(state.wood);food.textContent=Math.floor(state.food);population.textContent=r.pop;creditsRate.textContent=r.credits?`+${r.credits}/sec`:'';woodRate.textContent=r.wood?`+${r.wood}/sec`:'';foodRate.textContent=r.food?`+${r.food}/sec`:'';populationRate.textContent='capacity';levelPill.textContent=`Level ${state.level}`;missionTitle.textContent=m.m.title;missionText.textContent=m.m.text;missionProgress.textContent=`${Math.min(m.cur,m.m.need)} / ${m.m.need}`;}
+function canAfford(def){return Object.entries(def.cost).every(([k,v])=>state[k]>=v);}
+function buildAt(r,c){if(!state.selected||state.world[r][c])return;if((r===0||c===0||r===N-1||c===N-1)&&state.selected!=='road'){toast('Build closer to the settlement center');return;}const def=defs[state.selected];if(!canAfford(def)){toast('Not enough resources');return;}for(const[k,v]of Object.entries(def.cost))state[k]-=v;state.world[r][c]=state.selected;toast(`${def.label} built`);save();updateHud();}
+function inspect(r,c){const type=state.world[r][c];if(!type)return;state.selectedTile={r,c};sheetTitle.textContent=type==='hq'?'Town Hall':defs[type]?.label||type;sheetText.textContent=type==='hq'?'The heart of your settlement. It cannot be demolished.':type==='road'?'A stone road connecting the settlement.':`${defs[type].label} is active and contributing to your settlement.`;sheetDestroy.style.display=type==='hq'?'none':'';sheet.classList.add('show');}
+function demolish(){if(!state.selectedTile)return;const{r,c}=state.selectedTile,type=state.world[r][c];if(!type||type==='hq')return;const ref=defs[type]?.refund||{};for(const[k,v]of Object.entries(ref))state[k]+=v;state.world[r][c]=null;sheet.classList.remove('show');state.selectedTile=null;toast('Building demolished — partial refund');save();updateHud();}
+function pointerToTile(e){const rect=canvas.getBoundingClientRect(),x=(e.clientX-rect.left)*canvas.width/rect.width,y=(e.clientY-rect.top)*canvas.height/rect.height,dx=(x-OX)/(TW/2),dy=(y-OY)/(TH/2),c=Math.round((dy+dx)/2),r=Math.round((dy-dx)/2);if(r<0||c<0||r>=N||c>=N)return null;return{r,c};}
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),1500);}
+function selectBuild(type){state.selected=state.selected===type?null:type;document.querySelectorAll('.build').forEach(b=>b.classList.toggle('active',b.dataset.build===state.selected));stageNote.textContent=state.selected?`Placing ${defs[state.selected].label} — tap an empty tile.`:'Choose a building, then tap a green tile.';}
+document.getElementById('buildbar').addEventListener('click',e=>{const b=e.target.closest('.build');if(b)selectBuild(b.dataset.build);});
+document.getElementById('cancelBuild').addEventListener('click',()=>selectBuild(null));
+document.getElementById('resetGame').addEventListener('click',()=>{if(!confirm('Start a new settlement?'))return;localStorage.removeItem(SAVE_KEY);location.reload();});
+document.getElementById('sheetClose').addEventListener('click',()=>{sheet.classList.remove('show');state.selectedTile=null;});
+document.getElementById('sheetDestroy').addEventListener('click',demolish);
+canvas.addEventListener('pointermove',e=>{hover=pointerToTile(e);});canvas.addEventListener('pointerleave',()=>hover=null);
+canvas.addEventListener('pointerdown',e=>{const t=pointerToTile(e);if(!t)return;hover=t;if(state.selected)buildAt(t.r,t.c);else inspect(t.r,t.c);});
+setInterval(()=>{const r=rates();state.credits+=r.credits;state.wood+=r.wood;state.food+=r.food;updateHud();},1000);
+setInterval(save,5000);
+load();updateHud();requestAnimationFrame(render);
 })();
 </script>
 </body>
