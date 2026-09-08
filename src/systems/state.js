@@ -10,9 +10,15 @@ const initialWorld=()=>({
  selectedHero:'astrid',formation:'balanced',heroes:{astrid:{level:1,xp:0},kael:{level:1,xp:0},mira:{level:1,xp:0}},settlementCooldown:{},rally:null
 })
 export function defaultState(){return{
+ playerId:'p'+Math.random().toString(36).substr(2,9),
  resources:{meat:900,wood:1000,coal:180,iron:35},
  buildings:{furnace:1,shelter:0,sawmill:0,huntersHut:0,coalMine:0,ironMine:0,storehouse:0,infirmary:0,embassy:0,infantryCamp:0,lancerCamp:0,marksmanCamp:0,researchCenter:0},
- research:{},construction:null,researchJob:null,power:190,lastSavedAt:Date.now(),collectReady:{},claimedChapters:{},world:initialWorld()
+ research:{},construction:null,researchJob:null,power:190,lastSavedAt:Date.now(),collectReady:{},claimedChapters:{},world:initialWorld(),
+ guild:{id:null,name:'',leader:null,members:{},treasury:{meat:0,wood:0,coal:0,iron:0},level:1,perks:[],wars:[],allies:[],enemies:[],createdAt:0},
+ events:{active:[],completed:[],log:[],nextEventAt:Date.now()+Math.random()*120000+60000},
+ heroPool:{},
+ marketplace:{listings:[],transactionHistory:[]},
+ prestige:{stats:{battlesWon:0,battlesLost:0,resourcesGathered:0,territoriesOwned:1,heroesRecruited:0},achievements:{},totalPower:0,totalBuildings:0,rank:0,badges:[]}
 }}
 const shiftId=id=>{if(typeof id!=='string'||!id.includes(','))return id;const [x,y]=id.split(',').map(Number);if(!Number.isFinite(x)||!Number.isFinite(y))return id;return`${x+SHIFT},${y+SHIFT}`}
 const shiftList=list=>(Array.isArray(list)?list:[]).map(shiftId)
@@ -38,7 +44,7 @@ function migrate(raw){
  const resources={...base.resources,...raw.resources};if(resources.meat==null&&raw.resources?.food!=null)resources.meat=raw.resources.food
  const buildings={...base.buildings,...raw.buildings};if(raw.buildings?.house!=null&&raw.buildings?.shelter==null)buildings.shelter=raw.buildings.house
  const world=migrateWorld(raw.world??{},base.world)
- return{...base,...raw,resources,buildings,world,collectReady:{...base.collectReady,...raw.collectReady},claimedChapters:{...base.claimedChapters,...raw.claimedChapters},lastSavedAt:raw.lastSavedAt??Date.now()}
+ return{...base,...raw,resources,buildings,world,collectReady:{...base.collectReady,...raw.collectReady},claimedChapters:{...base.claimedChapters,...raw.claimedChapters},guild:{...base.guild,...raw.guild},events:{...base.events,...raw.events},heroPool:{...base.heroPool,...raw.heroPool},marketplace:{...base.marketplace,...raw.marketplace},prestige:{...base.prestige,...raw.prestige},lastSavedAt:raw.lastSavedAt??Date.now()}
 }
 const parse=k=>{try{return JSON.parse(localStorage.getItem(k)||'null')}catch{return null}}
 const score=s=>{if(!s)return-1;const b=Object.values(s.buildings??{}).reduce((a,n)=>a+(Number(n)||0),0),r=Object.values(s.resources??{}).reduce((a,n)=>a+Math.log10(1+Math.max(0,Number(n)||0)),0),troops=Object.values(s.world?.troops??{}).reduce((a,n)=>a+(Number(n)||0),0);return b*10000+(Number(s.power)||0)+r+troops}
