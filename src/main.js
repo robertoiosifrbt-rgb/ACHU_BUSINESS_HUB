@@ -1,4 +1,5 @@
 import './styles.css'
+import './game3d/information.css'
 import { Retro4XGame } from './game3d/Retro4XGame.js'
 
 export const APP_VERSION='4.0.0'
