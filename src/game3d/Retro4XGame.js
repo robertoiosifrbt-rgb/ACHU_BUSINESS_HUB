@@ -11,6 +11,7 @@ import { BUILDINGS,resourceProduction } from '../data/buildings.js'
 import { worldTile,parseTile,adjacentTo,BASE_TILE } from '../data/world.js'
 import { currentChapter } from '../data/chapters.js'
 import { heroPower } from '../data/heroes.js'
+import { tickEvents } from '../systems/events.js'
 
 const has=(r,c)=>Object.entries(c).every(([k,v])=>(r[k]??0)>=v)
 const spend=(r,c)=>Object.entries(c).forEach(([k,v])=>r[k]-=v)
@@ -59,6 +60,6 @@ export class Retro4XGame{
  trainTroops(type){const w=this.state.world;if(w.trainingJob){this.ui.toast('Training queue is busy');return}const camp=CAMP_BY_TROOP[type],lvl=this.state.buildings[camp]??0;if(lvl<1){this.ui.toast(`Build ${BUILDINGS[camp].name} first`);return}const amount=20+lvl*10,cost={meat:amount*2,wood:amount,coal:Math.ceil(amount*.2)};if(!has(this.state.resources,cost)){this.ui.toast('Not enough resources');return}spend(this.state.resources,cost);w.trainingJob={type,amount,finishAt:Date.now()+7000};saveState(this.state);this.ui.toast(`Training ${amount} ${type}`);this.ui.refresh()}
  tickTraining(now){const j=this.state.world.trainingJob;if(!j||now<j.finishAt)return false;this.state.world.troops[j.type]=(this.state.world.troops[j.type]??0)+j.amount;this.state.world.trainingJob=null;this.state.power+=j.amount*2;this.ui.toast(`${j.amount} ${j.type} ready`);return true}
  animateWorkers(t){for(const [i,w] of (this.workers??[]).entries()){const a=t*.00025+w.phase;w.view.position.x=-4+i*1.7+Math.sin(a*6+i)*.8;w.view.position.z=2+(i%2)*2+Math.cos(a*5+i)*.6}}
- update(){const now=Date.now(),perf=performance.now(),dt=Math.min(1,(perf-this.last)/1000);this.last=perf;for(const [k,v] of Object.entries(this.productionRates()))this.state.resources[k]=(this.state.resources[k]??0)+v*dt;const built=tickConstruction(this.state),researched=tickResearch(this.state),march=this.tickMarches(now),trained=this.tickTraining(now);if(built){this.rebuildCity();this.ui.toast('Construction complete')}if(built||researched||march||trained){saveState(this.state);this.ui.refresh()}this.world.updateMarches(now);this.animateWorkers(perf);if(perf-this.lastSave>900){this.lastSave=perf;this.ui.refresh();saveState(this.state)}this.controls.update()}
+ update(){const now=Date.now(),perf=performance.now(),dt=Math.min(1,(perf-this.last)/1000);this.last=perf;for(const [k,v] of Object.entries(this.productionRates()))this.state.resources[k]=(this.state.resources[k]??0)+v*dt;const built=tickConstruction(this.state),researched=tickResearch(this.state),march=this.tickMarches(now),trained=this.tickTraining(now),events=tickEvents(this.state);if(built){this.rebuildCity();this.ui.toast('Construction complete')}if(built||researched||march||trained||events){saveState(this.state);this.ui.refresh()}this.world.updateMarches(now);this.animateWorkers(perf);if(perf-this.lastSave>900){this.lastSave=perf;this.ui.refresh();saveState(this.state)}this.controls.update()}
  loop(){this.update();this.renderer.render(this.scene,this.camera);requestAnimationFrame(()=>this.loop())}
 }
