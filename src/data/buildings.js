@@ -11,19 +11,19 @@ export const RESOURCES={
 }
 
 export const BUILDINGS={
- furnace:{name:'Furnace',category:'core',x:0,y:10,levels:levels({meat:70,wood:85,coal:20,iron:4},55,12,190),requires:{2:[['shelter',1]],3:[['sawmill',2]],4:[['huntersHut',3]],5:[['coalMine',3]],6:[['infantryCamp',5]],7:[['infirmary',6]],8:[['embassy',7]],9:[['embassy',8],['infirmary',8]],10:[['marksmanCamp',9],['researchCenter',1]],11:[['ironMine',10],['lancerCamp',10]],12:[['researchCenter',11],['storehouse',11]]}},
- shelter:{name:'Shelter',category:'city',x:-250,y:155,levels:levels({meat:25,wood:38,coal:4,iron:0},22),gate:'furnace'},
- sawmill:{name:'Sawmill',category:'resource',x:265,y:160,levels:levels({meat:34,wood:46,coal:5,iron:0},28),gate:'furnace',production:{resource:'wood',base:2.4}},
- huntersHut:{name:"Hunter's Hut",category:'resource',x:400,y:20,levels:levels({meat:42,wood:52,coal:5,iron:0},31),gate:'furnace',production:{resource:'meat',base:2.7}},
- coalMine:{name:'Coal Mine',category:'resource',x:145,y:-125,levels:levels({meat:44,wood:58,coal:4,iron:1},36),gate:'furnace',production:{resource:'coal',base:1.35}},
- ironMine:{name:'Iron Mine',category:'resource',x:485,y:205,levels:levels({meat:68,wood:82,coal:18,iron:2},48),gate:'furnace',unlockFurnace:6,production:{resource:'iron',base:.55}},
- storehouse:{name:'Storehouse',category:'city',x:205,y:315,levels:levels({meat:48,wood:72,coal:10,iron:2},39),gate:'furnace'},
- infirmary:{name:'Infirmary',category:'city',x:-390,y:-125,levels:levels({meat:58,wood:64,coal:9,iron:2},42),gate:'furnace'},
- embassy:{name:'Embassy',category:'city',x:-210,y:-270,levels:levels({meat:62,wood:68,coal:10,iron:2},48),gate:'furnace'},
- infantryCamp:{name:'Infantry Camp',category:'military',x:170,y:-275,levels:levels({meat:72,wood:74,coal:11,iron:2},50),gate:'furnace'},
- lancerCamp:{name:'Lancer Camp',category:'military',x:410,y:-315,levels:levels({meat:78,wood:78,coal:13,iron:3},52),gate:'furnace',unlockFurnace:6},
- marksmanCamp:{name:'Marksman Camp',category:'military',x:565,y:-95,levels:levels({meat:76,wood:82,coal:13,iron:3},54),gate:'furnace'},
- researchCenter:{name:'Research Center',category:'science',x:-505,y:80,levels:levels({meat:82,wood:98,coal:18,iron:5},65),gate:'furnace',unlockFurnace:9}
+ furnace:{name:'Furnace',category:'core',x:0,y:20,levels:levels({meat:70,wood:85,coal:20,iron:4},55,12,190),requires:{2:[['shelter',1]],3:[['sawmill',2]],4:[['huntersHut',3]],5:[['coalMine',3]],6:[['infantryCamp',5]],7:[['infirmary',6]],8:[['embassy',7]],9:[['embassy',8],['infirmary',8]],10:[['marksmanCamp',9],['researchCenter',1]],11:[['ironMine',10],['lancerCamp',10]],12:[['researchCenter',11],['storehouse',11]]}},
+ shelter:{name:'Shelter',category:'city',x:-180,y:145,levels:levels({meat:25,wood:38,coal:4,iron:0},22),gate:'furnace'},
+ sawmill:{name:'Sawmill',category:'resource',x:180,y:150,levels:levels({meat:34,wood:46,coal:5,iron:0},28),gate:'furnace',production:{resource:'wood',base:2.4}},
+ huntersHut:{name:"Hunter's Hut",category:'resource',x:285,y:20,levels:levels({meat:42,wood:52,coal:5,iron:0},31),gate:'furnace',production:{resource:'meat',base:2.7}},
+ coalMine:{name:'Coal Mine',category:'resource',x:155,y:-105,levels:levels({meat:44,wood:58,coal:4,iron:1},36),gate:'furnace',production:{resource:'coal',base:1.35}},
+ ironMine:{name:'Iron Mine',category:'resource',x:305,y:190,levels:levels({meat:68,wood:82,coal:18,iron:2},48),gate:'furnace',unlockFurnace:6,production:{resource:'iron',base:.55}},
+ storehouse:{name:'Storehouse',category:'city',x:65,y:245,levels:levels({meat:48,wood:72,coal:10,iron:2},39),gate:'furnace'},
+ infirmary:{name:'Infirmary',category:'city',x:-265,y:-80,levels:levels({meat:58,wood:64,coal:9,iron:2},42),gate:'furnace'},
+ embassy:{name:'Embassy',category:'city',x:-145,y:-210,levels:levels({meat:62,wood:68,coal:10,iron:2},48),gate:'furnace'},
+ infantryCamp:{name:'Infantry Camp',category:'military',x:45,y:-225,levels:levels({meat:72,wood:74,coal:11,iron:2},50),gate:'furnace'},
+ lancerCamp:{name:'Lancer Camp',category:'military',x:250,y:-245,levels:levels({meat:78,wood:78,coal:13,iron:3},52),gate:'furnace',unlockFurnace:6},
+ marksmanCamp:{name:'Marksman Camp',category:'military',x:315,y:-115,levels:levels({meat:76,wood:82,coal:13,iron:3},54),gate:'furnace'},
+ researchCenter:{name:'Research Center',category:'science',x:-305,y:55,levels:levels({meat:82,wood:98,coal:18,iron:5},65),gate:'furnace',unlockFurnace:9}
 }
 
 export function nextBuildingLevel(state,id){return (state.buildings[id]??0)+1}

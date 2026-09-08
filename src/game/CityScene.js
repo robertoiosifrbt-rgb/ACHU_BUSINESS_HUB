@@ -1,51 +1,24 @@
-import { Container,Sprite,Text,Rectangle } from 'pixi.js'
+import { Container,Sprite,Text,Rectangle,Graphics } from 'pixi.js'
 import { BUILDINGS,RESOURCES } from '../data/buildings.js'
 import { visualAssets } from './AssetLibrary.js'
 
-const txt=(text,size=14,color=0x203943,weight='700')=>new Text({text,style:{fontFamily:'Arial',fontSize:size,fill:color,fontWeight:weight,stroke:{color:0xffffff,width:3}}})
-
-function fitSprite(texture,width){
- const s=new Sprite(texture);s.anchor.set(.5,1);const scale=width/Math.max(1,texture.width);s.scale.set(scale);return s
-}
-function levelLabel(level){const t=txt(level?`Lv. ${level}`:'LOCKED',11,level?0xffffff:0xdbe5e9);t.anchor.set(.5);t.position.set(0,13);return t}
-function nameLabel(name){const t=txt(name,13);t.anchor.set(.5);t.position.set(0,31);return t}
-function resourceLabel(resource){const r=RESOURCES[resource];const t=txt(r.short,10,r.color,'800');t.anchor.set(.5);t.position.set(0,-118);return t}
-function buildingView(id,level){
- const texture=visualAssets.buildings[id];const c=new Container();const width=id==='furnace'?168:128;const s=fitSprite(texture,width);s.label='asset';
- if(!level){s.tint=0x71818a;s.alpha=.45}else if(level>=8){s.tint=0xfff3d0}else if(level>=5){s.tint=0xe7f3ff}
- c.addChild(s);return c
-}
+const txt=(text,size=14,color=0x203943,weight='700',stroke=true)=>new Text({text,style:{fontFamily:'Arial',fontSize:size,fill:color,fontWeight:weight,...(stroke?{stroke:{color:0xffffff,width:3}}:{})}})
+function fitSprite(texture,width){const s=new Sprite(texture);s.anchor.set(.5,1);const scale=width/Math.max(1,texture.width);s.scale.set(scale);return s}
+function pill(label,color=0x17303d,w=58){const c=new Container();c.addChild(new Graphics().roundRect(-w/2,-12,w,24,12).fill({color,alpha:.9}).stroke({color:0xffffff,alpha:.35,width:1}));const t=txt(label,10,0xffffff,'800',false);t.anchor.set(.5);c.addChild(t);return c}
+function buildingView(id,level){const texture=visualAssets.buildings[id];const c=new Container();const width=id==='furnace'?176:132;const s=fitSprite(texture,width);s.label='asset';if(!level){s.tint=0x71818a;s.alpha=.42}else if(level>=8){s.tint=0xfff2cf}else if(level>=5){s.tint=0xe8f4ff}c.addChild(s);return c}
+function collectBubble(resource){const r=RESOURCES[resource],c=new Container();c.addChild(new Graphics().circle(0,0,24).fill({color:r.color,alpha:.96}).stroke({color:0xffffff,width:3}));const plus=txt('+',21,0xffffff,'900',false);plus.anchor.set(.5);plus.position.set(0,-2);c.addChild(plus);const tag=txt(r.short,8,0xffffff,'800',false);tag.anchor.set(.5);tag.position.set(0,31);c.addChild(tag);c.position.set(42,-118);c.eventMode='static';c.cursor='pointer';return c}
 
 export class CityScene extends Container{
- constructor(game){super();this.game=game;this.sortableChildren=true;this.buildingViews=new Map();this.people=[];this.makeTerrain();this.makeEnvironment();this.makeBuildings();this.makePeople()}
- makeTerrain(){
-  const textures=visualAssets.tiles;let index=0
-  for(let r=-8;r<=8;r++)for(let c=-10;c<=10;c++){
-   const texture=textures[(Math.abs(r*3+c*5)+index++)%textures.length];const s=new Sprite(texture);s.anchor.set(.5);s.width=108;s.height=76;s.position.set((c-r)*51,(c+r)*25);s.tint=((r+c)&1)?0xddeef2:0xe8f5f7;s.alpha=.98;s.zIndex=-3000+Math.round(s.y);this.addChild(s)
-  }
+ constructor(game){super();this.game=game;this.sortableChildren=true;this.buildingViews=new Map();this.people=[];this.constructionView=null;this.lastStatusKey='';this.makeTerrain();this.makeEnvironment();this.makeBuildings();this.makePeople()}
+ makeTerrain(){const textures=visualAssets.tiles;let index=0;for(let r=-8;r<=8;r++)for(let c=-10;c<=10;c++){const texture=textures[(Math.abs(r*3+c*5)+index++)%textures.length];const s=new Sprite(texture);s.anchor.set(.5);s.width=108;s.height=76;s.position.set((c-r)*51,(c+r)*25);s.tint=((r+c)&1)?0xd9e9ec:0xe7f1f2;s.alpha=.98;s.zIndex=-3000+Math.round(s.y);this.addChild(s)}}
+ makeEnvironment(){const edge=[];for(let i=0;i<66;i++){const side=i%4;let x,y;if(side===0){x=-660+(i*83)%1320;y=-380+(i%5)*30}else if(side===1){x=-660+(i*97)%1320;y=385-(i%5)*28}else if(side===2){x=-660+(i%5)*32;y=-330+(i*89)%660}else{x=660-(i%5)*32;y=-330+(i*79)%660}edge.push({x,y})}edge.forEach((p,i)=>{const texture=visualAssets.environment[i%visualAssets.environment.length];const s=fitSprite(texture,74+(i%4)*8);s.position.set(p.x,p.y);s.tint=i%3===0?0xd6e5e4:0xcde1df;s.alpha=.92;s.zIndex=Math.round(p.y)-200;this.addChild(s)})}
+ makeBuildings(){for(const [id,d] of Object.entries(BUILDINGS)){const c=new Container();c.position.set(d.x,d.y);c.zIndex=Math.round(d.y)+100;c.eventMode='static';c.cursor='pointer';c.hitArea=new Rectangle(-80,-155,160,205);c.on('pointertap',e=>{e.stopPropagation();this.game.selectBuilding(id)});this.addChild(c);this.buildingViews.set(id,c)}this.refresh()}
+ refresh(){this.constructionView=null;for(const [id,c] of this.buildingViews){c.removeChildren();const lvl=this.game.state.buildings[id]??0,def=BUILDINGS[id];c.addChild(buildingView(id,lvl));const name=txt(def.name,id==='furnace'?14:12);name.anchor.set(.5);name.position.set(0,28);c.addChild(name);const badge=pill(lvl?`Lv. ${lvl}`:'LOCKED',lvl?0x193742:0x5c676c,lvl?58:68);badge.position.set(0,50);c.addChild(badge);if(lvl&&def.production&&this.game.isCollectReady(id)){const bubble=collectBubble(def.production.resource);bubble.on('pointertap',e=>{e.stopPropagation();this.game.collectResource(id)});c.addChild(bubble)}if(this.game.state.construction?.id===id){const q=this.makeConstructionOverlay(id);c.addChild(q.root);this.constructionView=q}}
+  this.lastStatusKey=this.statusKey()
  }
- makeEnvironment(){
-  const edge=[];for(let i=0;i<54;i++){const side=i%4;let x,y;if(side===0){x=-720+(i*83)%1440;y=-410+(i%5)*34}else if(side===1){x=-720+(i*97)%1440;y=410-(i%5)*30}else if(side===2){x=-720+(i%5)*35;y=-360+(i*89)%720}else{x=720-(i%5)*35;y=-360+(i*79)%720}edge.push({x,y})}
-  edge.forEach((p,i)=>{const texture=visualAssets.environment[i%visualAssets.environment.length];const s=fitSprite(texture,70+(i%4)*9);s.position.set(p.x,p.y);s.tint=0xd9eef0;s.alpha=.88;s.zIndex=Math.round(p.y)-200;this.addChild(s)})
- }
- makeBuildings(){
-  for(const [id,d] of Object.entries(BUILDINGS)){
-   const c=new Container();c.position.set(d.x,d.y);c.zIndex=Math.round(d.y)+100;c.eventMode='static';c.cursor='pointer';c.hitArea=new Rectangle(-78,-150,156,190);c.on('pointertap',e=>{e.stopPropagation();this.game.selectBuilding(id)});this.addChild(c);this.buildingViews.set(id,c)
-  }
-  this.refresh()
- }
- refresh(){
-  for(const [id,c] of this.buildingViews){
-   c.removeChildren();const lvl=this.game.state.buildings[id]??0;const def=BUILDINGS[id];c.addChild(buildingView(id,lvl));if(lvl&&def.production)c.addChild(resourceLabel(def.production.resource));c.addChild(levelLabel(lvl),nameLabel(def.name))
-  }
- }
- makePeople(){
-  for(let i=0;i<10;i++){
-   const texture=visualAssets.units[i%visualAssets.units.length];const s=fitSprite(texture,34);s.zIndex=1600+i;this.addChild(s);this.people.push({view:s,a:i/10*Math.PI*2,r:120+(i%4)*56,s:.00015+(i%3)*.000025})
-  }
- }
- focus(id){
-  const c=this.buildingViews.get(id);if(!c)return;const s=c.getChildByLabel?.('asset')??c.children[0]?.children?.[0];if(s){s.alpha=1;s.scale.set(s.scale.x*1.12);setTimeout(()=>this.refresh(),650)}
- }
- animate(){for(const p of this.people){p.a+=p.s*16;p.view.position.set(Math.cos(p.a)*p.r,Math.sin(p.a)*p.r*.56+42);p.view.zIndex=Math.round(p.view.y)+1500}this.sortChildren()}
+ makeConstructionOverlay(id){const root=new Container();root.position.set(0,-154);const bg=new Graphics().roundRect(-64,0,128,34,12).fill({color:0x102c38,alpha:.94}).stroke({color:0xffd777,width:2,alpha:.8});const rail=new Graphics().roundRect(-51,20,102,6,3).fill({color:0x3d5660,alpha:.95});const fill=new Graphics();const label=txt('BUILDING',9,0xffd777,'800',false);label.anchor.set(.5);label.position.set(0,10);root.addChild(bg,rail,fill,label);return{root,fill,label,id}}
+ makePeople(){for(let i=0;i<12;i++){const texture=visualAssets.units[i%visualAssets.units.length];const s=fitSprite(texture,34);s.zIndex=1600+i;this.addChild(s);this.people.push({view:s,a:i/12*Math.PI*2,r:95+(i%5)*45,s:.00015+(i%3)*.000025})}}
+ statusKey(){const ready=Object.entries(BUILDINGS).filter(([id,d])=>d.production&&(this.game.state.buildings[id]??0)>0&&this.game.isCollectReady(id)).map(([id])=>id).join(',');const c=this.game.state.construction;return`${ready}|${c?.id??''}:${c?.target??''}`}
+ focus(id){const c=this.buildingViews.get(id);if(!c)return;const s=c.children[0]?.getChildByLabel?.('asset')??c.children[0]?.children?.[0];if(s){const old=s.scale.x;s.scale.set(old*1.18);setTimeout(()=>this.refresh(),520)}}
+ animate(){for(const p of this.people){p.a+=p.s*16;p.view.position.set(Math.cos(p.a)*p.r,Math.sin(p.a)*p.r*.56+42);p.view.zIndex=Math.round(p.view.y)+1500}if(this.constructionView&&this.game.state.construction){const j=this.game.state.construction,total=Math.max(1,j.finishAt-j.startedAt),left=Math.max(0,j.finishAt-Date.now()),p=Math.max(0,Math.min(1,1-left/total));const f=this.constructionView.fill;f.clear().roundRect(-51,20,102*p,6,3).fill(0xffc857);this.constructionView.label.text=`BUILDING ${Math.round(p*100)}%`}const key=this.statusKey();if(key!==this.lastStatusKey)this.refresh();this.sortChildren()}
 }
