@@ -25,7 +25,7 @@ export class GameUI4X extends GameUI{
    <button data-action="army"><span>◉</span><b>CREWS</b></button>
    <button data-action="tech"><span>✦</span><b>SYSTEMS</b></button>
    <button data-action="more"><span>•••</span><b>MORE</b></button>
-  </nav>`}
+  </nav>`
  }
  bind(){
   this.root.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>this.game.setMode(b.dataset.mode))
