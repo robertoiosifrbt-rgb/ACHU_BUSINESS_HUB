@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3840" height="320" viewBox="0 0 3840 320">
+<defs>
+ <linearGradient id="stone" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#6f7f86"/><stop offset="1" stop-color="#34464f"/></linearGradient>
+ <linearGradient id="roof" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#31515e"/><stop offset="1" stop-color="#172c36"/></linearGradient>
+ <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#899da4"/><stop offset="1" stop-color="#40545e"/></linearGradient>
+ <radialGradient id="fire"><stop stop-color="#fff4a8"/><stop offset=".45" stop-color="#ffad37"/><stop offset="1" stop-color="#c8441e"/></radialGradient>
+ <g id="base">
+  <ellipse cx="160" cy="286" rx="112" ry="24" fill="#18303a" opacity=".28"/>
+  <path d="M43 256 160 214 278 256 160 301Z" fill="#dce9ea" stroke="#a9c0c5" stroke-width="4"/>
+  <path d="M74 246 160 216 246 246 160 279Z" fill="#6e7d82" stroke="#42545b" stroke-width="4"/>
+  <path d="M91 239 160 214 229 239 229 258 160 284 91 258Z" fill="url(#stone)"/>
+  <path d="M106 210 160 189 214 210 214 250 160 270 106 250Z" fill="#51636b" stroke="#273b45" stroke-width="4"/>
+  <path d="M106 210 160 189 214 210 160 231Z" fill="#809097"/>
+  <path d="M160 231 214 210 214 250 160 270Z" fill="#3b4e58"/>
+  <path d="M106 210 160 231 160 270 106 250Z" fill="#64757c"/>
+  <path d="M132 221 160 212 188 221 188 248 160 258 132 248Z" fill="#182a33" stroke="#9aaab0" stroke-width="3"/>
+  <ellipse cx="160" cy="240" rx="19" ry="16" fill="url(#fire)"/>
+  <path d="M120 205 160 176 201 205 160 221Z" fill="url(#roof)" stroke="#1b333d" stroke-width="4"/>
+  <path d="M126 201 160 179 194 201 160 211Z" fill="#eef6f4" opacity=".9"/>
+  <rect x="188" y="142" width="25" height="67" rx="5" fill="url(#metal)" stroke="#263a43" stroke-width="4"/>
+  <path d="M185 144 201 133 216 144 201 153Z" fill="#2c424c"/>
+  <path d="M190 160h21M190 178h21" stroke="#a9bbc0" stroke-width="3" opacity=".6"/>
+ </g>
+ <g id="pipe"><path d="M109 229 C73 224 69 193 83 176 L99 185 C91 198 95 212 116 214" fill="none" stroke="#657a82" stroke-width="12"/><path d="M78 178 92 165 104 184 91 196Z" fill="#98a9ae"/></g>
+ <g id="buttress"><path d="M87 227 64 238 64 263 91 252Z" fill="#53666d" stroke="#293e47" stroke-width="3"/><path d="M233 226 256 238 256 263 229 252Z" fill="#3f555f" stroke="#293e47" stroke-width="3"/></g>
+ <g id="chimney2"><rect x="105" y="157" width="22" height="54" rx="4" fill="url(#metal)" stroke="#263a43" stroke-width="4"/><path d="M101 159 116 149 131 159 116 168Z" fill="#2c424c"/></g>
+ <g id="platform"><path d="M84 196 160 170 235 196 228 206 160 184 91 207Z" fill="#9a7546" stroke="#4d3925" stroke-width="4"/><path d="M93 202v26M227 201v27" stroke="#5c4128" stroke-width="6"/></g>
+ <g id="tower"><path d="M145 178 160 124 176 178 160 187Z" fill="#3b5059" stroke="#20343e" stroke-width="4"/><path d="M139 126 160 107 181 126 160 137Z" fill="url(#roof)"/><path d="M148 123 160 112 172 123 160 128Z" fill="#f2f7f5" opacity=".9"/></g>
+ <g id="armor"><path d="M101 211 160 190 219 211 211 222 160 205 109 223Z" fill="#81949c" opacity=".9"/><path d="M117 223 117 249M203 223 203 249" stroke="#a9bac0" stroke-width="5"/></g>
+ <g id="banner"><path d="M160 107V70" stroke="#d7e2e4" stroke-width="4"/><path d="M164 72 201 83 164 96Z" fill="#c3453f" stroke="#772b2a" stroke-width="2"/></g>
+ <g id="crown"><path d="M119 178 134 153 149 171 161 145 174 171 190 153 202 178Z" fill="#caa955" stroke="#6f5724" stroke-width="4"/><circle cx="161" cy="148" r="5" fill="#ffdf6b"/></g>
+</defs>
+<g transform="translate(0 0)"><use href="#base"/></g>
+<g transform="translate(320 0)"><use href="#base"/><use href="#pipe"/></g>
+<g transform="translate(640 0)"><use href="#base"/><use href="#pipe"/><use href="#chimney2"/></g>
+<g transform="translate(960 0)"><use href="#base"/><use href="#pipe"/><use href="#chimney2"/><use href="#buttress"/></g>
+<g transform="translate(1280 0)"><use href="#base"/><use href="#chimney2"/><use href="#buttress"/><use href="#platform"/></g>
+<g transform="translate(1600 0)"><use href="#base"/><use href="#pipe"/><use href="#chimney2"/><use href="#buttress"/><use href="#platform"/><circle cx="160" cy="239" r="27" fill="#ff8a2e" opacity=".18"/></g>
+<g transform="translate(1920 0)"><use href="#base"/><use href="#chimney2"/><use href="#buttress"/><use href="#platform"/><use href="#tower"/></g>
+<g transform="translate(2240 0)"><use href="#base"/><use href="#pipe"/><use href="#chimney2"/><use href="#buttress"/><use href="#platform"/><use href="#tower"/><use href="#armor"/></g>
+<g transform="translate(2560 0)"><use href="#base"/><use href="#chimney2"/><use href="#buttress"/><use href="#platform"/><use href="#tower"/><use href="#armor"/><use href="#banner"/></g>
+<g transform="translate(2880 0)"><use href="#base"/><use href="#pipe"/><use href="#chimney2"/><use href="#buttress"/><use href="#platform"/><use href="#tower"/><use href="#armor"/><use href="#banner"/><path d="M69 244 51 218 66 204 86 232Z" fill="#6c7d84" stroke="#2d424b" stroke-width="4"/><path d="M251 244 269 218 254 204 234 232Z" fill="#536973" stroke="#2d424b" stroke-width="4"/></g>
+<g transform="translate(3200 0)"><use href="#base"/><use href="#pipe"/><use href="#chimney2"/><use href="#buttress"/><use href="#platform"/><use href="#tower"/><use href="#armor"/><use href="#banner"/><path d="M91 179 111 150 126 173Z" fill="#405b67"/><path d="M229 179 209 150 194 173Z" fill="#405b67"/></g>
+<g transform="translate(3520 0)"><use href="#base"/><use href="#pipe"/><use href="#chimney2"/><use href="#buttress"/><use href="#platform"/><use href="#tower"/><use href="#armor"/><use href="#banner"/><use href="#crown"/><circle cx="160" cy="239" r="34" fill="#ffb13b" opacity=".22"/><path d="M54 251 75 212 93 235 77 268Z" fill="#b6913e" stroke="#5d461c" stroke-width="4"/><path d="M266 251 245 212 227 235 243 268Z" fill="#9c7b34" stroke="#5d461c" stroke-width="4"/></g>
+</svg>

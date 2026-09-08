@@ -1,3 +1,5 @@
+import {FURNACE_LEVELS,FURNACE_REQUIRES} from './furnace.js'
+
 const RESOURCE_KEYS=['meat','wood','coal','iron']
 const scaleCost=(base,lvl)=>Math.round(base*Math.pow(1.56,lvl-1))
 const scaleTime=(base,lvl)=>Math.round(base*Math.pow(1.70,lvl-1))
@@ -11,7 +13,7 @@ export const RESOURCES={
 }
 
 export const BUILDINGS={
- furnace:{name:'Furnace',category:'core',x:0,y:20,levels:levels({meat:70,wood:85,coal:20,iron:4},55,12,190),requires:{2:[['shelter',1]],3:[['sawmill',2]],4:[['huntersHut',3]],5:[['coalMine',3]],6:[['infantryCamp',5]],7:[['infirmary',6]],8:[['embassy',7]],9:[['embassy',8],['infirmary',8]],10:[['marksmanCamp',9],['researchCenter',1]],11:[['ironMine',10],['lancerCamp',10]],12:[['researchCenter',11],['storehouse',11]]}},
+ furnace:{name:'Furnace',category:'core',x:0,y:20,levels:FURNACE_LEVELS,requires:FURNACE_REQUIRES},
  shelter:{name:'Shelter',category:'city',x:-180,y:145,levels:levels({meat:25,wood:38,coal:4,iron:0},22),gate:'furnace'},
  sawmill:{name:'Sawmill',category:'resource',x:180,y:150,levels:levels({meat:34,wood:46,coal:5,iron:0},28),gate:'furnace',production:{resource:'wood',base:2.4}},
  huntersHut:{name:"Hunter's Hut",category:'resource',x:285,y:20,levels:levels({meat:42,wood:52,coal:5,iron:0},31),gate:'furnace',production:{resource:'meat',base:2.7}},

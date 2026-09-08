@@ -1,5 +1,6 @@
 import { Container,Sprite,Text,Rectangle,Graphics } from 'pixi.js'
 import { BUILDINGS,RESOURCES,buildingRequirements,nextBuildingLevel } from '../data/buildings.js'
+import { furnaceVisualIndex,furnaceTier } from '../data/furnace.js'
 import { visualAssets } from './AssetLibrary.js'
 
 const TW=128,TH=64,CENTER=12
@@ -32,28 +33,33 @@ export class CityScene extends Container{
   for(let i=0;i<26;i++){const gx=5+Math.floor(rng(i+310)*14),gy=5+Math.floor(rng(i+510)*14);if(blocked.has(`${gx},${gy}`))continue;const p=iso(gx,gy),s=sprite(visualAssets.props[i%visualAssets.props.length],36+(i%3)*8);s.position.set(p.x+(rng(i+700)-.5)*42,p.y+18);s.zIndex=Math.round(s.y)-30;s.alpha=.86;this.addChild(s)}
  }
  makeBuildings(){
-  for(const id of Object.keys(BUILDINGS)){const [gx,gy]=LAYOUT[id]??[12,12],p=iso(gx,gy),c=new Container();c.position.set(p.x,p.y+26);c.zIndex=Math.round(c.y)+300;c.eventMode='static';c.cursor='pointer';c.hitArea=new Rectangle(-96,-290,192,330);c.on('pointertap',e=>{e.stopPropagation();this.game.selectBuilding(id)});this.addChild(c);this.buildingViews.set(id,c)}this.refresh()
+  for(const id of Object.keys(BUILDINGS)){const [gx,gy]=LAYOUT[id]??[12,12],p=iso(gx,gy),c=new Container();c.position.set(p.x,p.y+26);c.zIndex=Math.round(c.y)+300;c.eventMode='static';c.cursor='pointer';c.hitArea=id==='furnace'?new Rectangle(-138,-320,276,355):new Rectangle(-96,-290,192,330);c.on('pointertap',e=>{e.stopPropagation();this.game.selectBuilding(id)});this.addChild(c);this.buildingViews.set(id,c)}this.refresh()
  }
  renderBuilding(id,c){
-  c.removeChildren();const level=this.game.state.buildings[id]??0,def=BUILDINGS[id],texture=level?visualAssets.buildings[id]:visualAssets.foundation
-  const width=id==='furnace'?188:(id.includes('Mine')?158:(def.category==='military'?138:148)),art=sprite(texture,width);art.label='asset';if(!level){art.alpha=.88;art.tint=0xb7c6c7}else if(level>=8)art.tint=0xffeed0;c.addChild(art)
-  const badge=levelBadge(level);badge.position.set(0,level?(id==='furnace'?22:18):12);c.addChild(badge)
-  if(id==='furnace'){const title=txt(`FURNACE  ${level}`,12,0xffe08a,'900');title.anchor.set(.5);title.position.set(0,-220);c.addChild(title)}
+  c.removeChildren();const level=this.game.state.buildings[id]??0,def=BUILDINGS[id]
+  let texture=level?visualAssets.buildings[id]:visualAssets.foundation
+  if(id==='furnace'&&level)texture=visualAssets.furnaceLevels[furnaceVisualIndex(level)]??visualAssets.buildings.furnace
+  const width=id==='furnace'?270:(id.includes('Mine')?158:(def.category==='military'?138:148)),art=sprite(texture,width);art.label='asset';if(!level){art.alpha=.88;art.tint=0xb7c6c7}else if(id!=='furnace'&&level>=8)art.tint=0xffeed0;c.addChild(art)
+  const badge=levelBadge(level);badge.position.set(0,level?(id==='furnace'?28:18):12);c.addChild(badge)
+  if(id==='furnace'){
+   const title=txt(`FURNACE  ${level}`,13,0xffdf8a,'900');title.anchor.set(.5);title.position.set(0,-286);c.addChild(title)
+   const tier=txt(furnaceTier(level).toUpperCase(),8,0xcde8ee,'900');tier.anchor.set(.5);tier.position.set(0,-268);c.addChild(tier)
+  }
   if(!level){const build=marker('+',0x2b7ca0);build.position.set(38,-82);c.addChild(build)}
   if(level&&def.production&&this.game.isCollectReady(id)){const b=marker('+',RESOURCES[def.production.resource].color);b.position.set(46,-145);b.eventMode='static';b.cursor='pointer';b.on('pointertap',e=>{e.stopPropagation();this.game.collectResource(id)});c.addChild(b)}
   const target=nextBuildingLevel(this.game.state,id),req=def.levels[target]?buildingRequirements(this.game.state,id,target):[]
-  if(level&&def.levels[target]&&!req.length&&!this.game.state.construction){const up=marker('↑',0xc78a38);up.position.set(-48,-150);c.addChild(up)}
+  if(level&&def.levels[target]&&!req.length&&!this.game.state.construction){const up=marker('↑',0xc78a38);up.position.set(id==='furnace'?-82:-48,id==='furnace'?-188:-150);c.addChild(up)}
   if(this.game.state.construction?.id===id)c.addChild(this.constructionOverlay(id))
  }
  refresh(){for(const [id,c] of this.buildingViews)this.renderBuilding(id,c);this.lastStatusKey=this.statusKey()}
- constructionOverlay(id){const root=new Container();root.position.set(0,-205);const bg=new Graphics().roundRect(-74,0,148,38,13).fill({color:0x0c2631,alpha:.96}).stroke({color:0xffd36a,width:2});const rail=new Graphics().roundRect(-58,25,116,6,3).fill({color:0x3a5059});const fill=new Graphics();const label=txt('CONSTRUCTING',9,0xffd36a,'900');label.anchor.set(.5);label.position.set(0,10);root.addChild(bg,rail,fill,label);root.label='construction';root.buildId=id;return root}
+ constructionOverlay(id){const root=new Container();root.position.set(0,id==='furnace'?-250:-205);const bg=new Graphics().roundRect(-74,0,148,38,13).fill({color:0x0c2631,alpha:.96}).stroke({color:0xffd36a,width:2});const rail=new Graphics().roundRect(-58,25,116,6,3).fill({color:0x3a5059});const fill=new Graphics();const label=txt('CONSTRUCTING',9,0xffd36a,'900');label.anchor.set(.5);label.position.set(0,10);root.addChild(bg,rail,fill,label);root.label='construction';root.buildId=id;return root}
  makeAtmosphere(){for(let i=0;i<80;i++){const s=new Graphics().circle(0,0,1+(i%3)*.7).fill({color:0xffffff,alpha:.65});s.position.set(-900+rng(i+800)*1800,-650+rng(i+900)*1300);s.zIndex=5000;this.addChild(s);this.snow.push({view:s,speed:.3+(i%5)*.08,drift:(rng(i+1200)-.5)*.18})}for(let i=0;i<8;i++){const s=new Graphics().circle(0,0,10+i*1.8).fill({color:0xd9e6e7,alpha:.18});s.zIndex=1000+i;this.addChild(s);this.smoke.push({view:s,phase:i/8})}}
  getBuildingPosition(id){const c=this.buildingViews.get(id);return c?{x:c.x,y:c.y}:null}
  focus(id){const c=this.buildingViews.get(id);const art=c?.getChildByLabel?.('asset');if(!art)return;const sx=art.scale.x,sy=art.scale.y;art.scale.set(sx*1.12,sy*1.12);setTimeout(()=>this.refresh(),520)}
  statusKey(){const ready=Object.entries(BUILDINGS).filter(([id,d])=>d.production&&(this.game.state.buildings[id]??0)>0&&this.game.isCollectReady(id)).map(([id])=>id).join(',');const c=this.game.state.construction;return`${ready}|${c?.id??''}:${c?.target??''}|${Object.values(this.game.state.buildings).join('.')}`}
  animate(){
   for(const s of this.snow){s.view.y+=s.speed*2;s.view.x+=s.drift;if(s.view.y>690){s.view.y=-660;s.view.x=-900+Math.random()*1800}}
-  const furnace=this.buildingViews.get('furnace');if(furnace){for(let i=0;i<this.smoke.length;i++){const s=this.smoke[i],phase=(performance.now()*.00022+s.phase)%1;s.view.position.set(furnace.x+28+Math.sin(phase*8+i)*8,furnace.y-220-phase*160);s.view.alpha=(1-phase)*.20;s.view.scale.set(.7+phase*1.4)}}
+  const furnace=this.buildingViews.get('furnace');if(furnace){for(let i=0;i<this.smoke.length;i++){const s=this.smoke[i],phase=(performance.now()*.00022+s.phase)%1;s.view.position.set(furnace.x+35+Math.sin(phase*8+i)*7,furnace.y-230-phase*165);s.view.alpha=(1-phase)*.22;s.view.scale.set(.7+phase*1.4)}}
   if(this.game.state.construction){const c=this.buildingViews.get(this.game.state.construction.id),o=c?.getChildByLabel?.('construction');if(o){const j=this.game.state.construction,total=Math.max(1,j.finishAt-j.startedAt),p=Math.max(0,Math.min(1,1-(j.finishAt-Date.now())/total)),fill=o.children[2];fill.clear().roundRect(-58,25,116*p,6,3).fill(0xffcc55);o.children[3].text=`CONSTRUCTING ${Math.round(p*100)}%`}}
   const key=this.statusKey();if(key!==this.lastStatusKey)this.refresh();this.sortChildren()
  }
