@@ -1,0 +1,75 @@
+name: Story Flow Scale QA
+
+on:
+  push:
+    branches:
+      - fix/story-flow-audio-scale-crew
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mobile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npm run build
+      - run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start preview
+        run: |
+          nohup npm run preview -- --host 127.0.0.1 --port 4173 > /tmp/achu-flow.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:4173/ACHU_BUSINESS_HUB/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/achu-flow.log
+          exit 1
+      - name: Verify mobile story flow crew and sound
+        run: |
+          mkdir -p qa
+          cat > qa/check.mjs <<'EOF'
+          import { chromium } from 'playwright'
+          import fs from 'node:fs'
+          const browser=await chromium.launch({headless:true,args:['--use-angle=swiftshader','--enable-webgl','--ignore-gpu-blocklist']})
+          const page=await browser.newPage({viewport:{width:430,height:932},deviceScaleFactor:1})
+          const errors=[],failed=[];let male=null,female=null,animations=null,oldModel=false
+          page.on('console',m=>{if(m.type()==='error')errors.push(m.text())})
+          page.on('pageerror',e=>errors.push(e.message))
+          page.on('requestfailed',r=>failed.push(`${r.url()} :: ${r.failure()?.errorText}`))
+          page.on('response',r=>{const u=r.url();if(u.includes('Male_Peasant.gltf'))male=r.status();if(u.includes('Female_Peasant.gltf'))female=r.status();if(u.includes('universal-animation-library.glb'))animations=r.status();if(u.includes('night-striker.glb'))oldModel=true})
+          await page.addInitScript(()=>{localStorage.clear()})
+          await page.goto('http://127.0.0.1:4173/ACHU_BUSINESS_HUB/',{waitUntil:'networkidle',timeout:150000})
+          await page.waitForTimeout(1700)
+          if(male!==200||female!==200||animations!==200)throw new Error(`Crew assets failed male=${male} female=${female} animations=${animations}`)
+          if(oldModel)throw new Error('Old superhero/underwear model is still requested')
+          await page.locator('#sheet:not(.hidden)').waitFor({timeout:5000})
+          let text=await page.locator('#sheet').innerText()
+          for(const required of['WHAT IS HAPPENING','NEXT MISSION','CHAPTER OBJECTIVES','WHY THIS CHANGES THE BUSINESS'])if(!text.includes(required))throw new Error(`Story flow missing ${required}`)
+          await page.screenshot({path:'qa/01-story-with-mission.png',fullPage:true})
+          await page.locator('[data-close]').first().click()
+          await page.locator('[data-mode="city"]').click();await page.waitForTimeout(2200)
+          await page.screenshot({path:'qa/02-crew-and-vehicle-scale.png',fullPage:true})
+          text=await page.locator('#quest').innerText();if(!text.includes('Give every enquiry')||!text.includes('MISSION 1/2'))throw new Error('Mission card does not carry story task')
+          await page.locator('#company-profile').click();await page.waitForTimeout(200)
+          text=await page.locator('#sheet').innerText();if(!text.includes('COMPANY PROGRESS')||!text.includes('CURRENT MISSION'))throw new Error('ACHU profile click failed')
+          await page.locator('[data-close]').first().click();await page.locator('[data-action="more"]').click();await page.waitForTimeout(150)
+          text=await page.locator('#sheet').innerText();if(!text.includes('SOUND')||!text.includes('ON · city ambience + game effects'))throw new Error('Sound is not enabled and visible')
+          const report={male,female,animations,oldModel,errors,failed,storyFlow:true,profile:true,sound:true}
+          fs.writeFileSync('qa/report.json',JSON.stringify(report,null,2))
+          await browser.close()
+          if(errors.length||failed.length)process.exitCode=1
+          EOF
+          node qa/check.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: story-flow-scale-mobile-qa
+          path: qa
+          if-no-files-found: warn
