@@ -4,8 +4,10 @@ import { Retro4XGame } from './game3d/Retro4XGame.js'
 export const APP_VERSION='3.0.0'
 const mount=document.querySelector('#app')
 const game=new Retro4XGame(mount)
+console.log('Starting game...')
 try{
  await game.start()
+ console.log('Game started successfully')
 }catch(e){
  console.error('Game startup failed:',e)
  document.body.innerHTML+=`<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:red;background:#000;padding:20px;border-radius:10px;max-width:80%;text-align:center;z-index:1000"><h2>Game Error</h2><p>${e.message}</p><small>${e.stack}</small></div>`

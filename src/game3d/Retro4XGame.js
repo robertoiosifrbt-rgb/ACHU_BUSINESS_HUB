@@ -25,7 +25,9 @@ const CAMP_BY_TROOP={infantry:'infantryCamp',lancer:'lancerCamp',marksman:'marks
 export class Retro4XGame{
  constructor(mount){this.mount=mount;this.state=loadState();this.mode='city';this.last=performance.now();this.lastSave=0;this.raycaster=new THREE.Raycaster();this.pointer=new THREE.Vector2();this.down=null}
  async start(){
+  console.log('Initializing renderer...')
   this.renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});this.renderer.setPixelRatio(Math.min(devicePixelRatio,2));this.renderer.setSize(innerWidth,innerHeight);this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;this.renderer.outputColorSpace=THREE.SRGBColorSpace;this.renderer.toneMapping=THREE.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.05;this.renderer.domElement.className='three-canvas';this.mount.appendChild(this.renderer.domElement)
+  console.log('Scene setup...')
   this.scene=new THREE.Scene();this.scene.background=new THREE.Color(0x23353b);this.scene.fog=new THREE.FogExp2(0x25383e,.018)
   this.camera=new THREE.OrthographicCamera(-12,12,12,-12,.1,160);this.camera.position.set(18,22,18);this.camera.lookAt(0,0,0)
   this.controls=new OrbitControls(this.camera,this.renderer.domElement);this.controls.enableRotate=false;this.controls.enableDamping=true;this.controls.dampingFactor=.08;this.controls.screenSpacePanning=false;this.controls.minZoom=.55;this.controls.maxZoom=2.4;this.controls.target.set(0,0,0)
