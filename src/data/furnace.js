@@ -30,8 +30,16 @@ export const FURNACE_REQUIRES={
 }
 
 export const FURNACE_UNLOCKS={
+ 2:["Hunter's Hut"],
+ 3:['Coal Mine','Storehouse'],
+ 4:['World Map','Scouting'],
+ 5:['Infantry Camp','Infirmary','Army command'],
  6:['Iron Mine','Lancer Camp'],
+ 7:['Embassy','Alliance help'],
+ 8:['Marksman Camp','Third march slot'],
  9:['Research Center'],
+ 10:['Elite raids'],
+ 11:['Stronghold campaigns'],
  12:['Capital tier'],
 }
 
