@@ -31,7 +31,7 @@ jobs:
           done
           cat /tmp/achu-preview.log
           exit 1
-      - name: Capture living business city
+      - name: Capture living business city and information panels
         run: |
           mkdir -p visual-check
           cat > visual-check/check.mjs <<'EOF'
@@ -56,9 +56,28 @@ jobs:
           const url='http://127.0.0.1:4173/ACHU_BUSINESS_HUB/'
           await page.goto(url,{waitUntil:'networkidle',timeout:90000});await page.waitForTimeout(9000)
           await page.screenshot({path:'visual-check/my-place.png',fullPage:true})
+
+          await page.locator('#quest').click();await page.waitForTimeout(500)
+          const missionText=await page.locator('#sheet').innerText()
+          for(const required of['YOUR OBJECTIVE','WHY THIS MATTERS','WHEN YOU FINISH','REWARD','WHAT THIS OPENS'])if(!missionText.includes(required))throw new Error(`Mission briefing missing: ${required}`)
+          await page.screenshot({path:'visual-check/mission-briefing.png',fullPage:true})
+          await page.locator('[data-close]').first().click()
+
+          await page.locator('[data-action="tech"]').click();await page.waitForTimeout(400)
+          await page.locator('[data-tech-detail="tools"]').click();await page.waitForTimeout(400)
+          const techText=await page.locator('#sheet').innerText()
+          for(const required of['WHAT PROBLEM IT SOLVES','WHY YOU WOULD BUY IT','NEXT LEVEL','RESEARCH COST'])if(!techText.includes(required))throw new Error(`Research detail missing: ${required}`)
+          await page.screenshot({path:'visual-check/research-detail.png',fullPage:true})
+          await page.locator('[data-close]').first().click()
+
           const market=page.locator('[data-mode="world"]');if(!(await market.count()))throw new Error('THE CITY button missing');await market.first().click();await page.waitForTimeout(6000)
           await page.screenshot({path:'visual-check/the-city.png',fullPage:true})
-          const report={canvasCount:await page.locator('canvas').count(),mode:(await page.locator('#mode-tag').innerText()).trim(),errors,failed,body:(await page.locator('body').innerText()).slice(0,5000)}
+          await page.locator('#quest').click();await page.waitForTimeout(400)
+          const cityText=await page.locator('#sheet').innerText()
+          if(!cityText.includes('THE LOOP')||!cityText.includes('Research a nearby area'))throw new Error('City gameplay loop briefing missing')
+          await page.screenshot({path:'visual-check/city-briefing.png',fullPage:true})
+
+          const report={canvasCount:await page.locator('canvas').count(),mode:(await page.locator('#mode-tag').innerText()).trim(),missionBriefing:true,researchDetail:true,cityBriefing:true,errors,failed}
           fs.writeFileSync('visual-check/report.json',JSON.stringify(report,null,2));console.log(JSON.stringify(report,null,2));await browser.close()
           if(report.canvasCount<1||report.mode!=='THE CITY'||errors.length||failed.length)process.exitCode=1
           EOF
