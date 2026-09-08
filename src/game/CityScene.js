@@ -1,40 +1,51 @@
-import { Container,Graphics,Text,Rectangle } from 'pixi.js'
+import { Container,Sprite,Text,Rectangle } from 'pixi.js'
 import { BUILDINGS,RESOURCES } from '../data/buildings.js'
+import { visualAssets } from './AssetLibrary.js'
 
-const P={snow:0xeaf7ff,snowShade:0xcde4ef,ice:0x9fd7ea,ice2:0xc9eff8,path:0xaab8b7,pathEdge:0x829695,pine:0x355f54,pine2:0x4d8068,wood:0x8d5d3d,woodDark:0x5f3f2f,roof:0x46677a,roof2:0x6b8fa0,stone:0x6d7880,metal:0x9fb3bd,gold:0xf2c866,fire:0xff9a32,fire2:0xffd15b,locked:0x71828a,ink:0x203943}
-const txt=(text,size=14,color=P.ink,weight='700')=>new Text({text,style:{fontFamily:'Arial',fontSize:size,fill:color,fontWeight:weight,stroke:{color:0xffffff,width:3}}})
-const g=()=>new Graphics()
-function shadow(w=96,h=32){return g().ellipse(0,28,w/2,h/2).fill({color:0x40545c,alpha:.22})}
-function levelBadge(level){const c=new Container();c.addChild(g().roundRect(-32,0,64,24,12).fill({color:level?0x203b46:0x63747c,alpha:.95}).stroke({color:0xffffff,alpha:.45,width:1}));const t=txt(level?`Lv. ${level}`:'LOCKED',10,0xffffff);t.anchor.set(.5);t.position.set(0,12);c.addChild(t);return c}
-function isoBase(w=108,h=56,color=0xd8eef7){return g().poly([-w/2,0,0,-h/2,w/2,0,0,h/2]).fill(color).stroke({color:0xb8d4df,width:2})}
-function roof(c,w=92,y=-42,color=P.roof){c.addChild(g().poly([-w/2,y,0,y-35,w/2,y,0,y+18]).fill(color).stroke({color:0x334e5d,width:3}))}
-function cabin(c,{w=82,h=56,body=0xa47757,roofColor=P.roof,chimney=false}={}){c.addChild(g().roundRect(-w/2,-h/2,w,h,7).fill(body).stroke({color:P.woodDark,width:3}));roof(c,w+12,-h/2,roofColor);c.addChild(g().rect(-10,2,20,26).fill(0x5d4435));c.addChild(g().rect(-31,-6,14,14).fill(0x99d8e8).stroke({color:0xffffff,width:2}));c.addChild(g().rect(17,-6,14,14).fill(0x99d8e8).stroke({color:0xffffff,width:2}));if(chimney)c.addChild(g().rect(20,-66,14,34).fill(0x59666c).stroke({color:0x39484f,width:2}))}
-function tower(c){c.addChild(g().roundRect(-24,-94,48,90,10).fill(0x59666d).stroke({color:0x35464e,width:4}));c.addChild(g().roundRect(-34,-25,68,55,10).fill(0x7d5b48).stroke({color:0x4f3d33,width:3}));roof(c,82,-25,0x344d59)}
-function resourceTag(resource){const c=new Container();const r=RESOURCES[resource];c.addChild(g().circle(0,0,15).fill(r.color).stroke({color:0xffffff,width:3}));const t=txt(r.short[0],11,0xffffff);t.anchor.set(.5);c.addChild(t);c.position.set(42,-55);return c}
-function lockedArt(){const c=new Container();c.addChild(shadow());c.addChild(isoBase());c.addChild(g().roundRect(-38,-30,76,58,8).fill(P.locked).stroke({color:0x56676e,width:3}));roof(c,88,-30,0x87979e);const lock=txt('?',28,0xffffff);lock.anchor.set(.5);lock.position.set(0,-5);c.addChild(lock);return c}
-function furnaceArt(level){const c=new Container();c.addChild(shadow(124,38),isoBase(126,64,0xdceff7));tower(c);c.addChild(g().roundRect(-19,-112,38,24,8).fill(0x404e54));const glow=g().circle(0,-4,19).fill({color:P.fire,alpha:.28});glow.label='glow';c.addChild(glow);const flame=g().poly([-14,8,0,-22,13,8,5,21,-7,21]).fill(P.fire).stroke({color:P.fire2,width:3});flame.label='flame';c.addChild(flame);for(let i=-1;i<=1;i++)c.addChild(g().circle(i*28,38,5).fill(0x7f6553));return c}
-function shelterArt(){const c=new Container();c.addChild(shadow(),isoBase());cabin(c,{body:0xa87857,roofColor:0x5b7c8e,chimney:true});c.addChild(g().roundRect(-42,25,84,12,5).fill(0xffffff));return c}
-function sawmillArt(){const c=new Container();c.addChild(shadow(118,34),isoBase(122,58));c.addChild(g().roundRect(-48,-26,96,52,6).fill(0x8b603f).stroke({color:0x583c2d,width:3}));roof(c,104,-26,0x4f6f61);for(let i=0;i<4;i++)c.addChild(g().roundRect(-58+i*24,22,16,42,8).fill(0x9b6a45).stroke({color:0x60402e,width:2}));c.addChild(g().circle(28,-6,19).stroke({color:0xe0d1a2,width:5}));return c}
-function hunterArt(){const c=new Container();c.addChild(shadow(),isoBase());cabin(c,{w:76,h:50,body:0x8a684d,roofColor:0x55705f});const rack=g().moveTo(42,-4).lineTo(58,-28).moveTo(58,-28).lineTo(70,-4).moveTo(48,-18).lineTo(67,-18).stroke({color:0x6b4d37,width:4});c.addChild(rack);return c}
-function mineArt(type){const c=new Container();c.addChild(shadow(118,36),isoBase(120,60,0xd3e8f0));c.addChild(g().poly([-48,22,-34,-30,0,-54,38,-29,50,20]).fill(0x77858b).stroke({color:0x4e5d63,width:3}));c.addChild(g().roundRect(-26,-21,52,45,20).fill(0x26373e).stroke({color:0x52636a,width:4}));for(let i=0;i<5;i++){const x=-45+i*22,y=26+(i%2)*7;c.addChild(g().circle(x,y,8).fill(type==='iron'?0x99b9c7:0x36444a))}return c}
-function storehouseArt(){const c=new Container();c.addChild(shadow(120,34),isoBase(124,58));c.addChild(g().roundRect(-52,-30,104,60,6).fill(0xa17a52).stroke({color:0x684a35,width:3}));roof(c,114,-30,0x6c6e68);for(let i=-1;i<=1;i++)c.addChild(g().roundRect(i*27-9,4,18,30,4).fill(0x72503a));return c}
-function infirmaryArt(){const c=new Container();c.addChild(shadow(),isoBase());cabin(c,{w:86,h:58,body:0xe1e6e5,roofColor:0x8a4d4d});c.addChild(g().rect(-7,-14,14,38).fill(0xd44f4f),g().rect(-19,-2,38,14).fill(0xd44f4f));return c}
-function embassyArt(){const c=new Container();c.addChild(shadow(112,34),isoBase(118,60));c.addChild(g().roundRect(-44,-34,88,66,8).fill(0xb39a74).stroke({color:0x6d5c47,width:3}));roof(c,102,-34,0x4c687c);for(let i=-1;i<=1;i++)c.addChild(g().rect(i*25-5,-10,10,36).fill(0xe9e4d5));const pole=g().moveTo(48,-60).lineTo(48,12).stroke({color:0x5b6569,width:3});const flag=g().poly([49,-58,76,-50,49,-40]).fill(0xd65555);c.addChild(pole,flag);return c}
-function campArt(kind){const c=new Container();c.addChild(shadow(122,34),isoBase(124,60));const colors={infantry:0x5e7655,lancer:0x7c5d55,marksman:0x4f657d};c.addChild(g().poly([-45,18,0,-58,45,18]).fill(colors[kind]).stroke({color:0x354a42,width:3}));c.addChild(g().roundRect(-52,15,104,18,5).fill(0x876147));for(let i=-1;i<=1;i++)c.addChild(g().circle(i*25,38,6).fill(0x585e5f));return c}
-function researchArt(){const c=new Container();c.addChild(shadow(120,36),isoBase(124,62));c.addChild(g().roundRect(-48,-30,96,60,10).fill(0xa6afb1).stroke({color:0x66747a,width:3}));roof(c,108,-30,0x526f86);c.addChild(g().circle(0,-6,24).stroke({color:P.gold,width:6}),g().circle(0,-6,8).fill(P.gold));return c}
-function artFor(id,level){if(!level)return lockedArt();if(id==='furnace')return furnaceArt(level);if(id==='shelter')return shelterArt();if(id==='sawmill')return sawmillArt();if(id==='huntersHut')return hunterArt();if(id==='coalMine')return mineArt('coal');if(id==='ironMine')return mineArt('iron');if(id==='storehouse')return storehouseArt();if(id==='infirmary')return infirmaryArt();if(id==='embassy')return embassyArt();if(id==='infantryCamp')return campArt('infantry');if(id==='lancerCamp')return campArt('lancer');if(id==='marksmanCamp')return campArt('marksman');if(id==='researchCenter')return researchArt();return shelterArt()}
+const txt=(text,size=14,color=0x203943,weight='700')=>new Text({text,style:{fontFamily:'Arial',fontSize:size,fill:color,fontWeight:weight,stroke:{color:0xffffff,width:3}}})
+
+function fitSprite(texture,width){
+ const s=new Sprite(texture);s.anchor.set(.5,1);const scale=width/Math.max(1,texture.width);s.scale.set(scale);return s
+}
+function levelLabel(level){const t=txt(level?`Lv. ${level}`:'LOCKED',11,level?0xffffff:0xdbe5e9);t.anchor.set(.5);t.position.set(0,13);return t}
+function nameLabel(name){const t=txt(name,13);t.anchor.set(.5);t.position.set(0,31);return t}
+function resourceLabel(resource){const r=RESOURCES[resource];const t=txt(r.short,10,r.color,'800');t.anchor.set(.5);t.position.set(0,-118);return t}
+function buildingView(id,level){
+ const texture=visualAssets.buildings[id];const c=new Container();const width=id==='furnace'?168:128;const s=fitSprite(texture,width);s.label='asset';
+ if(!level){s.tint=0x71818a;s.alpha=.45}else if(level>=8){s.tint=0xfff3d0}else if(level>=5){s.tint=0xe7f3ff}
+ c.addChild(s);return c
+}
 
 export class CityScene extends Container{
- constructor(game){super();this.game=game;this.sortableChildren=true;this.buildingViews=new Map();this.snow=[];this.people=[];this.smoke=[];this.makeWorld();this.makeBuildings();this.makeLife()}
- makeWorld(){
-  const base=g().roundRect(-850,-540,1700,1080,120).fill(P.snow).stroke({color:0xb8dae7,width:14});this.addChild(base)
-  const river=g().moveTo(-850,380).bezierCurveTo(-420,250,-130,470,200,340).bezierCurveTo(470,230,670,300,850,185).lineTo(850,340).bezierCurveTo(600,445,330,390,120,485).bezierCurveTo(-240,625,-590,440,-850,535).closePath().fill(P.ice).stroke({color:P.ice2,width:10});this.addChild(river)
-  const paths=g();paths.moveTo(-580,10).lineTo(590,10).stroke({color:P.pathEdge,width:54,alpha:.55});paths.moveTo(0,-390).lineTo(0,380).stroke({color:P.pathEdge,width:54,alpha:.55});paths.moveTo(-420,-220).lineTo(410,260).stroke({color:P.path,width:34,alpha:.75});paths.moveTo(-420,245).lineTo(455,-235).stroke({color:P.path,width:30,alpha:.65});this.addChild(paths)
-  for(let i=0;i<46;i++){const x=-770+(i*173)%1540,y=-460+(i*97)%850;if(Math.abs(x)<120||Math.abs(y)<80)continue;const pine=new Container();pine.position.set(x,y);pine.addChild(g().poly([0,-48,-25,0,25,0]).fill(P.pine),g().poly([0,-30,-31,16,31,16]).fill(P.pine2),g().rect(-5,14,10,24).fill(0x735545),g().ellipse(0,28,42,12).fill({color:0x819da8,alpha:.16}));pine.zIndex=Math.round(y)-200;this.addChild(pine)}
-  for(let i=0;i<20;i++){const x=-720+(i*211)%1440,y=-420+(i*137)%760;this.addChild(g().ellipse(x,y,12+(i%3)*5,6+(i%2)*3).fill({color:0xbacfd8,alpha:.65}))}
+ constructor(game){super();this.game=game;this.sortableChildren=true;this.buildingViews=new Map();this.people=[];this.makeTerrain();this.makeEnvironment();this.makeBuildings();this.makePeople()}
+ makeTerrain(){
+  const textures=visualAssets.tiles;let index=0
+  for(let r=-8;r<=8;r++)for(let c=-10;c<=10;c++){
+   const texture=textures[(Math.abs(r*3+c*5)+index++)%textures.length];const s=new Sprite(texture);s.anchor.set(.5);s.width=108;s.height=76;s.position.set((c-r)*51,(c+r)*25);s.tint=((r+c)&1)?0xddeef2:0xe8f5f7;s.alpha=.98;s.zIndex=-3000+Math.round(s.y);this.addChild(s)
+  }
  }
- makeBuildings(){for(const [id,d] of Object.entries(BUILDINGS)){const c=new Container();c.position.set(d.x,d.y);c.zIndex=Math.round(d.y);c.eventMode='static';c.cursor='pointer';c.hitArea=new Rectangle(-70,-130,140,210);c.on('pointertap',e=>{e.stopPropagation();this.game.selectBuilding(id)});this.addChild(c);this.buildingViews.set(id,c)}this.refresh()}
- refresh(){for(const [id,c] of this.buildingViews){c.removeChildren();const lvl=this.game.state.buildings[id]??0;c.addChild(artFor(id,lvl));const def=BUILDINGS[id];if(lvl&&def.production)c.addChild(resourceTag(def.production.resource));const n=txt(def.name,13);n.anchor.set(.5);n.position.set(0,76);c.addChild(n);const b=levelBadge(lvl);b.position.set(0,91);c.addChild(b)}}
- makeLife(){for(let i=0;i<10;i++){const p=new Container();p.addChild(g().circle(0,0,6).fill(i%3===0?0xd76b55:0x557a8d),g().circle(0,-8,4).fill(0xe3b18a));p.zIndex=900+i;this.people.push({view:p,a:i/10*Math.PI*2,r:120+(i%4)*55,s:.00018+(i%3)*.00003});this.addChild(p)}for(let i=0;i<70;i++){const s=g().circle(0,0,1.5+(i%3)).fill({color:0xffffff,alpha:.65});s.position.set(-820+(i*97)%1640,-520+(i*67)%1040);s.zIndex=2000;this.snow.push({view:s,speed:.35+(i%5)*.08,drift:(i%7-3)*.03});this.addChild(s)}for(let i=0;i<7;i++){const s=g().circle(0,0,8+i*2).fill({color:0xdde9ec,alpha:.22});s.zIndex=850+i;this.smoke.push({view:s,phase:i*.7});this.addChild(s)}}
- animate(t){const furnace=this.buildingViews.get('furnace');const flame=furnace?.children?.[0]?.children?.find?.(x=>x.label==='flame');const glow=furnace?.children?.[0]?.children?.find?.(x=>x.label==='glow');if(flame){const s=1+Math.sin(t/105)*.10;flame.scale.set(s,1.05-s*.05)}if(glow)glow.alpha=.22+(Math.sin(t/180)+1)*.08;for(const p of this.people){p.a+=p.s*16;p.view.position.set(Math.cos(p.a)*p.r,Math.sin(p.a)*p.r*.58+30);p.view.zIndex=Math.round(p.view.y)+800}for(const s of this.snow){s.view.y+=s.speed*2.1;s.view.x+=s.drift;if(s.view.y>540){s.view.y=-530;s.view.x=-820+Math.random()*1640}}for(let i=0;i<this.smoke.length;i++){const s=this.smoke[i],phase=(t*.00035+s.phase)%1;s.view.position.set(20+Math.sin(t/400+i)*8,-115-phase*115);s.view.alpha=(1-phase)*.25;s.view.scale.set(.7+phase*1.3)}this.sortChildren()}
+ makeEnvironment(){
+  const edge=[];for(let i=0;i<54;i++){const side=i%4;let x,y;if(side===0){x=-720+(i*83)%1440;y=-410+(i%5)*34}else if(side===1){x=-720+(i*97)%1440;y=410-(i%5)*30}else if(side===2){x=-720+(i%5)*35;y=-360+(i*89)%720}else{x=720-(i%5)*35;y=-360+(i*79)%720}edge.push({x,y})}
+  edge.forEach((p,i)=>{const texture=visualAssets.environment[i%visualAssets.environment.length];const s=fitSprite(texture,70+(i%4)*9);s.position.set(p.x,p.y);s.tint=0xd9eef0;s.alpha=.88;s.zIndex=Math.round(p.y)-200;this.addChild(s)})
+ }
+ makeBuildings(){
+  for(const [id,d] of Object.entries(BUILDINGS)){
+   const c=new Container();c.position.set(d.x,d.y);c.zIndex=Math.round(d.y)+100;c.eventMode='static';c.cursor='pointer';c.hitArea=new Rectangle(-78,-150,156,190);c.on('pointertap',e=>{e.stopPropagation();this.game.selectBuilding(id)});this.addChild(c);this.buildingViews.set(id,c)
+  }
+  this.refresh()
+ }
+ refresh(){
+  for(const [id,c] of this.buildingViews){
+   c.removeChildren();const lvl=this.game.state.buildings[id]??0;const def=BUILDINGS[id];c.addChild(buildingView(id,lvl));if(lvl&&def.production)c.addChild(resourceLabel(def.production.resource));c.addChild(levelLabel(lvl),nameLabel(def.name))
+  }
+ }
+ makePeople(){
+  for(let i=0;i<10;i++){
+   const texture=visualAssets.units[i%visualAssets.units.length];const s=fitSprite(texture,34);s.zIndex=1600+i;this.addChild(s);this.people.push({view:s,a:i/10*Math.PI*2,r:120+(i%4)*56,s:.00015+(i%3)*.000025})
+  }
+ }
+ focus(id){
+  const c=this.buildingViews.get(id);if(!c)return;const s=c.getChildByLabel?.('asset')??c.children[0]?.children?.[0];if(s){s.alpha=1;s.scale.set(s.scale.x*1.12);setTimeout(()=>this.refresh(),650)}
+ }
+ animate(){for(const p of this.people){p.a+=p.s*16;p.view.position.set(Math.cos(p.a)*p.r,Math.sin(p.a)*p.r*.56+42);p.view.zIndex=Math.round(p.view.y)+1500}this.sortChildren()}
 }
