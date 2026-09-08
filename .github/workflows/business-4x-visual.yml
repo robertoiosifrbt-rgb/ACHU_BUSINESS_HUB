@@ -1,0 +1,84 @@
+name: Business 4X Visual QA
+
+on:
+  push:
+    branches:
+      - rebuild/business-4x-v2
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mobile-4x:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npm run build
+      - run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start preview
+        run: |
+          nohup npm run preview -- --host 127.0.0.1 --port 4173 > /tmp/achu-4x.log 2>&1 &
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:4173/ACHU_BUSINESS_HUB/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/achu-4x.log
+          exit 1
+      - name: Play the 4X opening on mobile
+        run: |
+          mkdir -p fourx-qa
+          cat > fourx-qa/check.mjs <<'EOF'
+          import { chromium } from 'playwright'
+          import fs from 'node:fs'
+          const browser=await chromium.launch({headless:true,args:['--use-angle=swiftshader','--enable-webgl','--ignore-gpu-blocklist']})
+          const page=await browser.newPage({viewport:{width:430,height:932},deviceScaleFactor:1})
+          const errors=[],failed=[]
+          page.on('console',m=>{if(m.type()==='error')errors.push(m.text())})
+          page.on('pageerror',e=>errors.push(e.message))
+          page.on('requestfailed',r=>{if(!r.url().includes('fonts.googleapis.com')&&!r.url().includes('fonts.gstatic.com')&&!r.url().includes('raw.githubusercontent.com'))failed.push(`${r.url()} :: ${r.failure()?.errorText}`)})
+          await page.addInitScript(()=>{for(const k of Object.keys(localStorage))if(k.startsWith('build_strategy_'))localStorage.removeItem(k)})
+          await page.goto('http://127.0.0.1:4173/ACHU_BUSINESS_HUB/',{waitUntil:'networkidle',timeout:90000})
+          await page.waitForTimeout(5000)
+          const body=()=>page.locator('body').innerText()
+          const text=await body()
+          for(const required of['EXPLORE','EXPAND','OPERATE','COMPETE','ACT I · FIND THE WORK','CITY','BASE','CREWS','SYSTEMS'])if(!text.includes(required))throw new Error(`Opening missing ${required}`)
+          if((await page.locator('#mode-tag').innerText()).trim()!=='STRATEGIC MAP')throw new Error('Game did not open on the strategic map')
+          await page.screenshot({path:'fourx-qa/01-strategic-map.png',fullPage:true})
+          await page.locator('#quest').click();await page.waitForTimeout(300)
+          const tileText=await page.locator('#sheet').innerText()
+          if(!tileText.includes('Unknown neighbourhood')||!tileText.includes('RESEARCH THIS AREA'))throw new Error('Quest did not route directly to a researchable area')
+          await page.screenshot({path:'fourx-qa/02-first-explore.png',fullPage:true})
+          await page.locator('#tile-action').click();await page.waitForTimeout(350)
+          const afterDispatch=await body();if(!afterDispatch.includes('crew out in the city')&&!afterDispatch.includes('crew') )throw new Error('Research dispatch did not start')
+          await page.screenshot({path:'fourx-qa/03-crew-dispatched.png',fullPage:true})
+          await page.locator('[data-mode="city"]').click();await page.waitForTimeout(450)
+          if((await page.locator('#mode-tag').innerText()).trim()!=='ACHU BASE')throw new Error('Base mode failed')
+          await page.screenshot({path:'fourx-qa/04-base.png',fullPage:true})
+          await page.locator('#quest').click();await page.waitForTimeout(350)
+          const building=await page.locator('#sheet').innerText();if(!building.includes('WHY THIS EXISTS'))throw new Error('Base mission did not route to the next building')
+          await page.screenshot({path:'fourx-qa/05-building.png',fullPage:true})
+          await page.locator('[data-close]').first().click();await page.locator('[data-action="army"]').click();await page.waitForTimeout(250)
+          if(!(await page.locator('#sheet').innerText()).includes('Crew board'))throw new Error('Crews screen failed')
+          await page.locator('[data-close]').first().click();await page.locator('[data-action="tech"]').click();await page.waitForTimeout(250)
+          if(!(await page.locator('#sheet').innerText()).includes('Business systems'))throw new Error('Systems screen failed')
+          await page.locator('[data-close]').first().click();await page.locator('[data-action="more"]').click();await page.waitForTimeout(250)
+          const more=await page.locator('#sheet').innerText();for(const required of['PARTNERS','INBOX','BASE STORY'])if(!more.includes(required))throw new Error(`More screen missing ${required}`)
+          await page.screenshot({path:'fourx-qa/06-more.png',fullPage:true})
+          const report={canvas:await page.locator('canvas').count(),errors,failed,mode:(await page.locator('#mode-tag').innerText()).trim()}
+          fs.writeFileSync('fourx-qa/report.json',JSON.stringify(report,null,2));await browser.close()
+          if(report.canvas!==1||errors.length||failed.length)process.exitCode=1
+          EOF
+          node fourx-qa/check.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: business-4x-mobile-qa
+          path: fourx-qa
+          if-no-files-found: warn
