@@ -5,90 +5,60 @@ import { worldTile,parseTile,adjacentTo } from '../data/world.js'
 
 const short=n=>{const v=Math.floor(Number(n)||0);return v>=1e6?`${(v/1e6).toFixed(1)}M`:v>=1e3?`${(v/1e3).toFixed(1)}K`:`${v}`}
 const time=ms=>{let s=Math.max(0,Math.ceil(ms/1000));if(s<60)return`${s}s`;const m=Math.floor(s/60);s%=60;return`${m}m ${s}s`}
-const resourceName=k=>RESOURCES[k]?.short??k.toUpperCase()
-const costHtml=c=>Object.entries(c??{}).map(([k,v])=>`<span class="cost ${k}"><i>${RESOURCES[k]?.icon??'•'}</i>${resourceName(k)} ${short(v)}</span>`).join('')
-const TEAM={infantry:{name:'Field Teams',unit:'staff'},lancer:{name:'Mobile Teams',unit:'staff'},marksman:{name:'Specialists',unit:'staff'}}
-const kindLabel={base:'headquarters',resource:'opportunity',camp:'contract lead',settlement:'competitor account',wild:'market zone'}
+const costHtml=c=>Object.entries(c??{}).map(([k,v])=>`<span class="cost ${k}"><i>${RESOURCES[k]?.icon??'•'}</i>${short(v)} ${RESOURCES[k]?.short??k}</span>`).join('')
+const TEAM={infantry:{name:'Cleaning crew',copy:'Core service team'},lancer:{name:'Mobile crew',copy:'Fast jobs across the city'},marksman:{name:'Specialists',copy:'Premium and difficult work'}}
+const STORIES={meat:'A new client is ready to book.',wood:'A supply opportunity can improve your operation.',coal:'A visible job could boost your reputation.',iron:'A strong candidate is available in this area.'}
 
 export class GameUI{
  constructor(game){this.game=game;this.root=document.createElement('div');this.root.className='game-ui';document.body.appendChild(this.root);this.renderShell();this.bind();this.refresh()}
  renderShell(){this.root.innerHTML=`
   <div class="topbar">
-   <div class="profile"><b>A</b><div><strong>ACHU BUSINESS HUB</strong><small id="power"></small></div></div>
+   <div class="profile"><b>A</b><div><strong>ACHU</strong><small id="power"></small></div></div>
    <div id="resources" class="resources"></div>
   </div>
-  <button id="quest" class="quest-card"></button><div id="mode-tag" class="mode-tag">CAMPUS</div>
-  <button id="update-app" class="update-app">SYNC</button><div id="queue" class="queue-card"></div><div id="toast" class="toast"></div>
-  <div id="sheet" class="sheet hidden"></div>
+  <button id="quest" class="quest-card"></button>
+  <div id="mode-tag" class="mode-tag">MY DISTRICT</div><button id="update-app" class="update-app">REFRESH</button>
+  <div id="queue" class="queue-card"></div><div id="toast" class="toast"></div><div id="sheet" class="sheet hidden"></div>
   <nav class="bottom-nav">
-   <button data-mode="city"><span>⌂</span><b>CAMPUS</b></button>
-   <button data-mode="world"><span>◎</span><b>MARKET</b></button>
-   <button data-action="army"><span>◉</span><b>TEAM</b></button>
-   <button data-action="tech"><span>⌬</span><b>SYSTEMS</b></button>
-   <button data-action="guild"><span>◇</span><b>NETWORK</b></button>
-   <button data-action="events"><span>✦</span><b>DEALS</b></button>
+   <button data-mode="city"><span>⌂</span><b>MY PLACE</b></button>
+   <button data-mode="world"><span>⌖</span><b>THE CITY</b></button>
+   <button data-action="army"><span>◉</span><b>CREW</b></button>
+   <button data-action="tech"><span>✦</span><b>OFFICE</b></button>
+   <button data-action="guild"><span>◇</span><b>PARTNERS</b></button>
+   <button data-action="events"><span>☰</span><b>INBOX</b></button>
   </nav>`}
- bind(){
-  this.root.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>this.game.setMode(b.dataset.mode))
-  this.root.querySelector('[data-action="army"]').onclick=()=>this.openArmy()
-  this.root.querySelector('[data-action="tech"]').onclick=()=>this.openTech()
-  this.root.querySelector('[data-action="guild"]').onclick=()=>this.openGuild()
-  this.root.querySelector('[data-action="events"]').onclick=()=>this.openEvents()
-  this.root.querySelector('#quest').onclick=()=>this.questAction()
-  this.root.querySelector('#update-app').onclick=()=>window.appUpdater?.checkAndApply?.()
- }
- toast(msg){const el=this.root.querySelector('#toast');el.textContent=msg;el.classList.add('show');clearTimeout(this.toastTimer);this.toastTimer=setTimeout(()=>el.classList.remove('show'),1800)}
+ bind(){this.root.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>this.game.setMode(b.dataset.mode));this.root.querySelector('[data-action="army"]').onclick=()=>this.openArmy();this.root.querySelector('[data-action="tech"]').onclick=()=>this.openTech();this.root.querySelector('[data-action="guild"]').onclick=()=>this.openGuild();this.root.querySelector('[data-action="events"]').onclick=()=>this.openEvents();this.root.querySelector('#quest').onclick=()=>this.questAction();this.root.querySelector('#update-app').onclick=()=>window.appUpdater?.checkAndApply?.()}
+ toast(msg){const el=this.root.querySelector('#toast');el.textContent=msg;el.classList.add('show');clearTimeout(this.toastTimer);this.toastTimer=setTimeout(()=>el.classList.remove('show'),1900)}
  hideSheet(){this.root.querySelector('#sheet').classList.add('hidden')}
  openSheet(html){const s=this.root.querySelector('#sheet');s.innerHTML=html;s.classList.remove('hidden');s.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>this.hideSheet())}
  refresh(){this.refreshTop();this.refreshQuest();this.refreshQueue();this.refreshNav()}
- refreshTop(){
-  const s=this.game.state
-  this.root.querySelector('#power').textContent=`${short(s.power)} COMPANY VALUE`
-  this.root.querySelector('#resources').innerHTML=Object.entries(RESOURCES).map(([k,r])=>`<div class="resource"><i style="--c:#${r.color.toString(16).padStart(6,'0')}">${r.icon??''}</i><b>${short(s.resources[k])}</b><small>${r.short}</small></div>`).join('')
- }
+ refreshTop(){const s=this.game.state;this.root.querySelector('#power').textContent=`£${short(s.resources.meat)} · ${short(s.power)} VALUE`;this.root.querySelector('#resources').innerHTML=Object.entries(RESOURCES).map(([k,r])=>`<div class="resource"><i style="--c:#${r.color.toString(16).padStart(6,'0')}">${r.icon}</i><b>${short(s.resources[k])}</b><small>${r.label}</small></div>`).join('')}
  refreshQuest(){
-  const q=this.root.querySelector('#quest'),ch=currentChapter(this.game.state)
-  if(this.game.mode==='world'||!ch){const w=this.game.state.world;q.innerHTML=`<i>↗</i><div><strong>MARKET GROWTH</strong><b>${w.scouted.length<12?'Research nearby demand':w.owned.length<5?'Open another service area':w.defeated.length<1?'Win your first commercial contract':'Scale into competitor territory'}</b><small>${w.owned.length} service areas · ${w.defeated.length} contracts won</small></div><em>›</em>`;return}
-  const st=chapterStatus(this.game.state,ch);q.innerHTML=`<i>✦</i><div><strong>${ch.title}</strong><b>${st.done?'Milestone reward ready':`${BUILDINGS[st.next?.[0]]?.name??'Division'} → Lv. ${st.next?.[1]??''}`}</b><small>${st.complete}/${st.total} business goals</small></div><em>›</em>`
+  const q=this.root.querySelector('#quest'),ch=currentChapter(this.game.state),w=this.game.state.world
+  if(this.game.mode==='world'){const text=w.scouted.length<12?'People nearby are looking for services':w.owned.length<5?'Your next neighbourhood is waiting':w.defeated.length<1?'A commercial client wants a serious pitch':'The city is opening up around ACHU';q.innerHTML=`<i>●</i><div><strong>LIVE IN THE CITY</strong><b>${text}</b><small>${w.owned.length} areas active · ${w.marches.length} crews out</small></div><em>›</em>`;return}
+  if(!ch){q.innerHTML=`<i>♥</i><div><strong>TODAY AT ACHU</strong><b>Keep the city moving</b><small>Open the city to find the next opportunity</small></div><em>›</em>`;return}
+  const st=chapterStatus(this.game.state,ch),next=BUILDINGS[st.next?.[0]]?.name;q.innerHTML=`<i>${st.done?'✓':'✦'}</i><div><strong>${st.done?'A GOOD DAY':'NEXT MOVE'}</strong><b>${st.done?'You have something to collect':`Bring ${next??'the business'} to life`}</b><small>${st.done?'Tap to collect the milestone':`${st.complete}/${st.total} steps in this chapter`}</small></div><em>›</em>`
  }
  questAction(){const ch=currentChapter(this.game.state);if(this.game.mode==='world'||!ch){this.game.setMode('world');return}const st=chapterStatus(this.game.state,ch);if(st.done)this.game.claimChapter(ch);else if(st.next)this.game.focusBuilding(st.next[0])}
- refreshQueue(){
-  const s=this.game.state,c=s.construction,r=s.researchJob,w=s.world
-  this.root.querySelector('#queue').innerHTML=`<b>${c?`BUILD · ${BUILDINGS[c.id].name} Lv.${c.target} · ${time(c.finishAt-Date.now())}`:'OPERATIONS · READY'}</b><small>${r?`SYSTEM · ${findResearch(r.id)?.name??r.id} Lv.${r.target} · ${time(r.finishAt-Date.now())}`:`Field deployments ${w.marches.length}/${this.game.marchCapacity()} · ${c?'development active':'capacity available'}`}</small>`
- }
- refreshNav(){this.root.querySelector('#mode-tag').textContent=this.game.mode==='world'?'MARKET':'CAMPUS';this.root.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('active',b.dataset.mode===this.game.mode))}
+ refreshQueue(){const s=this.game.state,c=s.construction,r=s.researchJob,w=s.world;let title='The office is calm',sub='No crew is waiting on you';if(c){title=`${BUILDINGS[c.id].name} is changing`;sub=`Ready in ${time(c.finishAt-Date.now())}`}else if(r){title=`Improving ${findResearch(r.id)?.name??'the business'}`;sub=`Ready in ${time(r.finishAt-Date.now())}`}else if(w.marches.length){title=`${w.marches.length} crew${w.marches.length>1?'s':''} out in the city`;sub='They will return automatically'}this.root.querySelector('#queue').innerHTML=`<b>${title}</b><small>${sub}</small>`}
+ refreshNav(){this.root.querySelector('#mode-tag').textContent=this.game.mode==='world'?'THE CITY':'MY DISTRICT';this.root.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('active',b.dataset.mode===this.game.mode))}
  openBuilding(id){
   const d=BUILDINGS[id],lvl=this.game.state.buildings[id]??0,target=nextBuildingLevel(this.game.state,id),spec=d.levels[target],req=spec?buildingRequirements(this.game.state,id,target):[]
-  this.openSheet(`<header><div><small>${d.category.toUpperCase()}</small><h2>${d.name}</h2><p>Level ${lvl}/12</p></div><button data-close>×</button></header><div class="sheet-body"><p class="building-copy">${d.description??d.role??''}</p>${spec?`<h3>${lvl?'NEXT DEVELOPMENT':'OPEN DIVISION'} · LEVEL ${target}</h3><div class="costs">${costHtml(spec.cost)}</div><p class="require ${req.length?'bad':'good'}">${req.length?`Requires ${req.join(' · ')}`:'Ready to develop'}</p><button id="upgrade" class="primary">${this.game.state.construction?'DEVELOPMENT BUSY':lvl?'UPGRADE DIVISION':'OPEN DIVISION'}</button>`:'<h3>DIVISION FULLY DEVELOPED</h3>'}</div>`)
+  const mood=id==='furnace'?'This is where ACHU becomes a real company.':lvl?'This place is already working for you. Make it stronger when the time is right.':'This part of the business is still only an idea.'
+  this.openSheet(`<header><div><small>${d.category.toUpperCase()}</small><h2>${d.name}</h2><p>${lvl?`Business level ${lvl}`:'Not opened yet'}</p></div><button data-close>×</button></header><div class="sheet-body"><div class="story-card"><b>${mood}</b><p>${d.description??d.role??''}</p></div>${spec?`<h3>${lvl?'MAKE IT BETTER':'BRING IT TO LIFE'}</h3><div class="costs">${costHtml(spec.cost)}</div><p class="require ${req.length?'bad':'good'}">${req.length?`First you need ${req.join(' · ')}`:'You can do this now'}</p><button id="upgrade" class="primary">${this.game.state.construction?'SOMETHING ELSE IS BEING BUILT':lvl?'IMPROVE THIS PLACE':'OPEN THIS PLACE'}</button>`:'<div class="story-card success"><b>This place is fully developed.</b><p>It is doing everything it can for ACHU.</p></div>'}</div>`)
   const b=this.root.querySelector('#upgrade');if(b&&!this.game.state.construction)b.onclick=()=>{this.game.upgradeBuilding(id);this.hideSheet()}
  }
  openWorldTile(id){
-  const [x,y]=parseTile(id),d=worldTile(x,y),w=this.game.state.world,scouted=w.scouted.includes(id),owned=w.owned.includes(id);let action=''
-  if(!scouted&&adjacentTo(id,w.scouted))action=`<button id="tile-action" class="primary">RESEARCH AREA</button>`
-  else if(scouted&&!owned&&!['camp','settlement'].includes(d.kind)&&adjacentTo(id,w.owned))action=`<button id="tile-action" class="primary">OPEN SERVICE AREA</button>`
-  else if(scouted&&d.kind==='resource'&&owned)action=`<button id="tile-action" class="primary">WORK OPPORTUNITY</button>`
-  else if(scouted&&['camp','settlement'].includes(d.kind))action=`<button id="tile-action" class="danger">PITCH FOR CONTRACT · ${short(d.strength)}</button>`
-  this.openSheet(`<header><div><small>${d.region.toUpperCase()}</small><h2>${scouted?d.name:'Unresearched market'}</h2><p>${scouted?`Level ${d.level??1} · ${kindLabel[d.kind]??d.kind}`:'Demand data unavailable'}</p></div><button data-close>×</button></header><div class="sheet-body">${scouted&&d.reward?`<h3>BUSINESS VALUE</h3><div class="costs">${costHtml(d.reward)}</div>`:''}${action||'<p>Expand through an adjacent service area to unlock this market.</p>'}</div>`)
+  const [x,y]=parseTile(id),d=worldTile(x,y),w=this.game.state.world,scouted=w.scouted.includes(id),owned=w.owned.includes(id);let action='',story=''
+  if(!scouted){story='You can see activity here, but you do not know the neighbourhood yet.';if(adjacentTo(id,w.scouted))action='<button id="tile-action" class="primary">LOOK AROUND</button>'}
+  else if(d.kind==='resource'){story=STORIES[d.resource]??'There is a live opportunity here.';if(owned)action='<button id="tile-action" class="primary">SEND A CREW</button>';else if(adjacentTo(id,w.owned))action='<button id="tile-action" class="primary">START WORKING HERE</button>'}
+  else if(['camp','settlement'].includes(d.kind)){story=d.kind==='camp'?'A commercial client is looking for a company they can trust.':'Another operator is already strong in this part of town.';action=`<button id="tile-action" class="danger">MAKE A PITCH · ${short(d.strength)}</button>`}
+  else{story='A quiet part of the city that could become part of your regular route.';if(!owned&&adjacentTo(id,w.owned))action='<button id="tile-action" class="primary">ADD TO YOUR ROUTE</button>'}
+  this.openSheet(`<header><div><small>${d.region.toUpperCase()}</small><h2>${scouted?d.name:'Somewhere nearby'}</h2><p>${owned?'Part of your service area':scouted?'Known neighbourhood':'Not explored yet'}</p></div><button data-close>×</button></header><div class="sheet-body"><div class="story-card"><b>${story}</b>${scouted&&d.reward?`<p>Worth ${Object.entries(d.reward).map(([k,v])=>`${RESOURCES[k]?.icon??''}${short(v)}`).join(' · ')} if it goes well.</p>`:''}</div>${action||'<p class="quiet-copy">Nothing needs your attention here right now.</p>'}</div>`)
   const b=this.root.querySelector('#tile-action');if(b)b.onclick=()=>{if(!scouted)this.game.scoutTile(id);else if(!owned&&!['camp','settlement'].includes(d.kind))this.game.claimTile(id);else if(d.kind==='resource')this.game.gatherTile(id);else this.game.attackTile(id);this.hideSheet()}
  }
- openArmy(){
-  const w=this.game.state.world
-  this.openSheet(`<header><div><small>PEOPLE</small><h2>Workforce</h2><p>Operational capacity ${short(this.game.armyPower())}</p></div><button data-close>×</button></header><div class="sheet-body army-list">${Object.entries(TEAM).map(([k,d])=>`<div><span><b>${d.name.toUpperCase()}</b><small>${short(w.troops[k]??0)} ${d.unit}</small></span><button data-train="${k}">HIRE</button></div>`).join('')}</div>`)
-  this.root.querySelectorAll('[data-train]').forEach(b=>b.onclick=()=>this.game.trainTroops(b.dataset.train))
- }
- openTech(){
-  const s=this.game.state,items=Object.values(RESEARCH).flatMap(branch=>Object.entries(branch.items).map(([id,d])=>({id,...d})))
-  this.openSheet(`<header><div><small>BUSINESS SYSTEMS</small><h2>Systems & Process</h2><p>${s.researchJob?'Improvement in progress':'Improvement capacity available'}</p></div><button data-close>×</button></header><div class="sheet-body tech-list">${items.map(d=>{const lvl=s.research[d.id]??0,c=researchCost(d,Math.min(d.max,lvl+1));return`<button data-research="${d.id}"><span><b>${d.name}</b><small>Lv. ${lvl}/${d.max}</small></span><em>${lvl>=d.max?'MAX':short(Object.values(c).reduce((a,b)=>a+b,0))}</em></button>`}).join('')}</div>`)
-  this.root.querySelectorAll('[data-research]').forEach(b=>b.onclick=()=>{this.game.research(b.dataset.research);this.hideSheet()})
- }
- openGuild(){
-  const g=this.game.state.guild
-  if(!g.id){this.openSheet(`<header><div><small>NETWORK</small><h2>Partner Network</h2><p>Build a business network for shared capacity and opportunities</p></div><button data-close>×</button></header><div class="sheet-body"><h3>CREATE NETWORK</h3><input id="guild-name" type="text" placeholder="Network name (3-20 chars)" maxlength="20"/><button id="create-guild" class="primary">CREATE NETWORK</button></div>`);this.root.querySelector('#create-guild').onclick=()=>{const name=this.root.querySelector('#guild-name').value;this.game.createGuild(name)}}
-  else{const members=Object.entries(g.members).map(([id,m])=>`<div class="network-member"><span>${id===g.leader?'★ ':''}${id}</span><small>${m.role}</small></div>`).join('');this.openSheet(`<header><div><small>NETWORK</small><h2>${g.name}</h2><p>Lv. ${g.level} · ${Object.keys(g.members).length} partners</p></div><button data-close>×</button></header><div class="sheet-body"><h3>PARTNERS</h3>${members}<h3>SHARED RESOURCES</h3><div>${Object.entries(g.treasury).map(([k,v])=>`<div><b>${resourceName(k)}</b> ${short(v)}</div>`).join('')}</div></div>`)}
- }
- openEvents(){
-  const events=this.game.state.events.active.map(e=>`<div><span><b>${e.title}</b><small>${e.description}</small></span><em>${short(Object.values(e.reward??{}).reduce((a,b)=>a+b,0))}</em><button data-event-claim="${e.id}">CLAIM</button></div>`).join('')
-  this.openSheet(`<header><div><small>OPPORTUNITIES</small><h2>Live Deals</h2><p>${this.game.state.events.active.length} active</p></div><button data-close>×</button></header><div class="sheet-body events-list">${events||'<p>No live opportunities right now.</p>'}</div>`)
-  this.root.querySelectorAll('[data-event-claim]').forEach(b=>b.onclick=()=>this.game.claimEventReward(b.dataset.eventClaim))
- }
+ openArmy(){const w=this.game.state.world;this.openSheet(`<header><div><small>YOUR PEOPLE</small><h2>Crew board</h2><p>${short(this.game.armyPower())} total working strength</p></div><button data-close>×</button></header><div class="sheet-body"><div class="story-card"><b>People are the business.</b><p>Build teams here, then send them into the city when work appears.</p></div><div class="army-list">${Object.entries(TEAM).map(([k,d])=>`<div><span><b>${d.name}</b><small>${d.copy} · ${short(w.troops[k]??0)} people</small></span><button data-train="${k}">HIRE</button></div>`).join('')}</div></div>`);this.root.querySelectorAll('[data-train]').forEach(b=>b.onclick=()=>this.game.trainTroops(b.dataset.train))}
+ openTech(){const s=this.game.state,items=Object.values(RESEARCH).flatMap(branch=>Object.entries(branch.items).map(([id,d])=>({id,...d})));this.openSheet(`<header><div><small>BEHIND THE SCENES</small><h2>The office</h2><p>${s.researchJob?'One improvement is underway':'Choose what ACHU gets better at next'}</p></div><button data-close>×</button></header><div class="sheet-body"><div class="story-card"><b>Small systems make a big company feel effortless.</b><p>Improve process, speed and output without turning the game into spreadsheets.</p></div><div class="tech-list">${items.map(d=>{const lvl=s.research[d.id]??0,c=researchCost(d,Math.min(d.max,lvl+1));return`<button data-research="${d.id}"><span><b>${d.name}</b><small>${lvl>=d.max?'Fully learned':`Experience ${lvl}/${d.max}`}</small></span><em>${lvl>=d.max?'DONE':short(Object.values(c).reduce((a,b)=>a+b,0))}</em></button>`}).join('')}</div></div>`);this.root.querySelectorAll('[data-research]').forEach(b=>b.onclick=()=>{this.game.research(b.dataset.research);this.hideSheet()})}
+ openGuild(){const g=this.game.state.guild;if(!g.id){this.openSheet(`<header><div><small>PEOPLE AROUND YOU</small><h2>Partners</h2><p>Build relationships that make bigger work possible</p></div><button data-close>×</button></header><div class="sheet-body"><div class="story-card"><b>You do not have to grow alone.</b><p>Create a partner network for shared opportunities and support.</p></div><input id="guild-name" type="text" placeholder="Give the network a name" maxlength="20"/><button id="create-guild" class="primary">CREATE PARTNER NETWORK</button></div>`);this.root.querySelector('#create-guild').onclick=()=>this.game.createGuild(this.root.querySelector('#guild-name').value)}else{const members=Object.entries(g.members).map(([id,m])=>`<div class="network-member"><span>${id===g.leader?'★ ':''}${id}</span><small>${m.role}</small></div>`).join('');this.openSheet(`<header><div><small>PARTNER NETWORK</small><h2>${g.name}</h2><p>${Object.keys(g.members).length} people connected</p></div><button data-close>×</button></header><div class="sheet-body">${members}</div>`)}}
+ openEvents(){const events=this.game.state.events.active.map(e=>`<div><span><b>${e.title}</b><small>${e.description}</small></span><button data-event-claim="${e.id}">OPEN</button></div>`).join('');this.openSheet(`<header><div><small>WHAT'S HAPPENING</small><h2>Inbox</h2><p>${this.game.state.events.active.length?`${this.game.state.events.active.length} things need a look`:'Nothing urgent'}</p></div><button data-close>×</button></header><div class="sheet-body events-list">${events||'<div class="story-card success"><b>Quiet is good sometimes.</b><p>No new deals or surprises right now.</p></div>'}</div>`);this.root.querySelectorAll('[data-event-claim]').forEach(b=>b.onclick=()=>this.game.claimEventReward(b.dataset.eventClaim))}
 }
