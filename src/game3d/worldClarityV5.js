@@ -1,23 +1,10 @@
 import * as THREE from 'three'
 import { BASE_TILE,parseTile } from '../data/world.js'
 import { fourXFlow } from './fourXFlow.js'
-import { worldVisualPositionV9 } from './worldCityV9.js'
+import { worldVisualPositionV10 } from './worldCityV10.js'
 
-export const WORLD_VISUAL_SCALE=.62
-const point=id=>{const [x,y]=parseTile(id),p=worldVisualPositionV9(x,y).multiplyScalar(WORLD_VISUAL_SCALE);p.y=.09;return p}
-function label(text,color=0xffffff){
- const c=document.createElement('canvas');c.width=512;c.height=128;const x=c.getContext('2d');x.fillStyle='rgba(17,31,28,.9)';x.roundRect(8,15,496,98,24);x.fill();x.strokeStyle=`#${color.toString(16).padStart(6,'0')}`;x.lineWidth=4;x.stroke();x.fillStyle='#e7eadf';x.font='900 30px Inter,Arial';x.textAlign='center';x.textBaseline='middle';x.fillText(text,256,64,450);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,depthWrite:false}));s.scale.set(4.2,1.05,1);return s
-}
+export const WORLD_VISUAL_SCALE=.78
+const point=id=>{const [x,y]=parseTile(id),p=worldVisualPositionV10(x,y).multiplyScalar(WORLD_VISUAL_SCALE);p.y=.11;return p}
+function label(text,color=0xffffff){const c=document.createElement('canvas');c.width=512;c.height=128;const x=c.getContext('2d');x.fillStyle='rgba(17,31,28,.9)';x.roundRect(8,15,496,98,24);x.fill();x.strokeStyle=`#${color.toString(16).padStart(6,'0')}`;x.lineWidth=4;x.stroke();x.fillStyle='#e7eadf';x.font='900 30px Inter,Arial';x.textAlign='center';x.textBaseline='middle';x.fillText(text,256,64,450);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,depthWrite:false}));s.scale.set(4.2,1.05,1);return s}
 function marker(parent,p,text,color=0x53d2a0){const g=new THREE.Group();g.position.copy(p);const ring=new THREE.Mesh(new THREE.RingGeometry(.5,.72,40),new THREE.MeshBasicMaterial({color,transparent:true,opacity:.9,side:THREE.DoubleSide,depthWrite:false}));ring.rotation.x=-Math.PI/2;g.add(ring);const beam=new THREE.Mesh(new THREE.CylinderGeometry(.04,.07,1.25,10),new THREE.MeshBasicMaterial({color,transparent:true,opacity:.46,depthWrite:false}));beam.position.y=.62;g.add(beam);const l=label(text,color);l.position.y=1.48;l.scale.multiplyScalar(.62);g.add(l);parent.add(g);return g}
-
-export class WorldClarityOverlay extends THREE.Group{
- constructor(state){super();this.state=state;this.name='world-clarity-v9';this.objectiveId=null;this.baseMarker=null;this.objective=null;this.buildBase();this.sync(state,true)}
- buildBase(){this.baseMarker=marker(this,point(BASE_TILE),'ACHU HQ',0x53d2a0);this.baseMarker.scale.setScalar(.82)}
- sync(state,force=false){
-  this.state=state;const flow=fourXFlow(state),id=flow.target??null;if(!force&&id===this.objectiveId)return
-  this.objective?.removeFromParent();this.objective=null;this.objectiveId=id;if(!id)return
-  this.objective=marker(this,point(id),`NEXT · ${flow.label}`,0xe0b85a)
- }
- animate(now){if(!this.objective)return;const s=1+Math.sin(now*.004)*.07;this.objective.scale.setScalar(s)}
- objectivePoint(){return this.objectiveId?point(this.objectiveId):point(BASE_TILE)}
-}
+export class WorldClarityOverlay extends THREE.Group{constructor(state){super();this.state=state;this.name='world-clarity-v10';this.objectiveId=null;this.baseMarker=null;this.objective=null;this.buildBase();this.sync(state,true)}buildBase(){this.baseMarker=marker(this,point(BASE_TILE),'ACHU HQ',0x53d2a0);this.baseMarker.scale.setScalar(.82)}sync(state,force=false){this.state=state;const flow=fourXFlow(state),id=flow.target??null;if(!force&&id===this.objectiveId)return;this.objective?.removeFromParent();this.objective=null;this.objectiveId=id;if(!id)return;this.objective=marker(this,point(id),`NEXT · ${flow.label}`,0xe0b85a)}animate(now){if(!this.objective)return;const s=1+Math.sin(now*.004)*.07;this.objective.scale.setScalar(s)}objectivePoint(){return this.objectiveId?point(this.objectiveId):point(BASE_TILE)}}
