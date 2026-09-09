@@ -20,7 +20,7 @@ function tintLightMaterials(root){
   for(const m of mats){
    if(!m?.color||m.userData?.achuTinted)continue
    const c=m.color
-   if(c.r>.56&&c.g>.56&&c.b>.53)c.lerp(target,.34)
+   if(c.r>.56&&c.g>.56&&c.b>.53)c.lerp(target,.28)
    m.userData={...(m.userData??{}),achuTinted:true};m.needsUpdate=true
   }
  })
@@ -31,7 +31,7 @@ export class VisualBusinessGame extends Business4XGame{
  async start(){
   await super.start()
   this.ui?.root?.remove();this.ui=new StoryMissionUI(this)
-  this.cityTraffic=decorateCampus(this.city)
+  this.cityTraffic=decorateCampus(this.city,this.assets)
   this.world.scale.setScalar(WORLD_VISUAL_SCALE)
   this.worldOverlay=new WorldClarityOverlay(this.state);this.worldOverlay.visible=this.mode==='world';this.scene.add(this.worldOverlay)
   this.scene.background.setHex(0x506b61);if(this.scene.fog){this.scene.fog.color.setHex(0x506b61);this.scene.fog.density=.0055}
@@ -80,7 +80,7 @@ export class VisualBusinessGame extends Business4XGame{
   if(!this.worldOverlay)return;this.worldOverlay.sync(this.state);const p=this.worldOverlay.objectivePoint();this.controls.target.copy(p);this.camera.position.set(p.x+11.5,16.5,p.z+11.5);this.camera.lookAt(p);this.camera.zoom=1;this.camera.updateProjectionMatrix();if(announce)this.ui?.toast('Follow the gold NEXT marker')
  }
  focusBuilding(id){super.focusBuilding(id);this.camera.position.y=14.5;this.camera.updateProjectionMatrix()}
- rebuildCity(){super.rebuildCity();this.cityTraffic=decorateCampus(this.city);tintLightMaterials(this.city)}
+ rebuildCity(){super.rebuildCity();this.cityTraffic=decorateCampus(this.city,this.assets);tintLightMaterials(this.city)}
  update(){
   super.update();this.correctWorldVehicleFacing()
   const now=performance.now();if(this.worldOverlay&&now-this.visualSyncAt>500){this.visualSyncAt=now;this.worldOverlay.sync(this.state);tintLightMaterials(this.world)}
