@@ -1,7 +1,24 @@
 import * as THREE from 'three'
 import { BUILDINGS } from '../data/buildings.js'
 
-const LAYOUT={furnace:[0,-.8],shelter:[-6.7,3.6],sawmill:[7.2,5.1],huntersHut:[5.9,-6],coalMine:[-7,-5.8],ironMine:[10.2,-1.1],storehouse:[11.2,6.5],infirmary:[-10.5,1.1],embassy:[-2.8,8.2],infantryCamp:[2.8,-9],lancerCamp:[9.2,-8.1],marksmanCamp:[-9.2,-8.8],researchCenter:[4.4,8.5]}
+// Plot centres are deliberately placed inside the blocks made by cityLifeV5's
+// road network. The previous coordinates were for much smaller procedural
+// buildings and let the larger Kenney models overlap the carriageway.
+const LAYOUT={
+ furnace:[.3,.55],
+ shelter:[-8.2,.55],
+ huntersHut:[8.25,.55],
+ coalMine:[.3,6.85],
+ embassy:[-7.9,7.0],
+ ironMine:[8.0,7.0],
+ sawmill:[-7.9,-9.55],
+ storehouse:[.3,-9.55],
+ lancerCamp:[8.0,-9.55],
+ infantryCamp:[-12.2,6.9],
+ infirmary:[12.0,6.9],
+ marksmanCamp:[-12.1,-9.5],
+ researchCenter:[12.0,-9.5]
+}
 const ACCENT={furnace:0x50d4a1,shelter:0x67b9e8,sawmill:0xe9aa54,huntersHut:0xe88170,coalMine:0xe6c159,storehouse:0x76aee3,infantryCamp:0x62d99b,infirmary:0x61cfc6,ironMine:0xb991e5,lancerCamp:0x5fa8e0,embassy:0xe9c06a,marksmanCamp:0xe486ad,researchCenter:0x69d5df}
 const INDUSTRIAL=new Set(['sawmill','storehouse','lancerCamp','infantryCamp'])
 const ASSET_BY_BUILDING={
@@ -29,29 +46,33 @@ function fitAsset(model,{w,h,d}){
  return size
 }
 
+function rectangularLot(g,size,hq=false){
+ const pad=box(size.x+.38,.055,size.z+.38,mat(hq?0x52685d:0x53645c,.96))
+ pad.position.y=.025;pad.castShadow=false;g.add(pad)
+}
+
 function kenneyBuilding(bank,id,lvl){
  const key=ASSET_BY_BUILDING[id]
  if(!key||!bank?.models?.[key])return null
  const g=new THREE.Group(),c=ACCENT[id]??0x50d4a1,industrial=INDUSTRIAL.has(id),hq=id==='furnace'
- const growth=1+Math.min(12,Math.max(1,lvl))*.012
- const target=hq?{w:3.7*growth,h:3.35*growth,d:3.5*growth}:industrial?{w:3.45*growth,h:2.3*growth,d:2.85*growth}:{w:2.85*growth,h:2.65*growth,d:2.55*growth}
- disk(g,hq?2.05:industrial?1.8:1.55,0x52645b,.96,.005)
- const model=bank.clone(key),size=fitAsset(model,target);g.add(model)
- ring(g,hq?2.02:industrial?1.72:1.5,c,.46)
- const label=sign(hq?'ACHU HQ':BUILDINGS[id]?.name??id,c);label.position.set(0,size.y+.52,0);g.add(label)
+ const growth=1+Math.min(12,Math.max(1,lvl))*.008
+ const target=hq?{w:3.35*growth,h:3.0*growth,d:3.0*growth}:industrial?{w:3.05*growth,h:2.15*growth,d:2.5*growth}:{w:2.55*growth,h:2.35*growth,d:2.25*growth}
+ const model=bank.clone(key),size=fitAsset(model,target)
+ rectangularLot(g,size,hq);g.add(model)
+ const label=sign(hq?'ACHU HQ':BUILDINGS[id]?.name??id,c);label.position.set(0,size.y+.5,0);g.add(label)
  return tag(g,id)
 }
 
-function fallbackOffice(id,lvl){const g=new THREE.Group(),c=ACCENT[id]??0x50d4a1,h=id==='furnace'?2.8+lvl*.17:1.55+Math.min(12,lvl)*.14,w=id==='furnace'?2.5:1.9,d=id==='furnace'?2.1:1.65;const shell=box(w,h,d,mat(id==='furnace'?0x879990:0x778982,.7,.04));shell.position.y=h/2;g.add(shell);ring(g,id==='furnace'?1.8:1.45,c,.38);const s=sign(id==='furnace'?'ACHU HQ':BUILDINGS[id]?.name??id,c);s.position.set(0,h+.65,0);g.add(s);return tag(g,id)}
-function fallbackIndustrial(id,lvl){const g=new THREE.Group(),c=ACCENT[id]??0x6f8790,w=id==='storehouse'?3.5:2.8,h=1.15+Math.min(12,lvl)*.07;disk(g,w*.7,0x5f6964);const shell=box(w,h,2.2,mat(0x737d77,.84,.04));shell.position.y=h/2;g.add(shell);const roof=box(w*.94,.15,2.05,mat(0x414d50,.72,.16));roof.position.y=h+.07;g.add(roof);ring(g,w*.62,c,.36);const s=sign(BUILDINGS[id]?.name??id,c);s.position.set(0,h+.72,0);g.add(s);return tag(g,id)}
-function plot(id,active){const g=new THREE.Group(),c=ACCENT[id]??0x50d4a1;disk(g,1.45,active?0x8f794f:0x647169);ring(g,1.42,c,.42);for(let i=0;i<4;i++){const p=box(.08,active?1.15:.55,.08,mat(0x4c5b56,.85,.12));p.position.set(i<2?-.9:.9,(active?1.15:.55)/2,i%2?-.75:.75);g.add(p)}const s=sign(active?'BUILDING...':BUILDINGS[id]?.name??id,c);s.position.set(0,active?1.65:1.08,0);g.add(s);return tag(g,id)}
+function fallbackOffice(id,lvl){const g=new THREE.Group(),c=ACCENT[id]??0x50d4a1,h=id==='furnace'?2.6+lvl*.12:1.45+Math.min(12,lvl)*.1,w=id==='furnace'?2.7:1.85,d=id==='furnace'?2.35:1.6;const pad=box(w+.35,.05,d+.35,mat(0x53645c,.96));pad.position.y=.025;pad.castShadow=false;g.add(pad);const shell=box(w,h,d,mat(id==='furnace'?0x879990:0x778982,.7,.04));shell.position.y=h/2+.05;g.add(shell);const s=sign(id==='furnace'?'ACHU HQ':BUILDINGS[id]?.name??id,c);s.position.set(0,h+.6,0);g.add(s);return tag(g,id)}
+function fallbackIndustrial(id,lvl){const g=new THREE.Group(),c=ACCENT[id]??0x6f8790,w=id==='storehouse'?3.0:2.6,h=1.1+Math.min(12,lvl)*.06,d=2.05;const pad=box(w+.35,.05,d+.35,mat(0x53645c,.96));pad.position.y=.025;pad.castShadow=false;g.add(pad);const shell=box(w,h,d,mat(0x737d77,.84,.04));shell.position.y=h/2+.05;g.add(shell);const roof=box(w*.94,.15,d*.92,mat(0x414d50,.72,.16));roof.position.y=h+.12;g.add(roof);const s=sign(BUILDINGS[id]?.name??id,c);s.position.set(0,h+.68,0);g.add(s);return tag(g,id)}
+function plot(id,active){const g=new THREE.Group(),c=ACCENT[id]??0x50d4a1;disk(g,1.25,active?0x8f794f:0x647169);ring(g,1.22,c,.42);for(let i=0;i<4;i++){const p=box(.08,active?1.05:.5,.08,mat(0x4c5b56,.85,.12));p.position.set(i<2?-.78:.78,(active?1.05:.5)/2,i%2?-.65:.65);g.add(p)}const s=sign(active?'BUILDING...':BUILDINGS[id]?.name??id,c);s.position.set(0,active?1.55:1.0,0);g.add(s);return tag(g,id)}
 function unlocked(state,id){return id==='furnace'||(state.buildings.furnace??1)>=(BUILDINGS[id]?.unlockFurnace??1)}
 
 export function buildCity4X(bank,state){
  const root=new THREE.Group();root.name='achuModernBase'
  const ground=new THREE.Mesh(new THREE.CircleGeometry(28,72),mat(0x435d52,1));ground.rotation.x=-Math.PI/2;ground.position.y=-.08;ground.receiveShadow=true;root.add(ground)
  const campus=new THREE.Mesh(new THREE.CircleGeometry(22.5,72),mat(0x5b7166,1));campus.rotation.x=-Math.PI/2;campus.position.y=-.055;campus.receiveShadow=true;root.add(campus)
- const plaza=new THREE.Mesh(new THREE.CylinderGeometry(3.4,3.6,.16,48),mat(0x6d7973,.96));plaza.position.y=.02;root.add(plaza);ring(root,2.1,0x50d4a1,.18)
+ // No legacy circular HQ plaza: Kenney buildings now sit on rectangular plots.
  for(let i=0;i<22;i++){const a=i*2.399,r=13+(i%4)*1.55;tree(root,Math.cos(a)*r,Math.sin(a)*r,.68+(i%3)*.07)}
  for(const id of Object.keys(BUILDINGS)){
   const lvl=state.buildings[id]??0,[x,z]=LAYOUT[id]??[0,0],active=state.construction?.id===id;let b=null
