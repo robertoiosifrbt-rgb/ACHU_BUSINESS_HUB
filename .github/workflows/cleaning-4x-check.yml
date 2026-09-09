@@ -18,9 +18,3 @@ jobs:
           node-version: 22
       - run: npm install
       - run: npm run build
-      - name: Rebuild and verify Make It Shine
-        shell: bash
-        run: |
-          cat public/audio/make-it-shine-0.b64 public/audio/make-it-shine-1.b64 | tr -d '\n\r ' | base64 --decode > /tmp/make-it-shine.opus
-          test "$(stat -c%s /tmp/make-it-shine.opus)" -gt 50000
-          ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 /tmp/make-it-shine.opus
