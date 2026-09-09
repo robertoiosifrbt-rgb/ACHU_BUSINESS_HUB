@@ -4,12 +4,12 @@ import { clone as cloneSkeleton } from 'three/examples/jsm/utils/SkeletonUtils.j
 
 const gltf=new GLTFLoader()
 
-// The two packs supplied for the ACHU visual overhaul are Kenney CC0 packs.
-// Keep the URLs pinned to one immutable mirror commit so the game does not
-// silently change if that mirror's main branch changes later.
+// Kenney packs used by the ACHU visual overhaul. Mirrors are pinned to
+// immutable commits so the live game cannot silently change underneath us.
 const KENNEY_MIRROR='https://raw.githubusercontent.com/Jolomolokolo/Trackenomics/421363bca8386b6955a09a6e4abadcd1ddc45601/models'
 const KENNEY_CITY=`${KENNEY_MIRROR}/city`
 const KENNEY_CARS=`${KENNEY_MIRROR}/cars`
+const KENNEY_ROADS='https://raw.githubusercontent.com/Rbitah/BRace-game/15ef8e4a210668a0ef2f383e4fe9a7cd86a000f6/assets/env/kenney_city-kit-roads'
 const CHARACTER='https://raw.githubusercontent.com/euuuuuuan/fatal-funnel-public/main/packages/renderer/assets/models/quaternius-men/worker.glb'
 const ANIMATIONS='https://raw.githubusercontent.com/Seyamalam/blood-league-kickoff/main/public/assets/vendor/quaternius/universal-animation-library.glb'
 
@@ -25,7 +25,13 @@ const files={
  carDelivery:[KENNEY_CARS,'delivery.glb'],
  carSedan:[KENNEY_CARS,'sedan.glb'],
  carSuv:[KENNEY_CARS,'suv.glb'],
- carTruck:[KENNEY_CARS,'truck.glb']
+ carTruck:[KENNEY_CARS,'truck.glb'],
+ roadStraight:[KENNEY_ROADS,'road-straight.glb'],
+ roadCrossroad:[KENNEY_ROADS,'road-crossroad.glb'],
+ roadCrossing:[KENNEY_ROADS,'road-crossing.glb'],
+ roadIntersection:[KENNEY_ROADS,'road-intersection.glb'],
+ roadLight:[KENNEY_ROADS,'light-square.glb'],
+ roadTrafficLight:[KENNEY_ROADS,'traffic-light.glb']
 }
 
 function prep(root){
@@ -43,11 +49,12 @@ function prep(root){
 
 function placeholder(name){
  const g=new THREE.Group(),n=name.toLowerCase()
- if(n.includes('tree')||n.includes('pine')){
+ if(n.includes('road')){
+  const road=new THREE.Mesh(new THREE.BoxGeometry(1,.04,1),new THREE.MeshStandardMaterial({color:0x273034,roughness:.98}));road.position.y=.02;g.add(road)
+ }else if(n.includes('tree')||n.includes('pine')){
   const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.12,.16,.7,6),new THREE.MeshStandardMaterial({color:0x6a4936,roughness:1}));trunk.position.y=.35;g.add(trunk)
   const crown=new THREE.Mesh(new THREE.ConeGeometry(.62,1.65,8),new THREE.MeshStandardMaterial({color:0x4f7d5d,roughness:1}));crown.position.y=1.25;g.add(crown)
  }else if(n.includes('car')||n.includes('truck')||n.includes('van')||n.includes('delivery')){
-  // Fallback uses +Z as forward, matching the Kenney vehicles.
   const body=new THREE.Mesh(new THREE.BoxGeometry(.7,.38,1.25),new THREE.MeshStandardMaterial({color:0x397f68,roughness:.75}));body.position.y=.34;g.add(body)
   const cab=new THREE.Mesh(new THREE.BoxGeometry(.64,.28,.42),new THREE.MeshStandardMaterial({color:0x758a82,roughness:.5}));cab.position.set(0,.57,.36);g.add(cab)
  }else if(n.includes('achu')){

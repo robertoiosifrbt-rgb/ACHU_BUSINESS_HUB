@@ -7,7 +7,7 @@ import './game3d/dialogue-v5.css'
 import './game3d/palette-v6.css'
 import { VisualBusinessGame } from './game3d/VisualBusinessGame.js'
 
-export const APP_VERSION='5.2.1-layout-fix'
+export const APP_VERSION='5.3.0-road-grid'
 const mount=document.querySelector('#app')
 const game=new VisualBusinessGame(mount)
 try{await game.start()}catch(e){
