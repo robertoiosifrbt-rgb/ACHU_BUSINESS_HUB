@@ -3,6 +3,7 @@ import { Business4XGame } from './Business4XGame.js'
 import { StoryMissionUI } from './StoryMissionUI.js'
 import { CAMPUS_WALK_ROUTES,decorateCampus,animateCampusTraffic } from './cityLifeV5.js'
 import { WorldClarityOverlay,WORLD_VISUAL_SCALE } from './worldClarityV5.js'
+import { World3DDistrictsV8 } from './worldDistrictsV8.js'
 
 function simpleWorker(color=0x3da982){
  const g=new THREE.Group(),skin=new THREE.MeshStandardMaterial({color:0xd8a17e,roughness:.8}),shirt=new THREE.MeshStandardMaterial({color,roughness:.72}),dark=new THREE.MeshStandardMaterial({color:0x263238,roughness:.92})
@@ -27,7 +28,13 @@ export class VisualBusinessGame extends Business4XGame{
   await super.start()
   this.ui?.root?.remove();this.ui=new StoryMissionUI(this)
   this.cityTraffic=decorateCampus(this.city,this.assets)
+
+  // Replace the old road-demo world with a city built as actual districts.
+  this.world?.removeFromParent()
+  this.world=new World3DDistrictsV8(this.assets,this.state)
+  this.world.visible=this.mode==='world';this.scene.add(this.world)
   this.world.scale.setScalar(WORLD_VISUAL_SCALE)
+
   this.worldOverlay=new WorldClarityOverlay(this.state);this.worldOverlay.visible=this.mode==='world';this.scene.add(this.worldOverlay)
   this.scene.background.setHex(0x536f63);if(this.scene.fog){this.scene.fog.color.setHex(0x536f63);this.scene.fog.density=.0048}
   tintLightMaterials(this.city);tintLightMaterials(this.world)
@@ -42,8 +49,6 @@ export class VisualBusinessGame extends Business4XGame{
    view.position.set(0,0,0);const groundOffset=fitHeight(view,.60+(i%3)*.018)
    const curve=CAMPUS_WALK_ROUTES[i%CAMPUS_WALK_ROUTES.length],p=curve.getPointAt((i*.13)%1);view.position.set(p.x,.025+groundOffset,p.z);this.city.add(view)
    let mixer=null;if(view.userData.realCrew&&clip){try{mixer=new THREE.AnimationMixer(view);const action=mixer.clipAction(clip);action.timeScale=.72+(i%4)*.05;action.play()}catch{mixer=null}}
-   // The Quaternius worker faces the same +Z convention used by the route
-   // tangent. The old PI offset literally made real workers walk backwards.
    this.workers.push({view,mixer,curve,offset:(i*.13)%1,speed:.000018+(i%5)*.0000015,groundOffset,facingOffset:0})
   }
  }
