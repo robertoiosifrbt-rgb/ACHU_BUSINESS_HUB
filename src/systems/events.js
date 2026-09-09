@@ -11,18 +11,36 @@ const MOMENTS=[
  {type:'bigDay',title:'Tomorrow is nearly full',description:'Bookings, routes and people are lining up into a proper operating day.',reward:{meat:460,wood:180,coal:55},duration:7200000}
 ]
 
+function ensureEventState(state){
+ state.events??={}
+ state.events.active??=[]
+ state.events.completed??=[]
+ state.events.log??=[]
+}
+function archiveEvent(state,event,now,claimed=false){
+ event.active=false
+ event.completed=true
+ if(claimed){event.claimed=true;event.claimedAt=now}
+ state.events.completed.unshift(event)
+ state.events.completed=state.events.completed.slice(0,100)
+ state.events.log.unshift({event:event.id,completedAt:now,claimed})
+ state.events.log=state.events.log.slice(0,200)
+}
+
 export function generateEvent(){
  const template=MOMENTS[Math.floor(Math.random()*MOMENTS.length)]
- return{id:'e'+Math.random().toString(36).substr(2,9),...template,startedAt:Date.now(),expiresAt:Date.now()+template.duration,active:true,completed:false,reward:{...(template.reward??{})}}
+ return{id:'e'+Math.random().toString(36).substr(2,9),...template,startedAt:Date.now(),expiresAt:Date.now()+template.duration,active:true,completed:false,claimed:false,reward:{...(template.reward??{})}}
 }
 
 export function tickEvents(state){
- const now=Date.now()
- state.events.active=state.events.active.filter(e=>{
-  if(now>e.expiresAt){e.active=false;e.completed=true;state.events.completed.push(e);state.events.log.push({event:e.id,completedAt:now});return false}
-  return true
- })
- if(now>=state.events.nextEventAt){
+ ensureEventState(state)
+ const now=Date.now(),kept=[]
+ for(const event of state.events.active){
+  if(now>event.expiresAt)archiveEvent(state,event,now,false)
+  else kept.push(event)
+ }
+ state.events.active=kept
+ if(now>=(state.events.nextEventAt??0)){
   const newEvent=generateEvent();state.events.active.push(newEvent)
   state.events.nextEventAt=now+Math.random()*150000+90000
   return true
@@ -31,10 +49,13 @@ export function tickEvents(state){
 }
 
 export function claimEventReward(state,eventId){
- const event=state.events.active.find(e=>e.id===eventId)
- if(!event)return{ok:false,error:'Moment not found'}
+ ensureEventState(state)
+ const index=state.events.active.findIndex(e=>e.id===eventId)
+ if(index<0)return{ok:false,error:'Moment not found'}
+ const event=state.events.active[index]
  if(event.claimed)return{ok:false,error:'Already opened'}
  Object.entries(event.reward??{}).forEach(([k,v])=>{if(k in state.resources)state.resources[k]=(state.resources[k]??0)+v;else if(k==='power')state.power+=v})
- event.claimed=true
- return{ok:true}
+ state.events.active.splice(index,1)
+ archiveEvent(state,event,Date.now(),true)
+ return{ok:true,event}
 }
