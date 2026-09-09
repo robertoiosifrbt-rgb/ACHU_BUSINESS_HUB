@@ -61,15 +61,25 @@ export class Business4XGame extends Retro4XGame{
    {from:[-4.7,-2.2],to:[-2.0,-1.5],phase:.7,speed:.000052}
   ]
   const accents=[0x3da982,0x4f91c7,0xd19b4f,0x8d78bd,0x3da982,0x4f91c7]
+  const clip=this.assets?.characterClip?.('walk')
   routes.forEach((r,i)=>{
-   const view=fallbackCrew(accents[i%accents.length])
-   view.scale.setScalar(.48)
-   view.position.set(r.from[0],.02,r.from[1]);this.city.add(view)
-   this.workers.push({view,...r})
+   const view=this.assets?.cloneCharacter?.()||fallbackCrew(accents[i%accents.length])
+   view.scale.multiplyScalar(.48)
+   view.position.set(0,0,0);view.updateMatrixWorld(true)
+   const fitted=new THREE.Box3().setFromObject(view),groundOffset=Number.isFinite(fitted.min.y)?-fitted.min.y:0
+   view.position.set(r.from[0],.02+groundOffset,r.from[1]);this.city.add(view)
+   let mixer=null
+   if(view.userData.realCrew&&clip){
+    mixer=new THREE.AnimationMixer(view)
+    const action=mixer.clipAction(clip);action.timeScale=.78+(i%3)*.06;action.play();mixer.update(i*.1)
+   }
+   this.workers.push({view,mixer,...r})
   })
  }
  animateWorkers(t){
+  const dt=Math.min(.05,Math.max(0,(t-(this.workerAnimAt||t))/1000));this.workerAnimAt=t
   for(const w of(this.workers??[])){
+   w.mixer?.update(dt)
    const u=(t*w.speed+w.phase)%2,p=u<=1?u:2-u,dir=u<=1?1:-1
    const dx=w.to[0]-w.from[0],dz=w.to[1]-w.from[1]
    w.view.position.x=w.from[0]+dx*p;w.view.position.z=w.from[1]+dz*p
