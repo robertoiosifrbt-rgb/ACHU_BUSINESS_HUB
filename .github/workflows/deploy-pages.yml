@@ -1,4 +1,4 @@
-name: Deploy to GitHub Pages
+name: Build Unity WebGL and Deploy Pages
 
 on:
   push:
@@ -15,22 +15,62 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deploy:
+  build-deploy:
+    runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Fetch ACHU Unity assets
+        run: bash scripts/fetch-unity-assets.sh unity
+
+      - name: Cache Unity Library
+        uses: actions/cache@v4
         with:
-          node-version: 22
-      - run: npm install
-      - run: npm run build
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+          path: unity/Library
+          key: unity-library-${{ hashFiles('unity/Assets/**/*.cs', 'unity/Packages/manifest.json', 'unity/ProjectSettings/ProjectVersion.txt') }}
+          restore-keys: unity-library-
+
+      - name: Build ACHU WebGL
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
         with:
-          path: dist
-      - name: Deploy to GitHub Pages
+          projectPath: unity
+          unityVersion: 6000.0.26f1
+          targetPlatform: WebGL
+          buildMethod: Achu.BusinessHub.Editor.WebGLBuild.Build
+
+      - name: Locate Unity WebGL output
+        id: webgl
+        shell: bash
+        run: |
+          set -euo pipefail
+          for p in unity/Build/WebGL Build/WebGL build/WebGL/WebGL build/WebGL; do
+            if [ -f "$p/index.html" ]; then
+              echo "path=$p" >> "$GITHUB_OUTPUT"
+              echo "Unity WebGL output: $p"
+              exit 0
+            fi
+          done
+          echo "Unity WebGL index.html not found" >&2
+          find . -maxdepth 6 -name index.html -print
+          exit 1
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Unity Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ steps.webgl.outputs.path }}
+
+      - name: Deploy Unity to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
