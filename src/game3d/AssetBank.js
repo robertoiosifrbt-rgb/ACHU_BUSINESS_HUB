@@ -35,6 +35,14 @@ const gltfFiles={
  roadCrossroad:[KENNEY_ROADS,'road-crossroad.glb'],
  roadCrossing:[KENNEY_ROADS,'road-crossing.glb'],
  roadIntersection:[KENNEY_ROADS,'road-intersection.glb'],
+ roadBend:[KENNEY_ROADS,'road-bend.glb'],
+ roadEnd:[KENNEY_ROADS,'road-end.glb'],
+ roadRoundabout:[KENNEY_ROADS,'road-roundabout.glb'],
+ roadCurve:[KENNEY_ROADS,'road-curve.glb'],
+ roadSplit:[KENNEY_ROADS,'road-split.glb'],
+ roadDrivewaySingle:[KENNEY_ROADS,'road-driveway-single.glb'],
+ roadDrivewayDouble:[KENNEY_ROADS,'road-driveway-double.glb'],
+ roadSide:[KENNEY_ROADS,'road-side.glb'],
  roadLight:[KENNEY_ROADS,'light-square.glb'],
  roadTrafficLight:[KENNEY_ROADS,'traffic-light.glb']
 }
@@ -69,7 +77,9 @@ function cloneMaterials(root){
 }
 function placeholder(name){
  const g=new THREE.Group(),n=name.toLowerCase()
- if(n.includes('tree')){
+ if(n.includes('road')){
+  const road=new THREE.Mesh(new THREE.BoxGeometry(1,.04,1),new THREE.MeshStandardMaterial({color:0x313b3d,roughness:.98}));road.position.y=.02;g.add(road)
+ }else if(n.includes('tree')){
   const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.1,.14,.7,7),new THREE.MeshStandardMaterial({color:0x654837,roughness:1}));trunk.position.y=.35;g.add(trunk)
   const crown=new THREE.Mesh(new THREE.IcosahedronGeometry(.52,1),new THREE.MeshStandardMaterial({color:0x397156,roughness:1}));crown.scale.y=1.35;crown.position.y=1.05;g.add(crown)
  }else if(n.includes('car')||n.includes('beat')||n.includes('landy')||n.includes('toyoyo')||n.includes('tristar')||n.includes('doc')){
