@@ -11,6 +11,12 @@ function distanceFromCovered(tile,covered){
  return best
 }
 function nearest(list,covered){return [...list].sort((a,b)=>distanceFromCovered(a,covered)-distanceFromCovered(b,covered))[0]??null}
+function capability(state){
+ const t=state.world.troops??{},b=state.buildings,rep=Math.max(0,state.resources.coal??0)
+ const people=(t.infantry??0)*7+(t.lancer??0)*9+(t.marksman??0)*12
+ const systems=(b.infantryCamp??0)*70+(b.infirmary??0)*80+(b.lancerCamp??0)*65+(b.marksmanCamp??0)*90+(b.researchCenter??0)*55+(b.furnace??1)*45
+ return Math.round(people+systems+Math.min(900,Math.round(Math.sqrt(rep)*32)))
+}
 
 export function fourXFlow(state){
  const w=state.world,known=new Set(w.scouted??[]),covered=new Set(w.owned??[]),won=new Set(w.defeated??[]),tiles=allTiles()
@@ -30,7 +36,7 @@ export function fourXFlow(state){
   key:'operate',index:2,label:'OPERATE',eyebrow:'ACT III · DELIVER THE SERVICE',title:'Turn market reach into a completed cleaning job',copy:'Review the enquiry, accept the quote and dispatch an available crew. Revenue and reputation arrive only after the job is completed.',target:targetJob,action:'ACCEPT A CLEANING JOB',metric:`${w.marches.length} field operation${w.marches.length===1?'':'s'} active`
  }
  if((w.defeated?.length??0)<1)return{
-  key:'compete',index:3,label:'COMPETE',eyebrow:'ACT IV · WIN A CONTRACT',title:'Submit the first serious commercial bid',copy:'Compare the contract requirements with ACHU capability. Strong training, quality, fleet and staffing improve the bid.',target:targetTender,action:'OPEN A TENDER',metric:`Operational capability ${Math.round(state.world.armyPower??0).toLocaleString()}+`
+  key:'compete',index:3,label:'COMPETE',eyebrow:'ACT IV · WIN A CONTRACT',title:'Submit the first serious commercial bid',copy:'Compare the contract requirements with ACHU capability. Strong training, quality, fleet and staffing improve the bid.',target:targetTender,action:'OPEN A TENDER',metric:`Operational capability ${capability(state).toLocaleString()}`
  }
  const target=targetJob??targetTender??targetResearch??targetExpand
  return{
