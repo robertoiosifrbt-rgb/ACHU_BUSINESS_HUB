@@ -42,7 +42,9 @@ export class VisualBusinessGame extends Business4XGame{
    view.position.set(0,0,0);const groundOffset=fitHeight(view,.60+(i%3)*.018)
    const curve=CAMPUS_WALK_ROUTES[i%CAMPUS_WALK_ROUTES.length],p=curve.getPointAt((i*.13)%1);view.position.set(p.x,.025+groundOffset,p.z);this.city.add(view)
    let mixer=null;if(view.userData.realCrew&&clip){try{mixer=new THREE.AnimationMixer(view);const action=mixer.clipAction(clip);action.timeScale=.72+(i%4)*.05;action.play()}catch{mixer=null}}
-   this.workers.push({view,mixer,curve,offset:(i*.13)%1,speed:.000018+(i%5)*.0000015,groundOffset,facingOffset:view.userData.realCrew?Math.PI:0})
+   // The Quaternius worker faces the same +Z convention used by the route
+   // tangent. The old PI offset literally made real workers walk backwards.
+   this.workers.push({view,mixer,curve,offset:(i*.13)%1,speed:.000018+(i%5)*.0000015,groundOffset,facingOffset:0})
   }
  }
  animateWorkers(t){
@@ -55,7 +57,7 @@ export class VisualBusinessGame extends Business4XGame{
   animateCampusTraffic(this.cityTraffic,t);this.worldOverlay?.animate(t)
  }
  resize(){
-  const w=innerWidth,h=innerHeight,aspect=w/h,view=this.mode==='world'?13.8:12.6;this.camera.left=-view*aspect;this.camera.right=view*aspect;this.camera.top=view;this.camera.bottom=-view;this.camera.updateProjectionMatrix();this.renderer?.setSize(w,h,false)
+  const w=innerWidth,h=innerHeight,aspect=w/h,view=this.mode==='world'?14.4:12.6;this.camera.left=-view*aspect;this.camera.right=view*aspect;this.camera.top=view;this.camera.bottom=-view;this.camera.updateProjectionMatrix();this.renderer?.setSize(w,h,false)
  }
  setMode(mode){const ok=super.setMode(mode);if(ok===false)return false;if(this.worldOverlay)this.worldOverlay.visible=mode==='world';if(mode==='world')this.focusWorldObjective(true);return true}
  focusWorldObjective(announce=true){
