@@ -1,8 +1,7 @@
 import * as THREE from 'three'
 import { BUILDINGS } from '../data/buildings.js'
 
-// Every building sits in one dedicated 3.2 x 3.2 block between Kenney road
-// tiles. Road rows/columns live at -12.8, -6.4, 0, 6.4 and 12.8.
+// Buildings sit on dedicated blocks between the continuous city streets.
 const LAYOUT={
  furnace:[-3.2,-3.2],
  shelter:[3.2,-3.2],
@@ -28,9 +27,9 @@ const mat=(c,r=.76,m=.03)=>new THREE.MeshStandardMaterial({color:c,roughness:r,m
 function box(w,h,d,m){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.castShadow=true;o.receiveShadow=true;return o}
 function tag(root,id){root.userData.buildingId=id;root.traverse(o=>o.userData.buildingId=id);return root}
 function ring(parent,r,c,opacity=.35){const o=new THREE.Mesh(new THREE.RingGeometry(r*.82,r,48),new THREE.MeshBasicMaterial({color:c,transparent:true,opacity,side:THREE.DoubleSide,depthWrite:false}));o.rotation.x=-Math.PI/2;o.position.y=.04;parent.add(o)}
-function disk(parent,r,c,opacity=1,y=.01){const o=new THREE.Mesh(new THREE.CircleGeometry(r,48),new THREE.MeshStandardMaterial({color:c,roughness:1,transparent:opacity<1,opacity}));o.rotation.x=-Math.PI/2;o.position.y=y;o.receiveShadow=true;parent.add(o)}
 function sign(text,c){const cv=document.createElement('canvas');cv.width=640;cv.height=128;const x=cv.getContext('2d');x.fillStyle='rgba(13,27,24,.9)';x.roundRect(12,17,616,94,22);x.fill();x.strokeStyle=`#${c.toString(16).padStart(6,'0')}`;x.lineWidth=3;x.stroke();x.fillStyle='#eef0e7';x.font='800 29px Inter,Arial';x.textAlign='center';x.textBaseline='middle';x.fillText(text.toUpperCase(),320,64,560);const t=new THREE.CanvasTexture(cv);t.colorSpace=THREE.SRGBColorSpace;const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,depthWrite:false}));s.scale.set(4.25,.86,1);return s}
-function tree(parent,x,z,s=.7){const g=new THREE.Group();const trunk=box(.13,.65,.13,mat(0x4c382e,1));trunk.position.y=.325;g.add(trunk);const crown=new THREE.Mesh(new THREE.IcosahedronGeometry(.54*s,1),mat(0x356b50,.95));crown.scale.y=1.35;crown.position.y=.94;g.add(crown);g.position.set(x,0,z);parent.add(g)}
+function fallbackTree(parent,x,z,s=.7){const g=new THREE.Group();const trunk=box(.13,.65,.13,mat(0x4c382e,1));trunk.position.y=.325;g.add(trunk);const crown=new THREE.Mesh(new THREE.IcosahedronGeometry(.54*s,1),mat(0x356b50,.95));crown.scale.y=1.35;crown.position.y=.94;g.add(crown);g.position.set(x,0,z);parent.add(g);return g}
+function tree(parent,bank,x,z,s=.7,i=0){const v=bank?.cloneTree?.(i,2.2*s);if(!v)return fallbackTree(parent,x,z,s);v.position.set(x,0,z);v.rotation.y=(i*.91)%6.283;parent.add(v);return v}
 
 function fitAsset(model,{w,h,d}){
  model.updateMatrixWorld(true)
@@ -76,7 +75,7 @@ export function buildCity4X(bank,state){
  const root=new THREE.Group();root.name='achuModernBase'
  const ground=new THREE.Mesh(new THREE.CircleGeometry(28,72),mat(0x435d52,1));ground.rotation.x=-Math.PI/2;ground.position.y=-.08;ground.receiveShadow=true;root.add(ground)
  const campus=new THREE.Mesh(new THREE.CircleGeometry(18.4,72),mat(0x5b7166,1));campus.rotation.x=-Math.PI/2;campus.position.y=-.055;campus.receiveShadow=true;root.add(campus)
- for(let i=0;i<24;i++){const a=i*2.399,r=15.2+(i%3)*1.25;tree(root,Math.cos(a)*r,Math.sin(a)*r,.64+(i%3)*.07)}
+ for(let i=0;i<24;i++){const a=i*2.399,r=15.2+(i%3)*1.25;tree(root,bank,Math.cos(a)*r,Math.sin(a)*r,.64+(i%3)*.07,i)}
  for(const id of Object.keys(BUILDINGS)){
   const lvl=state.buildings[id]??0,[x,z]=LAYOUT[id]??[0,0],active=state.construction?.id===id;let b=null
   if(lvl>0||id==='furnace')b=kenneyBuilding(bank,id,Math.max(1,lvl))||(INDUSTRIAL.has(id)?fallbackIndustrial(id,Math.max(1,lvl)):fallbackOffice(id,Math.max(1,lvl)))
