@@ -46,6 +46,7 @@ jobs:
           unityVersion: 6000.0.26f1
           targetPlatform: WebGL
           buildMethod: Achu.BusinessHub.Editor.WebGLBuild.Build
+          versioning: None
 
       - name: Locate Unity WebGL output
         id: webgl
