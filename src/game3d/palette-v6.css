@@ -1,0 +1,56 @@
+:root{
+ --hud-bg:rgba(205,216,207,.95);
+ --hud-line:rgba(45,72,63,.18);
+ --hud-shadow:0 12px 34px rgba(18,39,32,.28);
+ --hud-green:#26795f;
+ --hud-green-dark:#1d5e4a;
+}
+
+html,body,#app{background:#506b61!important}
+
+.company-profile,
+.resource,
+.fourx-quest,
+.fourx-nav{
+ background:rgba(205,216,207,.96)!important;
+ border-color:rgba(43,73,63,.16)!important;
+}
+
+.company-profile strong,
+.company-profile small,
+.resource b,
+.fourx-quest strong,
+.fourx-quest b,
+.fourx-nav button b{color:#17372e!important}
+
+.fourx-quest div>span{color:#3d6658!important}
+.fourx-nav button{color:#41685b!important}
+.fourx-nav button.active{background:rgba(44,126,98,.13)!important}
+.fourx-nav button.active b{color:#1f684f!important}
+
+.sheet{
+ background:rgba(213,222,214,.99)!important;
+ border-color:rgba(35,64,55,.2)!important;
+}
+.sheet header{background:rgba(194,208,198,.72)!important}
+.sheet h2,.sheet h3,.sheet header p,.sheet-body{color:#18382f}
+.story-card,.story-click-guide,.story-play-guide,.chapter-story,.tutorial-box,.mission-brief,.dialogue-context{
+ background:rgba(185,202,191,.62)!important;
+ border-color:rgba(42,79,66,.18)!important;
+}
+.mission-row,.quick-grid button,.fourx-explain>div{
+ background:rgba(193,207,197,.72)!important;
+ border-color:rgba(42,79,66,.16)!important;
+}
+
+.dialogue-bubble{background:#c7d5cb!important;color:#17372e!important}
+.dialogue-bubble.you{background:#b8c9c0!important}
+.dialogue-bubble.coach{background:#c7cfbd!important}
+.dialogue-bubble.brand{background:#b8d2c5!important}
+
+.queue-card{background:rgba(20,42,35,.9)!important}
+.toast{background:rgba(22,48,40,.94)!important;color:#edf1e8!important}
+
+@media(max-width:420px){
+ .company-profile,.resource,.fourx-quest,.fourx-nav{backdrop-filter:blur(12px)}
+}
