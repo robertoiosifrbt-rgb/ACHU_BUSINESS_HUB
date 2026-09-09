@@ -4,9 +4,10 @@ import './game3d/4x.css'
 import './game3d/story.css'
 import './game3d/hud-redesign.css'
 import './game3d/dialogue-v5.css'
+import './game3d/palette-v6.css'
 import { VisualBusinessGame } from './game3d/VisualBusinessGame.js'
 
-export const APP_VERSION='5.0.0-living-city'
+export const APP_VERSION='5.1.0-street-fix'
 const mount=document.querySelector('#app')
 const game=new VisualBusinessGame(mount)
 try{await game.start()}catch(e){
