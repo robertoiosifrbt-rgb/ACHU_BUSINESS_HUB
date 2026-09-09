@@ -6,9 +6,9 @@
  --hud-green-dark:#236f58;
 }
 
-/* Keep the 3D world in charge. Progress and updater remain available from panels,
-   but no longer occupy permanent canvas space. */
-.phase-rail,.mode-tag,.update-app{display:none!important}
+/* Keep the 3D world in charge. The four-step rail and redundant mode tag
+   are still available through the mission/story flow, not as permanent HUD. */
+.phase-rail,.mode-tag{display:none!important}
 
 .fourx-topbar{
  left:8px;
@@ -57,7 +57,7 @@
  width:auto;
  min-height:58px;
  max-height:68px;
- padding:8px 10px;
+ padding:8px 42px 8px 10px;
  gap:9px;
  border-radius:18px;
  background:rgba(252,250,243,.95);
@@ -101,22 +101,37 @@
 }
 .fourx-quest em{font-size:22px}
 
-/* Queue is useful only while something is actually happening. JS toggles .is-idle. */
+/* Manual updater stays reachable but no longer consumes its own HUD column. */
+.update-app{
+ display:block!important;
+ top:calc(max(8px,env(safe-area-inset-top)) + 73px);
+ right:14px;
+ width:28px;
+ height:28px;
+ padding:0;
+ border-radius:10px;
+ font-size:0!important;
+ z-index:6;
+ background:rgba(39,123,97,.94);
+ box-shadow:0 7px 16px rgba(29,83,65,.28);
+}
+.update-app::after{content:'↻';font-size:16px;font-weight:900;line-height:1;color:#fff}
+.update-app:disabled{opacity:.65}
+
+/* Queue remains available, but as a compact activity chip rather than a second panel. */
 .queue-card{
  bottom:82px;
  min-width:0;
- width:min(360px,calc(100% - 28px));
- min-height:42px;
- padding:7px 12px;
- border-radius:15px;
- background:rgba(20,42,35,.86);
- border-color:rgba(255,255,255,.18);
- box-shadow:0 10px 28px rgba(15,38,30,.25);
- transition:opacity .18s ease,transform .18s ease;
+ width:min(330px,calc(100% - 74px));
+ min-height:38px;
+ padding:6px 11px;
+ border-radius:14px;
+ background:rgba(20,42,35,.84);
+ border-color:rgba(255,255,255,.16);
+ box-shadow:0 9px 24px rgba(15,38,30,.22);
 }
-.queue-card b{font-size:9.5px;color:#f1f7f4}
-.queue-card small{font-size:8.5px;color:#b8c8c2}
-.queue-card.is-idle{opacity:0;transform:translate(-50%,10px);pointer-events:none}
+.queue-card b{font-size:9px;color:#f1f7f4}
+.queue-card small{font-size:8px;color:#b8c8c2}
 
 /* Mobile controls: larger targets, readable labels, less visual mass. */
 .fourx-nav{
