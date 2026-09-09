@@ -118,9 +118,10 @@
 .update-app::after{content:'↻';font-size:16px;font-weight:900;line-height:1;color:#fff}
 .update-app:disabled{opacity:.65}
 
-/* Queue remains available, but as a compact activity chip rather than a second panel. */
+/* Queue remains available, but as a compact activity chip rather than a second panel.
+   Its offset includes the iOS home-indicator safe area, so it always clears the nav. */
 .queue-card{
- bottom:82px;
+ bottom:calc(max(7px,env(safe-area-inset-bottom)) + 76px);
  min-width:0;
  width:min(330px,calc(100% - 74px));
  min-height:38px;
@@ -129,6 +130,7 @@
  background:rgba(20,42,35,.84);
  border-color:rgba(255,255,255,.16);
  box-shadow:0 9px 24px rgba(15,38,30,.22);
+ z-index:5;
 }
 .queue-card b{font-size:9px;color:#f1f7f4}
 .queue-card small{font-size:8px;color:#b8c8c2}
@@ -166,11 +168,11 @@
 
 .toast{top:132px;font-size:10px;max-width:calc(100% - 30px);text-align:center}
 
-/* Sheets read like game panels instead of dense documentation. */
+/* Sheets use the same safe-area-aware nav clearance as the queue chip. */
 .sheet{
- bottom:82px;
+ bottom:calc(max(7px,env(safe-area-inset-bottom)) + 76px);
  width:min(520px,calc(100% - 12px));
- max-height:calc(100% - 150px);
+ max-height:calc(100% - 150px - env(safe-area-inset-bottom));
  border-radius:23px;
  background:rgba(252,250,243,.99);
 }
@@ -217,7 +219,7 @@
 
 @media(max-height:700px){
  .fourx-quest{min-height:54px;max-height:60px}
- .sheet{max-height:calc(100% - 138px)}
+ .sheet{max-height:calc(100% - 138px - env(safe-area-inset-bottom))}
  .fourx-nav{height:64px}
- .queue-card{bottom:77px}
+ .queue-card,.sheet{bottom:calc(max(7px,env(safe-area-inset-bottom)) + 72px)}
 }
