@@ -40,7 +40,7 @@ export class Business4XGame extends Retro4XGame{
   this.addWorkers();this.ui=new BusinessCleaningUI(this)
   this.scene.background.setHex(0xc4d2cc);if(this.scene.fog){this.scene.fog.color.setHex(0xc4d2cc);this.scene.fog.density=.009}
   this.controls.target.set(0,0,0);this.camera.position.set(this.mode==='world'?19:17,this.mode==='world'?26:21,this.mode==='world'?19:17)
-  this.camera.zoom=1;this.resize();this.ui.refresh();this.ui.maybeStartStory?.();this.audio.prepare()
+  this.camera.zoom=1;this.resize();this.ui.refresh();this.ui.maybeStartStory?.()
   this.audioUnlock=()=>this.audio.unlock();window.addEventListener('pointerdown',this.audioUnlock,{capture:true})
   return this
  }
@@ -98,7 +98,7 @@ export class Business4XGame extends Retro4XGame{
   w.marches.push({id:`bid${now}${Math.floor(Math.random()*99)}`,type:'attack',businessAction:'contract-bid',target:id,phase:'outbound',phaseStartedAt:now,arriveAt:now+travel,travelMs:travel,troops,bidCapability:capability,cargo:null})
   saveState(this.state);this.world.refreshMarches();this.ui.refresh();this.ui.toast('Commercial bid submitted');this.audio.dispatch('attack');return true
  }
- scoutTile(id){const w=this.state.world;if(w.scouted.includes(id)||!adjacentTo(id,w.scouted))return;this.dispatch('scout',id,{meat:35})}
+ scoutTile(id){const w=this.state.world;if(w.scouted.includes(id)||!adjacentTo(id,w.scouted))return;this.dispatch('scout',id,{meat:25,wood:15})}
  claimTile(id){
   const w=this.state.world,d=worldTile(...parseTile(id));if(w.owned.includes(id)||!w.scouted.includes(id)||['tender','framework'].includes(d.businessType)||!adjacentTo(id,w.owned))return
   this.dispatch('claim',id,{meat:d.coverageCost??90,wood:Math.max(8,Math.round((d.coverageCost??90)*.12))})
