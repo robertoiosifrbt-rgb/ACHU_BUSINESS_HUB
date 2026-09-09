@@ -6,8 +6,6 @@ import { clone as cloneSkeleton } from 'three/examples/jsm/utils/SkeletonUtils.j
 const gltf=new GLTFLoader()
 const fbx=new FBXLoader()
 
-// Existing ACHU/Kenney sources are pinned. The car/tree FBX sources below are
-// byte-identical public mirrors of the packs supplied for this rebuild.
 const KENNEY_MIRROR='https://raw.githubusercontent.com/Jolomolokolo/Trackenomics/421363bca8386b6955a09a6e4abadcd1ddc45601/models'
 const KENNEY_CITY=`${KENNEY_MIRROR}/city`
 const KENNEY_CARS=`${KENNEY_MIRROR}/cars`
@@ -26,6 +24,17 @@ const gltfFiles={
  achuSmallOffice:[KENNEY_CITY,'building-type-q.glb'],
  achuWarehouse:[KENNEY_CITY,'building-type-h.glb'],
  achuDepot:[KENNEY_CITY,'building-type-i.glb'],
+ cityA:[KENNEY_CITY,'building-type-a.glb'],
+ cityB:[KENNEY_CITY,'building-type-b.glb'],
+ cityC:[KENNEY_CITY,'building-type-c.glb'],
+ cityD:[KENNEY_CITY,'building-type-d.glb'],
+ cityE:[KENNEY_CITY,'building-type-e.glb'],
+ cityG:[KENNEY_CITY,'building-type-g.glb'],
+ cityJ:[KENNEY_CITY,'building-type-j.glb'],
+ cityL:[KENNEY_CITY,'building-type-l.glb'],
+ cityN:[KENNEY_CITY,'building-type-n.glb'],
+ cityS:[KENNEY_CITY,'building-type-s.glb'],
+ cityU:[KENNEY_CITY,'building-type-u.glb'],
  carVan:[KENNEY_CARS,'van.glb'],
  carDelivery:[KENNEY_CARS,'delivery.glb'],
  carSedan:[KENNEY_CARS,'sedan.glb'],
@@ -75,6 +84,7 @@ const fbxFiles={
  userTrees:[USER_TREES,'Trees.fbx']
 }
 export const USER_CAR_KEYS=['userBeatall','userLandy','userToyoyo','userTristar','userDoc']
+export const CITY_BUILDING_KEYS=['cityA','cityB','cityC','cityD','cityE','cityG','cityJ','cityL','cityN','cityS','cityU','achuOffice','achuClient','achuStudio','achuSmallOffice']
 
 function prep(root){
  root.traverse(o=>{
@@ -115,21 +125,9 @@ async function loadFbx(base,file){const root=await fbx.loadAsync(encodeURI(`${ba
 async function loadCharacter(){const asset=await gltf.loadAsync(CHARACTER);prep(asset.scene);return asset}
 async function loadAnimations(){return gltf.loadAsync(ANIMATIONS)}
 function hasMesh(o){let yes=false;o?.traverse?.(x=>{if(x.isMesh)yes=true});return yes}
-function plausibleTree(o){
- try{const b=new THREE.Box3().setFromObject(o),s=b.getSize(new THREE.Vector3()),h=s.y,w=Math.max(s.x,s.z);return Number.isFinite(h)&&h>.001&&w>.001&&h/w>.65&&h/w<7}catch{return false}
-}
-function findTreeVariants(root){
- const direct=(root.children??[]).filter(hasMesh),nested=direct.length<=1?(direct[0]?.children??[]).filter(hasMesh):[]
- const candidates=(nested.length>1?nested:direct).filter(plausibleTree)
- return candidates.length?candidates.slice(0,12):[root]
-}
-function normalizeTree(view,targetHeight=1.6){
- view.updateMatrixWorld(true);let b=new THREE.Box3().setFromObject(view),s=b.getSize(new THREE.Vector3())
- const scale=targetHeight/Math.max(.001,s.y);view.scale.multiplyScalar(scale);view.updateMatrixWorld(true)
- b=new THREE.Box3().setFromObject(view);const cx=(b.min.x+b.max.x)/2,cz=(b.min.z+b.max.z)/2
- view.position.x-=cx;view.position.z-=cz;view.position.y-=b.min.y
- return prep(view)
-}
+function plausibleTree(o){try{const b=new THREE.Box3().setFromObject(o),s=b.getSize(new THREE.Vector3()),h=s.y,w=Math.max(s.x,s.z);return Number.isFinite(h)&&h>.001&&w>.001&&h/w>.65&&h/w<7}catch{return false}}
+function findTreeVariants(root){const direct=(root.children??[]).filter(hasMesh),nested=direct.length<=1?(direct[0]?.children??[]).filter(hasMesh):[];const candidates=(nested.length>1?nested:direct).filter(plausibleTree);return candidates.length?candidates.slice(0,12):[root]}
+function normalizeTree(view,targetHeight=1.6){view.updateMatrixWorld(true);let b=new THREE.Box3().setFromObject(view),s=b.getSize(new THREE.Vector3());const scale=targetHeight/Math.max(.001,s.y);view.scale.multiplyScalar(scale);view.updateMatrixWorld(true);b=new THREE.Box3().setFromObject(view);const cx=(b.min.x+b.max.x)/2,cz=(b.min.z+b.max.z)/2;view.position.x-=cx;view.position.z-=cz;view.position.y-=b.min.y;return prep(view)}
 
 export class AssetBank{
  constructor(){this.models={};this.treeVariants=[];this.character=null;this.characterAnimations=[];this.ready=false}
@@ -144,30 +142,14 @@ export class AssetBank{
   gltfResult.forEach((result,i)=>{const [key,src]=ge[i];if(result.status==='fulfilled')this.models[key]=result.value;else console.warn(`GLTF failed: ${src[1]}`,result.reason)})
   fbxResult.forEach((result,i)=>{const [key,src]=fe[i];if(result.status==='fulfilled')this.models[key]=result.value;else console.warn(`FBX failed: ${src[1]}`,result.reason)})
   this.treeVariants=this.models.userTrees?findTreeVariants(this.models.userTrees):[]
-  if(characterResult[0]?.status==='fulfilled'){
-   this.character=characterResult[0].value.scene;this.characterAnimations=characterResult[0].value.animations??[]
-  }else console.warn('Clothed crew asset failed; using fallback crew',characterResult[0]?.reason)
+  if(characterResult[0]?.status==='fulfilled'){this.character=characterResult[0].value.scene;this.characterAnimations=characterResult[0].value.animations??[]}else console.warn('Clothed crew asset failed; using fallback crew',characterResult[0]?.reason)
   if(!this.characterAnimations.length&&animationResult[0]?.status==='fulfilled')this.characterAnimations=animationResult[0].value.animations??[]
   else if(!this.characterAnimations.length)console.warn('Humanoid animation library failed',animationResult[0]?.reason)
   this.ready=true;return this
  }
  clone(name){const src=this.models[name];return src?prep(cloneMaterials(src.clone(true))):placeholder(name)}
  cloneCar(index=0){const key=USER_CAR_KEYS[Math.abs(index)%USER_CAR_KEYS.length],src=this.models[key];return src?prep(cloneMaterials(src.clone(true))):this.clone('carSedan')}
- cloneTree(index=0,targetHeight=1.6){
-  const src=this.treeVariants?.length?this.treeVariants[Math.abs(index)%this.treeVariants.length]:null
-  return src?normalizeTree(cloneMaterials(src.clone(true)),targetHeight):normalizeTree(placeholder('tree'),targetHeight)
- }
- cloneCharacter(){
-  if(!this.character)return null
-  const root=prep(cloneSkeleton(this.character));root.updateMatrixWorld(true)
-  const box=new THREE.Box3().setFromObject(root),size=box.getSize(new THREE.Vector3()),height=Math.max(.01,size.y)
-  root.scale.setScalar(1.48/height);root.updateMatrixWorld(true)
-  const fitted=new THREE.Box3().setFromObject(root);root.position.y-=fitted.min.y
-  root.userData.realCrew=true;root.userData.clothedWorker=true
-  return root
- }
- characterClip(preferred='walk'){
-  const clips=this.characterAnimations??[]
-  return clips.find(c=>c.name.toLowerCase().includes(preferred))||clips.find(c=>c.name.toLowerCase().includes('idle'))||clips[0]||null
- }
+ cloneTree(index=0,targetHeight=1.6){const src=this.treeVariants?.length?this.treeVariants[Math.abs(index)%this.treeVariants.length]:null;return src?normalizeTree(cloneMaterials(src.clone(true)),targetHeight):normalizeTree(placeholder('tree'),targetHeight)}
+ cloneCharacter(){if(!this.character)return null;const root=prep(cloneSkeleton(this.character));root.updateMatrixWorld(true);const box=new THREE.Box3().setFromObject(root),size=box.getSize(new THREE.Vector3()),height=Math.max(.01,size.y);root.scale.setScalar(1.48/height);root.updateMatrixWorld(true);const fitted=new THREE.Box3().setFromObject(root);root.position.y-=fitted.min.y;root.userData.realCrew=true;root.userData.clothedWorker=true;return root}
+ characterClip(preferred='walk'){const clips=this.characterAnimations??[];return clips.find(c=>c.name.toLowerCase().includes(preferred))||clips.find(c=>c.name.toLowerCase().includes('idle'))||clips[0]||null}
 }

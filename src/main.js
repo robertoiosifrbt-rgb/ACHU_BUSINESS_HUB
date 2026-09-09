@@ -7,14 +7,13 @@ import './game3d/dialogue-v5.css'
 import './game3d/palette-v6.css'
 import { VisualBusinessGame } from './game3d/VisualBusinessGame.js'
 
-export const APP_VERSION='7.0.0-zero-rebuild'
+export const APP_VERSION='8.0.0-full-rebuild'
 const mount=document.querySelector('#app')
 const game=new VisualBusinessGame(mount)
 try{await game.start()}catch(e){
  console.error('ACHU Business Hub startup failed:',e)
  document.body.innerHTML+=`<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;background:#07141a;padding:20px;border:1px solid #64e5ba55;border-radius:14px;max-width:85%;text-align:center;z-index:1000"><h2>Game Error</h2><p>${e.message}</p></div>`
 }
-
 async function registerUpdater(){
  if(!('serviceWorker' in navigator))return null
  const base=import.meta.env.BASE_URL
