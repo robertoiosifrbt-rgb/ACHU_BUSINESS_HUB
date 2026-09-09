@@ -7,7 +7,7 @@ import './game3d/dialogue-v5.css'
 import './game3d/palette-v6.css'
 import { VisualBusinessGame } from './game3d/VisualBusinessGame.js'
 
-export const APP_VERSION='6.1.0-city-street-graph'
+export const APP_VERSION='6.2.0-creative-3d-city'
 const mount=document.querySelector('#app')
 const game=new VisualBusinessGame(mount)
 try{await game.start()}catch(e){
