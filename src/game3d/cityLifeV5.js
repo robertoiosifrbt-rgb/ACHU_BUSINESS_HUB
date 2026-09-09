@@ -1,40 +1,11 @@
 import * as THREE from 'three'
 
+const ROAD_TILE=3.2
+const ROAD_INDEX_MIN=-4
+const ROAD_INDEX_MAX=4
+const ROAD_LINES=[-12.8,-6.4,0,6.4,12.8]
 const mat=(color,roughness=.82,metalness=.02)=>new THREE.MeshStandardMaterial({color,roughness,metalness})
 const box=(w,h,d,m)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.receiveShadow=true;o.castShadow=true;return o}
-
-function segment(parent,a,b,width=2.1){
- const [x1,z1]=a,[x2,z2]=b,dx=x2-x1,dz=z2-z1,len=Math.hypot(dx,dz),rot=Math.atan2(dx,dz),mx=(x1+x2)/2,mz=(z1+z2)/2
- const road=box(width,.055,len,mat(0x232c2f,.99,.03));road.position.set(mx,.018,mz);road.rotation.y=rot;parent.add(road)
- const nx=-dz/len,nz=dx/len
- for(const side of[-1,1]){
-  const walk=box(.5,.075,len,mat(0x839087,.96));walk.position.set(mx+nx*side*(width/2+.3),.035,mz+nz*side*(width/2+.3));walk.rotation.y=rot;parent.add(walk)
- }
- const dashCount=Math.max(2,Math.floor(len/2.2))
- for(let i=0;i<dashCount;i++){
-  if(i%2)continue
-  const t=(i+.5)/dashCount,d=.6
-  const mark=box(.07,.018,d,mat(0xc6c8bd,.75));mark.position.set(x1+dx*t,.055,z1+dz*t);mark.rotation.y=rot;parent.add(mark)
- }
- return {a,b,width}
-}
-
-function crosswalk(parent,x,z,rot=0){
- for(let i=-3;i<=3;i++){
-  const stripe=box(.17,.022,1.8,mat(0xd2d4ca,.72));stripe.position.set(x+i*.31,.065,z);stripe.rotation.y=rot;parent.add(stripe)
- }
-}
-
-function lamp(parent,x,z){
- const g=new THREE.Group(),pole=new THREE.Mesh(new THREE.CylinderGeometry(.035,.045,1.55,10),mat(0x293537,.5,.35));pole.position.y=.78;g.add(pole)
- const arm=box(.42,.035,.035,mat(0x293537,.5,.35));arm.position.set(.18,1.52,0);g.add(arm)
- const light=new THREE.Mesh(new THREE.SphereGeometry(.08,10,8),new THREE.MeshStandardMaterial({color:0xffd98a,emissive:0xffc65b,emissiveIntensity:.65,roughness:.4}));light.position.set(.38,1.49,0);g.add(light);g.position.set(x,0,z);parent.add(g)
-}
-
-function planter(parent,x,z){
- const pot=new THREE.Mesh(new THREE.CylinderGeometry(.28,.34,.34,12),mat(0x536159,.9));pot.position.set(x,.17,z);parent.add(pot)
- const bush=new THREE.Mesh(new THREE.IcosahedronGeometry(.38,1),mat(0x2e6549,.94));bush.scale.y=.8;bush.position.set(x,.62,z);parent.add(bush)
-}
 
 function fallbackVehicle(){
  const g=new THREE.Group(),body=box(.68,.34,1.12,mat(0x397f68,.44,.12));body.position.y=.3;g.add(body)
@@ -55,17 +26,52 @@ function vehicle(parent,bank,key='carVan',targetLength=1.2){
  const view=bank?.models?.[key]?bank.clone(key):fallbackVehicle();fitVehicle(view,targetLength);parent.add(view);return view
 }
 
+function fitRoad(view){
+ view.updateMatrixWorld(true)
+ const b=new THREE.Box3().setFromObject(view),s=b.getSize(new THREE.Vector3()),scale=ROAD_TILE/Math.max(.001,Math.max(s.x,s.z))
+ view.scale.multiplyScalar(scale);view.updateMatrixWorld(true)
+ const after=new THREE.Box3().setFromObject(view),cx=(after.min.x+after.max.x)/2,cz=(after.min.z+after.max.z)/2
+ view.position.x-=cx;view.position.z-=cz;view.position.y-=after.min.y
+ return view
+}
+
+function roadTile(parent,bank,key,x,z,rot=0){
+ const view=fitRoad(bank?.models?.[key]?bank.clone(key):bank?.clone?.('roadStraight')??new THREE.Group())
+ view.position.x+=x;view.position.z+=z;view.position.y+=.015;view.rotation.y=rot;parent.add(view);return view
+}
+
+function buildRoadGrid(parent,bank){
+ for(let iz=ROAD_INDEX_MIN;iz<=ROAD_INDEX_MAX;iz++)for(let ix=ROAD_INDEX_MIN;ix<=ROAD_INDEX_MAX;ix++){
+  const roadX=ix%2===0,roadZ=iz%2===0
+  if(!roadX&&!roadZ)continue
+  const x=ix*ROAD_TILE,z=iz*ROAD_TILE
+  if(roadX&&roadZ){roadTile(parent,bank,'roadCrossroad',x,z);continue}
+  const nearCentreCrossing=(iz===0&&Math.abs(ix)===1)||(ix===0&&Math.abs(iz)===1)
+  const key=nearCentreCrossing?'roadCrossing':'roadStraight'
+  roadTile(parent,bank,key,x,z,roadZ?Math.PI/2:0)
+ }
+}
+
+function curbLight(parent,bank,x,z,rot=0){
+ if(!bank?.models?.roadLight)return
+ const v=bank.clone('roadLight');v.scale.setScalar(2.7);v.position.set(x,.04,z);v.rotation.y=rot;parent.add(v)
+}
+
+function centralSignals(parent,bank){
+ if(!bank?.models?.roadTrafficLight)return
+ const positions=[[-1.18,-1.18,0],[1.18,-1.18,Math.PI/2],[1.18,1.18,Math.PI],[-1.18,1.18,-Math.PI/2]]
+ for(const [x,z,r] of positions){const v=bank.clone('roadTrafficLight');v.scale.setScalar(2.5);v.position.set(x,.04,z);v.rotation.y=r;parent.add(v)}
+}
+
 function parking(parent,bank,x,z,rot=0){
- const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=rot
- const pad=box(4.4,.035,2.5,mat(0x343e40,.98));pad.position.y=.015;g.add(pad)
- for(let i=-2;i<=2;i++){const line=box(.045,.02,2.2,mat(0xbfc1b6,.75));line.position.set(i*.82,.04,0);g.add(line)}
- const a=vehicle(g,bank,'carSedan',1.25);a.position.set(-1.2,.04,.1);a.rotation.y=Math.PI/2
- const b=vehicle(g,bank,'carVan',1.35);b.position.set(.45,.04,-.1);b.rotation.y=Math.PI/2
+ const g=new THREE.Group();g.position.set(x,.07,z);g.rotation.y=rot
+ const pad=box(2.78,.035,2.72,mat(0x30383a,.98));pad.position.y=.015;pad.castShadow=false;g.add(pad)
+ for(let i=-1;i<=2;i++){const line=box(.035,.018,2.25,mat(0xb8bbb0,.75));line.position.set(-1.02+i*.68,.04,0);line.castShadow=false;g.add(line)}
+ const a=vehicle(g,bank,'carSedan',1.08);a.position.set(-.68,.04,.08);a.rotation.y=0
+ const b=vehicle(g,bank,'carVan',1.18);b.position.set(.68,.04,-.04);b.rotation.y=0
  parent.add(g)
 }
 
-// Piecewise straight routes deliberately follow the street/sidewalk geometry.
-// Catmull-Rom was removed because it cut corners through plots and buildings.
 function polyline(points,closed=true){
  const pts=points.map(([x,z])=>new THREE.Vector3(x,0,z)),path=new THREE.CurvePath()
  for(let i=0;i<pts.length-1;i++)path.add(new THREE.LineCurve3(pts[i],pts[i+1]))
@@ -73,43 +79,42 @@ function polyline(points,closed=true){
  return path
 }
 
+// Sidewalk routes follow the edges of the Kenney road tiles; they never cross a lot.
 export const CAMPUS_WALK_ROUTES=[
- polyline([[-5.55,-4.05],[3.45,-4.05],[3.45,5.15],[-5.55,5.15]]),
- polyline([[3.45,-4.05],[6.15,-4.05],[6.15,-1.35],[3.45,-1.35]]),
- polyline([[-5.55,-4.05],[-2.85,-4.05],[-2.85,-1.35],[-5.55,-1.35]]),
- polyline([[-5.55,2.45],[-2.85,2.45],[-2.85,5.15],[-5.55,5.15]]),
- polyline([[3.45,2.45],[6.15,2.45],[6.15,5.15],[3.45,5.15]]),
- polyline([[-5.55,-8.38],[6.15,-8.38],[6.15,-4.05],[-5.55,-4.05]])
+ polyline([[-5.05,-6.4],[-5.05,6.4],[5.05,6.4],[5.05,-6.4]]),
+ polyline([[-7.75,-6.4],[-7.75,6.4],[-11.45,6.4],[-11.45,-6.4]]),
+ polyline([[7.75,-6.4],[7.75,6.4],[11.45,6.4],[11.45,-6.4]]),
+ polyline([[-6.4,-7.75],[6.4,-7.75],[6.4,-11.45],[-6.4,-11.45]]),
+ polyline([[-6.4,7.75],[6.4,7.75],[6.4,11.45],[-6.4,11.45]]),
+ polyline([[-1.35,-6.4],[-1.35,6.4],[1.35,6.4],[1.35,-6.4]])
 ]
 
 export function decorateCampus(root,bank){
- const g=new THREE.Group();g.name='v7-kenney-street-network'
- segment(g,[-14,-2.7],[13,-2.7],2.15)
- segment(g,[-13,3.8],[13,3.8],2.15)
- segment(g,[-4.2,-11],[-4.2,10.8],2.05)
- segment(g,[4.8,-11],[4.8,11],2.05)
- segment(g,[-10,-7.2],[10,-7.2],1.8)
- crosswalk(g,-4.2,-2.7,0);crosswalk(g,4.8,-2.7,0);crosswalk(g,-4.2,3.8,0);crosswalk(g,4.8,3.8,0)
- ;[[-6.1,-3.9],[-1.8,-3.9],[2.7,-3.9],[7,-3.9],[-6.1,5],[-1.8,5],[2.7,5],[7,5],[-5.45,.2],[6.05,.2]].forEach(([x,z])=>lamp(g,x,z))
- ;[[-2.5,.7],[2.6,.8],[-2.6,6.2],[2.9,-5.4]].forEach(([x,z])=>planter(g,x,z))
- parking(g,bank,-9.2,6.7,.06);parking(g,bank,9.1,7.3,-.08);parking(g,bank,8.5,-9.1,.02)
+ const g=new THREE.Group();g.name='v8-kenney-road-grid'
+ buildRoadGrid(g,bank)
+ centralSignals(g,bank)
+ ;[[-11.4,-4.9,0],[-7.8,4.9,Math.PI],[7.8,-4.9,0],[11.4,4.9,Math.PI],[-4.9,-11.4,Math.PI/2],[4.9,-7.8,-Math.PI/2],[-4.9,11.4,Math.PI/2],[4.9,7.8,-Math.PI/2]].forEach(([x,z,r])=>curbLight(g,bank,x,z,r))
+ // Parking lives only in deliberately empty building plots.
+ parking(g,bank,-3.2,-9.6,0);parking(g,bank,3.2,-9.6,0)
 
- const roadLoop=polyline([[-11.5,-2.7],[4.8,-2.7],[4.8,3.8],[-4.2,3.8],[-4.2,-7.2],[4.8,-7.2]])
- const innerLoop=polyline([[-4.2,-7.2],[4.8,-7.2],[4.8,3.8],[-4.2,3.8]])
+ const innerLoop=polyline([[-6.4,-6.4],[6.4,-6.4],[6.4,6.4],[-6.4,6.4]])
+ const outerLoop=polyline([[-12.8,-6.4],[12.8,-6.4],[12.8,6.4],[-12.8,6.4]])
+ const lowerLoop=polyline([[-6.4,-12.8],[6.4,-12.8],[6.4,0],[-6.4,0]])
  const traffic=[
-  {view:vehicle(g,bank,'carVan',1.25),curve:roadLoop,offset:.04,speed:.0000105},
-  {view:vehicle(g,bank,'carDelivery',1.45),curve:roadLoop,offset:.47,speed:.0000092},
-  {view:vehicle(g,bank,'carSuv',1.22),curve:innerLoop,offset:.74,speed:.0000100}
+  {view:vehicle(g,bank,'carVan',1.15),curve:innerLoop,offset:.04,speed:.0000105},
+  {view:vehicle(g,bank,'carDelivery',1.34),curve:outerLoop,offset:.38,speed:.0000088},
+  {view:vehicle(g,bank,'carSuv',1.12),curve:lowerLoop,offset:.71,speed:.0000097},
+  {view:vehicle(g,bank,'carSedan',1.08),curve:innerLoop,offset:.55,speed:.0000112}
  ]
- traffic.forEach(t=>{t.view.position.y=.075})
+ traffic.forEach(t=>{t.view.position.y=.095})
  root.add(g);return traffic
 }
 
 export function animateCampusTraffic(traffic,now){
  for(const t of traffic??[]){
   const u=(t.offset+now*t.speed)%1,p=t.curve.getPointAt(u),tan=t.curve.getTangentAt(u).normalize()
-  t.view.position.set(p.x,.075,p.z)
-  // Kenney cars use local +Z as the front of the vehicle.
+  t.view.position.set(p.x,.095,p.z)
+  // Kenney cars use local +Z as their front.
   t.view.rotation.y=Math.atan2(tan.x,tan.z)
  }
 }
