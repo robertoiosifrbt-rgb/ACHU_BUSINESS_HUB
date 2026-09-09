@@ -4,7 +4,7 @@ import './game3d/4x.css'
 import './game3d/story.css'
 import { Business4XGame } from './game3d/Business4XGame.js'
 
-export const APP_VERSION='4.2.0-4x'
+export const APP_VERSION='4.2.1-4x'
 const mount=document.querySelector('#app')
 const game=new Business4XGame(mount)
 try{await game.start()}catch(e){
