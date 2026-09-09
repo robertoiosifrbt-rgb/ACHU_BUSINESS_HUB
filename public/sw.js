@@ -1,4 +1,4 @@
-const CACHE='achu-business-hub-v10.0.0-v14-road-first';
+const CACHE='achu-business-hub-v10.1.0-v15-live';
 const BASE='/ACHU_BUSINESS_HUB/';
 const SHELL=[BASE,BASE+'manifest.webmanifest',BASE+'version.json',BASE+'icons/icon-192.png',BASE+'icons/icon-512.png'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL).catch(()=>{})));self.skipWaiting()});
