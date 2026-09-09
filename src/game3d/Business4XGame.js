@@ -45,7 +45,7 @@ export class Business4XGame extends Retro4XGame{
   if(this.scene.fog){this.scene.fog.color.setHex(0xc4d2cc);this.scene.fog.density=.009}
   this.controls.target.set(0,0,0)
   this.camera.position.set(this.mode==='world'?19:17,this.mode==='world'?26:21,this.mode==='world'?19:17)
-  this.camera.zoom=1;this.resize();this.ui.refresh()
+  this.camera.zoom=1;this.resize();this.ui.refresh();this.ui.maybeStartStory?.()
   window.addEventListener('pointerdown',()=>this.audio.unlock(),{once:true,capture:true})
   return this
  }
@@ -70,8 +70,7 @@ export class Business4XGame extends Retro4XGame{
    view.position.set(r.from[0],.02+groundOffset,r.from[1]);this.city.add(view)
    let mixer=null
    if(view.userData.realCrew&&clip){
-    mixer=new THREE.AnimationMixer(view)
-    const action=mixer.clipAction(clip);action.timeScale=.78+(i%3)*.06;action.play();mixer.update(i*.1)
+    try{mixer=new THREE.AnimationMixer(view);const action=mixer.clipAction(clip);action.timeScale=.78+(i%3)*.06;action.play();mixer.update(i*.1)}catch(e){console.warn('Crew walk animation unavailable; route movement still active',e);mixer=null}
    }
    this.workers.push({view,mixer,...r})
   })
@@ -106,21 +105,13 @@ export class Business4XGame extends Retro4XGame{
  focusBuilding(id){
   this.setMode('city');const p=buildingPosition4X(id);this.controls.target.copy(p);this.camera.position.set(p.x+11,15,p.z+11);this.ui?.toast(`${id==='furnace'?'Headquarters':'Division'} selected`)
  }
- rebuildCity(){
-  this.city?.removeFromParent();this.city=buildCity4X(this.assets,this.state);this.scene.add(this.city);this.city.visible=this.mode==='city';this.addWorkers()
- }
- resetGame(){
-  this.audio?.stopAmbient();this.state=resetState();location.reload()
- }
- toggleAudio(){const enabled=this.audio.toggle();this.ui?.toast(enabled?'Sound on':'Sound off');return enabled}
- upgradeBuilding(id){const before=this.state.construction;super.upgradeBuilding(id);if(!before&&this.state.construction)this.audio.build()}
+ rebuildCity(){this.city?.removeFromParent();this.city=buildCity4X(this.assets,this.state);this.scene.add(this.city);this.city.visible=this.mode==='city';this.addWorkers()}
+ resetGame(){this.audio?.stopAmbient();this.state=resetState();localStorage.removeItem('achu_story_guide_v2');location.reload()}
+ toggleAudio(){const enabled=this.audio.toggle();this.ui?.toast(enabled?'Music and sound on':'Music and sound off');return enabled}
+ upgradeBuilding(id){const before=this.state.construction;super.upgradeBuilding(id);if(!before&&this.state.construction){this.audio.build();this.ui?.toast('Story action started · watch the Queue timer')}}
  research(id){const before=this.state.researchJob;super.research(id);if(!before&&this.state.researchJob)this.audio.research()}
  dispatch(type,id,cost={}){const ok=super.dispatch(type,id,cost);if(ok)this.audio.dispatch(type);return ok}
  claimChapter(chapter){const before=chapter&&this.state.claimedChapters?.[chapter.id];super.claimChapter(chapter);if(chapter&&!before&&this.state.claimedChapters?.[chapter.id])this.audio.success()}
  trainTroops(type){const before=this.state.world.trainingJob;super.trainTroops(type);if(!before&&this.state.world.trainingJob)this.audio.build()}
- finishOutbound(m,now){
-  const type=m.type;super.finishOutbound(m,now)
-  if(type==='attack'){const win=this.state.world.battleReports?.[0]?.win;win?this.audio.success():this.audio.fail()}
-  else if(type==='scout'||type==='claim')this.audio.success()
- }
+ finishOutbound(m,now){const type=m.type;super.finishOutbound(m,now);if(type==='attack'){const win=this.state.world.battleReports?.[0]?.win;win?this.audio.success():this.audio.fail()}else if(type==='scout'||type==='claim')this.audio.success()}
 }

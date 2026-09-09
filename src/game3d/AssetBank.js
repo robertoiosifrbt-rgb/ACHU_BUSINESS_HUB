@@ -5,7 +5,7 @@ import { clone as cloneSkeleton } from 'three/examples/jsm/utils/SkeletonUtils.j
 const gltf=new GLTFLoader()
 const URBAN='https://raw.githubusercontent.com/ronmurphy/CityBuilder/37244cfa7e40f99cdde4690c13b63d0c98c89dfc/models/IGNORED/Retro%20Urban%20Kit/Models/GLB%20format'
 const DOWNTOWN='https://raw.githubusercontent.com/anshaneja5/skyline-run/main/public/assets/models'
-const CHARACTER='https://raw.githubusercontent.com/Seyamalam/blood-league-kickoff/main/public/assets/vendor/quaternius/night-striker.glb'
+const CHARACTER='https://raw.githubusercontent.com/euuuuuuan/fatal-funnel-public/main/packages/renderer/assets/models/quaternius-men/worker.glb'
 const ANIMATIONS='https://raw.githubusercontent.com/Seyamalam/blood-league-kickoff/main/public/assets/vendor/quaternius/universal-animation-library.glb'
 
 const files={
@@ -46,7 +46,7 @@ function placeholder(name){
 }
 
 async function loadModel(base,file){const asset=await gltf.loadAsync(`${base}/${file}`);return prep(asset.scene)}
-async function loadCharacter(){const asset=await gltf.loadAsync(CHARACTER);return prep(asset.scene)}
+async function loadCharacter(){const asset=await gltf.loadAsync(CHARACTER);prep(asset.scene);return asset}
 async function loadAnimations(){return gltf.loadAsync(ANIMATIONS)}
 
 export class AssetBank{
@@ -59,10 +59,12 @@ export class AssetBank{
    Promise.allSettled([loadAnimations()])
   ])
   modelsResult.forEach((result,i)=>{const [key,src]=entries[i];if(result.status==='fulfilled')this.models[key]=result.value;else console.warn(`3D asset failed: ${src[1]}`,result.reason)})
-  if(characterResult[0]?.status==='fulfilled')this.character=characterResult[0].value
-  else console.warn('Humanoid crew asset failed; using fallback crew',characterResult[0]?.reason)
-  if(animationResult[0]?.status==='fulfilled')this.characterAnimations=animationResult[0].value.animations??[]
-  else console.warn('Humanoid animation library failed',animationResult[0]?.reason)
+  if(characterResult[0]?.status==='fulfilled'){
+   this.character=characterResult[0].value.scene
+   this.characterAnimations=characterResult[0].value.animations??[]
+  }else console.warn('Clothed crew asset failed; using fallback crew',characterResult[0]?.reason)
+  if(!this.characterAnimations.length&&animationResult[0]?.status==='fulfilled')this.characterAnimations=animationResult[0].value.animations??[]
+  else if(!this.characterAnimations.length)console.warn('Humanoid animation library failed',animationResult[0]?.reason)
   this.ready=true;return this
  }
  clone(name){const src=this.models[name];return src?prep(src.clone(true)):placeholder(name)}
@@ -73,6 +75,7 @@ export class AssetBank{
   root.scale.setScalar(1.48/height);root.updateMatrixWorld(true)
   const fitted=new THREE.Box3().setFromObject(root);root.position.y-=fitted.min.y
   root.userData.realCrew=true
+  root.userData.clothedWorker=true
   return root
  }
  characterClip(preferred='walk'){
