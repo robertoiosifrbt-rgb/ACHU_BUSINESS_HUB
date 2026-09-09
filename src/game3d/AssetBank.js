@@ -35,15 +35,35 @@ const gltfFiles={
  roadCrossroad:[KENNEY_ROADS,'road-crossroad.glb'],
  roadCrossing:[KENNEY_ROADS,'road-crossing.glb'],
  roadIntersection:[KENNEY_ROADS,'road-intersection.glb'],
+ roadIntersectionPath:[KENNEY_ROADS,'road-intersection-path.glb'],
  roadBend:[KENNEY_ROADS,'road-bend.glb'],
+ roadBendSidewalk:[KENNEY_ROADS,'road-bend-sidewalk.glb'],
  roadEnd:[KENNEY_ROADS,'road-end.glb'],
+ roadEndRound:[KENNEY_ROADS,'road-end-round.glb'],
  roadRoundabout:[KENNEY_ROADS,'road-roundabout.glb'],
  roadCurve:[KENNEY_ROADS,'road-curve.glb'],
+ roadCurveIntersection:[KENNEY_ROADS,'road-curve-intersection.glb'],
  roadSplit:[KENNEY_ROADS,'road-split.glb'],
  roadDrivewaySingle:[KENNEY_ROADS,'road-driveway-single.glb'],
  roadDrivewayDouble:[KENNEY_ROADS,'road-driveway-double.glb'],
  roadSide:[KENNEY_ROADS,'road-side.glb'],
+ roadSideEntry:[KENNEY_ROADS,'road-side-entry.glb'],
+ roadSideExit:[KENNEY_ROADS,'road-side-exit.glb'],
+ roadBridge:[KENNEY_ROADS,'road-bridge.glb'],
+ roadSlant:[KENNEY_ROADS,'road-slant.glb'],
+ roadSlantHigh:[KENNEY_ROADS,'road-slant-high.glb'],
+ roadSlantFlat:[KENNEY_ROADS,'road-slant-flat.glb'],
+ bridgePillar:[KENNEY_ROADS,'bridge-pillar.glb'],
+ bridgePillarWide:[KENNEY_ROADS,'bridge-pillar-wide.glb'],
+ roadBarrier:[KENNEY_ROADS,'construction-barrier.glb'],
+ roadCone:[KENNEY_ROADS,'construction-cone.glb'],
+ roadFence:[KENNEY_ROADS,'construction-fence.glb'],
+ roadSignStop:[KENNEY_ROADS,'road-sign-stop.glb'],
+ roadSignWarning:[KENNEY_ROADS,'road-sign-warning.glb'],
+ roadSignStreet:[KENNEY_ROADS,'road-sign-street.glb'],
+ highwaySign:[KENNEY_ROADS,'sign-highway-wide.glb'],
  roadLight:[KENNEY_ROADS,'light-square.glb'],
+ roadLightCurved:[KENNEY_ROADS,'light-curved.glb'],
  roadTrafficLight:[KENNEY_ROADS,'traffic-light.glb']
 }
 const fbxFiles={
@@ -77,7 +97,7 @@ function cloneMaterials(root){
 }
 function placeholder(name){
  const g=new THREE.Group(),n=name.toLowerCase()
- if(n.includes('road')){
+ if(n.includes('road')||n.includes('bridge')){
   const road=new THREE.Mesh(new THREE.BoxGeometry(1,.04,1),new THREE.MeshStandardMaterial({color:0x313b3d,roughness:.98}));road.position.y=.02;g.add(road)
  }else if(n.includes('tree')){
   const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.1,.14,.7,7),new THREE.MeshStandardMaterial({color:0x654837,roughness:1}));trunk.position.y=.35;g.add(trunk)
