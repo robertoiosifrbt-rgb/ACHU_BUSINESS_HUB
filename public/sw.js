@@ -1,4 +1,4 @@
-const CACHE='achu-business-hub-v6.1.0-city-street-graph';
+const CACHE='achu-business-hub-v6.2.0-creative-3d-city';
 const BASE='/ACHU_BUSINESS_HUB/';
 const SHELL=[BASE,BASE+'manifest.webmanifest',BASE+'version.json',BASE+'icons/icon-192.png',BASE+'icons/icon-512.png'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL).catch(()=>{})));self.skipWaiting()});
