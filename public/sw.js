@@ -1,4 +1,4 @@
-const CACHE='achu-business-hub-v6.2.1-ios-safe-area';
+const CACHE='achu-business-hub-v6.3.0-city-districts';
 const BASE='/ACHU_BUSINESS_HUB/';
 const SHELL=[BASE,BASE+'manifest.webmanifest',BASE+'version.json',BASE+'icons/icon-192.png',BASE+'icons/icon-512.png'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL).catch(()=>{})));self.skipWaiting()});
