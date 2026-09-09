@@ -1,5 +1,6 @@
 const KEY='build_strategy_v13_furnace_first'
 const LEGACY_KEYS=['build_strategy_v04','build_strategy_v03','build_strategy_v02','build_strategy_backup']
+const MANUAL_RESET_BACKUP='build_strategy_manual_reset_backup'
 export const DEMO_SPEED=120
 const MAP_VERSION=2
 const SHIFT=5
@@ -59,7 +60,9 @@ export function loadState(){
 export function saveState(s){s.lastSavedAt=Date.now();localStorage.setItem(KEY,JSON.stringify(s))}
 export function resetState(){
  const current=parse(KEY)
- if(current)try{localStorage.setItem('build_strategy_backup',JSON.stringify(current))}catch{}
- localStorage.removeItem(KEY)
- return defaultState()
+ if(current)try{localStorage.setItem(MANUAL_RESET_BACKUP,JSON.stringify({savedAt:Date.now(),state:current}))}catch{}
+ for(const k of[KEY,...LEGACY_KEYS])localStorage.removeItem(k)
+ const fresh=defaultState()
+ try{localStorage.setItem(KEY,JSON.stringify(fresh))}catch{}
+ return fresh
 }
