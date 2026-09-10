@@ -7,36 +7,13 @@ import './game3d/dialogue-v5.css'
 import './game3d/palette-v6.css'
 import { VisualBusinessGame } from './game3d/VisualBusinessGame.js'
 
-export const APP_VERSION='12.0.1-v17-geolocation'
+export const APP_VERSION='12.0.0-v17-solid-city'
 const mount=document.querySelector('#app')
 const game=new VisualBusinessGame(mount)
 try{await game.start()}catch(e){
  console.error('ACHU Business Hub startup failed:',e)
  document.body.innerHTML+=`<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;background:#07141a;padding:20px;border:1px solid #64e5ba55;border-radius:14px;max-width:85%;text-align:center;z-index:1000"><h2>Game Error</h2><p>${e.message}</p></div>`
 }
-function capturePlayerLocation(){
- if(!('geolocation' in navigator))return
- navigator.geolocation.getCurrentPosition(
-  ({coords})=>{
-   const location={
-    latitude:Number(coords.latitude.toFixed(5)),
-    longitude:Number(coords.longitude.toFixed(5)),
-    accuracy:Math.round(coords.accuracy),
-    capturedAt:Date.now()
-   }
-   window.playerLocation=location
-   if(game?.state)game.state.playerLocation=location
-   try{localStorage.setItem('achu_player_location_v1',JSON.stringify(location))}catch{}
-   game?.ui?.toast?.('Location enabled')
-  },
-  (error)=>{
-   console.info('Location not available:',error.message)
-   game?.ui?.toast?.('Location not shared')
-  },
-  {enableHighAccuracy:true,timeout:12000,maximumAge:300000}
- )
-}
-if(game?.state)setTimeout(capturePlayerLocation,500)
 async function registerUpdater(){
  if(!('serviceWorker' in navigator))return null
  const base=import.meta.env.BASE_URL
